@@ -109,7 +109,7 @@ our $path_grammar = qr{
 }x;
 
 sub parse {
-    my ( $expr ) = @_;
+    my ($expr) = @_;
     if ( $expr =~ $path_grammar ) {
         return \%/;
     }
@@ -119,9 +119,8 @@ sub parse {
 }
 
 our $not_precedence = { map { $_ => 1 } qw(not_cnd term group) };
-our $and_precedence = { map { $_ => 1 } qw(and_cnd not_cnd term group) };
-our $xor_precedence =
-  { map { $_ => 1 } qw(xor_cnd and_cnd not_cnd term group) };
+our $and_precedence = { 'and_cnd' => 1, %$not_precedence };
+our $xor_precedence = { 'xor_cnd' => 1, %$and_precedence };
 
 # true if the children of the relevant logical operator are not
 # licensed by its precedence
