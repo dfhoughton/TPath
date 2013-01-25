@@ -6,107 +6,127 @@ use strict;
 use warnings;
 
 use parent qw(Exporter);
-our @EXPORT = qw(parse);
+our @EXPORT_OK = qw(parse %AXES);
 
 use Carp;
-use Regexp::Grammars;
 
-our $path_grammar = qr{
+our %AXES = map { $_ => 1 } qw(
+    ancestor
+    ancestor-or-self
+    child
+    descendant
+    descendant-or-self
+    following
+    following-sibling
+    leaf
+    parent
+    preceding
+    preceding-sibling
+    self
+    sibling
+    sibling-or-self
+);
 
-^ <treepath> $
-
-<nocontext:>
-
-   <rule: treepath> <[path]> (?: \| <[path]> )*
-
-   <token: path> <[segment=first_step]> <[segment=subsequent_step]>*
-
-   <token: first_step> <separator>? <step>
-
-   <token: id> id\( ( (?:[^\)\\]|\\.)++ ) \) (?{ $MATCH=$^N })
-
-   <token: subsequent_step> <separator> <step>
-
-   <token: separator> \/[\/>]?
-
-   <token: step> (?: <full> | <abbreviated> ) <[predicate]>*
-
-   <token: full> <axis>? <forward>
-
-   <token: axis> (?<!/) (?<!/>) <axis_name> ::
-
-   <token: axis_name>
-      (?>s(?>ibling(?>-or-self)?+|elf)|p(?>receding(?>-sibling)?+|arent)|leaf|following(?>-sibling)?+|descendant(?>-or-self)?+|child|ancestor(?>-or-self)?+)
-
-   <token: abbreviated> (?<!//) (?<!/>) (?: \.{1,2} | <id> )
-
-   <token: forward> <wildcard> | <specific> | <pattern>
-
-   <token: wildcard> \*
-
-   <token: specific> (?:\\.|[\p{L}\$_])(?:[\p{L}\$\p{N}_]|[-:](?=[\p{L}_\$\p{N}])|\\.)*+
-
-   <token: pattern> ~(?:[^~]|~~)++~
-
-   <token: aname>
-      @ ( (?:[\p{L}_$ ]|\\.)(?:[\p{L}_$ \p{N}]|[-:](?=[\p{L}_\p{N}])|\\.)*+ )
-      (?{ $MATCH = $^N; $MATCH =~ s/\\(.)/$1/g })
-
-   <rule: attribute> <aname> <args>?
-
-   <rule: args> \( <[arg]> (?: ,  <[arg]> )* \)
-
-   <token: arg> <treepath> | <literal> | <num> | <attribute> | <attribute_test> | <condition>
-
-   <token: num> <.signed_int> | <.float>
-
-   <token: signed_int> [+-]?+ <.int>   
-
-   <token: float> [+-]?+ <.int>? \.\d++ (?: [Ee][+-]?+ <.int> )?+
-
-   <token: literal>
-      ( <.squote> | <.dquote> )
-      (?{ $MATCH =~ s/^.(.*).$/$1/; $MATCH =~ s/\\(.)/$1/g })
-
-   <token: squote> '(?:[^']|\\.)*+'   
-
-   <token: dquote> "(?:[^\"]|\\.)*+"   
-
-   <rule: predicate>
-      \[ (?: <idx=signed_int> | <condition> ) \]
-
-   <token: int> \b(?:0|[1-9][0-9]*+)\b
-
-   <token: condition> 
-      <term> | <not_cnd> | <or_cnd> | <and_cnd> | <xor_cnd> | <group>
-
-   <token: term> 
-      <attribute> | <attribute_test> | <treepath>
-
-   <rule: attribute_test>
-      <attribute> <cmp> <value> | <value> <cmp> <attribute>
-
-   <token: cmp> [<>=]=?|!=
-
-   <token: value> <literal> | <num> | <attribute>
-
-   <rule: group> \( <condition> \)
-
-   <rule: not_cnd>
-      !|(?<!\/)\bnot\b(?!\/) <[condition]>
-      <require: (?{ not_precedence($MATCH{condition}) }) >
-
-   <rule: or_cnd>
-      <[condition]> (?: \|{2}|(?<!/)\bor\b(?!/) <[condition]> )+
-
-   <rule: and_cnd>
-      <[condition]> (?: &|(?<!/)\band\b(?!/) <[condition]> )+
-      <require: (?{ and_precedence($MATCH{condition}) }) >
-
-   <rule: xor_cnd>
-      <[condition]> (?: ^|(?<!/)\bxor\b(?!/) <[condition]> )+
-      <require: (?{ xor_precedence($MATCH{condition}) }) >
-}x;
+our $path_grammar = do {
+    use Regexp::Grammars;
+    qr{
+    <logfile: /tmp/rx.log>
+    <nocontext:>
+    <timeout: 1>
+    
+    ^ <treepath> $
+    
+       <rule: treepath> <[path]> (?> \| <[path]> )*
+    
+       <token: path> <[segment=first_step]> <[segment=subsequent_step]>*
+    
+       <token: first_step> <separator>? <step>
+    
+       <token: id> id\( ( (?>[^\)\\]|\\.)++ ) \) (?{ $MATCH=$^N })
+    
+       <token: subsequent_step> <separator> <step>
+    
+       <token: separator> \/[\/>]?+
+    
+       <token: step> (?: <full> | <abbreviated> ) <[predicate]>*
+    
+       <token: full> <axis>? <forward>
+    
+       <token: axis> (?<!/) (?<!/>) <%AXES> ::
+    
+       <token: abbreviated> (?<!//) (?<!/>) (?> \.{1,2}+ | <id> )
+    
+       <token: forward> (?> <wildcard> | <specific> | <pattern> )
+    
+       <token: wildcard> \*
+    
+       <token: specific> (?>\\.|[\\\p{L}\$_])(?>[\\\p{L}\$\p{N}_]|[-:](?=[\\`\p{L}_\$\p{N}])|\\.)*+
+    
+       <token: pattern>
+          (~(?>[^~]|~~)++~)
+          (?{ $MATCH = clean_pattern($^N) })
+    
+       <token: aname>
+          @ ( (?>[\\\p{L}_\$]|\\.)(?>[\p{L}_\$\p{N}]|[-:](?=[\\\p{L}_\p{N}])|\\.)*+ )
+          (?{ ( $MATCH = $^N ) =~ s/\\(.)/$1/g })
+    
+       <rule: attribute> <aname> <args>?
+    
+       <rule: args> \( (*COMMIT) <[arg]> (?> ,  <[arg]> )* \)
+    
+       <token: arg>
+          (?: <treepath> | <literal> | <num> | <attribute> | <attribute_test> | <condition> )
+    
+       <token: num> <.signed_int> | <.float>
+    
+       <token: signed_int> [+-]?+ <.int>   
+    
+       <token: float> [+-]?+ <.int>? \.\d++ (?: [Ee][+-]?+ <.int> )?+
+    
+       <token: literal>
+          ((?> <.squote> | <.dquote> ))
+          (?{ $MATCH = clean_literal($^N) })
+    
+       <token: squote> ' (*COMMIT) (?>[^'\\]|\\.)*+ '
+    
+       <token: dquote> " (*COMMIT) (?>[^"\\]|\\.)*+ "   
+    
+       <rule: predicate>
+          \[ (?: <idx=signed_int> | <condition> ) \]
+    
+       <token: int> \b(?:0|[1-9][0-9]*+)\b
+    
+       <token: condition> 
+          (?: <term> | <group> | <not_cnd> | <or_cnd> | <and_cnd> | <xor_cnd> )
+    
+       <token: term> 
+          (?: <attribute> | <attribute_test> | <treepath> )
+    
+       <rule: attribute_test>
+          <attribute> <cmp> <value> | <value> <cmp> <attribute>
+    
+       <token: cmp> [<>=]=?+|!=
+    
+       <token: value> <literal> | <num> | <attribute>
+    
+       <rule: group> \( <condition> \)
+    
+       <rule: not_cnd>
+          (?: ! | (?<!\/)\bnot\b(?!\/) ) <[condition]>
+          <require: (?{ not_precedence($MATCH{condition}) }) >
+    
+       <rule: or_cnd>
+          <[condition]> (?: (?: \|{2} | (?<!/)\bor\b(?!/) ) <[condition]> )+
+    
+       <rule: and_cnd>
+          <[condition]> (?: (?: & | (?<!/)\band\b(?!/) ) <[condition]> )+
+          <require: (?{ and_precedence($MATCH{condition}) }) >
+    
+       <rule: xor_cnd>
+          <[condition]> (?: (?: ^ | (?<!/)\bxor\b(?!/) ) <[condition]> )+
+          <require: (?{ xor_precedence($MATCH{condition}) }) >
+    }x;
+};
 
 sub parse {
     my ($expr) = @_;
@@ -143,6 +163,20 @@ sub and_precedence {
 
 sub xor_precedence {
     precedence_test( $xor_precedence, @_ );
+}
+
+sub clean_literal {
+    my $m = shift;
+    $m = substr $m, 1, -1;
+    $m =~ s/\\(.)/$1/g;
+    return $m;
+}
+
+sub clean_pattern {
+    my $m = shift;
+    $m = substr $m, 1, -1;
+    $m =~ s/~~/~/g;
+	return $m;
 }
 
 1;
