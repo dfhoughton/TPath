@@ -36,7 +36,7 @@ our $path_grammar = do {
     
     ^ <treepath> $
     
-       <rule: treepath> <[path]> (?> \| <[path]> )*
+       <rule: treepath> <[path]> (?> \| (*COMMIT) <[path]> )*
     
        <token: path> <[segment=first_step]> <[segment=subsequent_step]>*
     
@@ -46,13 +46,13 @@ our $path_grammar = do {
     
        <token: subsequent_step> <separator> <step>
     
-       <token: separator> \/[\/>]?+
+       <token: separator> \/[\/>]?+ (*COMMIT)
     
        <token: step> (?: <full> | <abbreviated> ) <[predicate]>*
     
        <token: full> <axis>? <forward>
     
-       <token: axis> (?<!/) (?<!/>) <%AXES> ::
+       <token: axis> (?<!/) (?<!/>) <%AXES> :: (*COMMIT)
     
        <token: abbreviated> (?<!//) (?<!/>) (?> \.{1,2}+ | <id> )
     
@@ -60,22 +60,22 @@ our $path_grammar = do {
     
        <token: wildcard> \*
     
-       <token: specific> (?>\\.|[\\\p{L}\$_])(?>[\\\p{L}\$\p{N}_]|[-:](?=[\\`\p{L}_\$\p{N}])|\\.)*+
+       <token: specific> (?>\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-:](?=[\p{L}_\$\p{N}])|\\.)*+
     
        <token: pattern>
           (~(?>[^~]|~~)++~)
           (?{ $MATCH = clean_pattern($^N) })
     
        <token: aname>
-          @ ( (?>[\\\p{L}_\$]|\\.)(?>[\p{L}_\$\p{N}]|[-:](?=[\\\p{L}_\p{N}])|\\.)*+ )
+          @ ( (?>[\p{L}_\$]|\\.)(?>[\p{L}_\$\p{N}]|[-:](?=[\p{L}_\p{N}])|\\.)*+ )
           (?{ ( $MATCH = $^N ) =~ s/\\(.)/$1/g })
     
        <rule: attribute> <aname> <args>?
     
-       <rule: args> \( (*COMMIT) <[arg]> (?> ,  <[arg]> )* \)
+       <rule: args> \( (*COMMIT) <[arg]> (?> ,  <[arg]> )* \) (*COMMIT)
     
        <token: arg>
-          (?: <treepath> | <literal> | <num> | <attribute> | <attribute_test> | <condition> )
+          <treepath> | <literal> | <num> | <attribute> | <attribute_test> | <condition>
     
        <token: num> <.signed_int> | <.float>
     
@@ -92,12 +92,12 @@ our $path_grammar = do {
        <token: dquote> " (*COMMIT) (?>[^"\\]|\\.)*+ "   
     
        <rule: predicate>
-          \[ (?: <idx=signed_int> | <condition> ) \]
+          \[ (*COMMIT) (?: <idx=signed_int> | <condition> ) \]
     
        <token: int> \b(?:0|[1-9][0-9]*+)\b
     
        <token: condition> 
-          (?: <term> | <group> | <not_cnd> | <or_cnd> | <and_cnd> | <xor_cnd> )
+          <term> | <group> | <not_cnd> | <or_cnd> | <and_cnd> | <xor_cnd>
     
        <token: term> 
           (?: <attribute> | <attribute_test> | <treepath> )
