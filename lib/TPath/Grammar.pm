@@ -41,7 +41,9 @@ our $path_grammar = do {
     
        <token: first_step> <separator>? <step>
     
-       <token: id> id\( ( (?>[^\)\\]|\\.)++ ) \) (?{ $MATCH=$^N })
+       <token: id>
+          id\( ( (?>[^\)\\]|\\.)++ ) \)
+          (?{ $MATCH=clean_escapes($^N) })
     
        <token: subsequent_step> <separator> <step>
     
@@ -53,13 +55,15 @@ our $path_grammar = do {
     
        <token: axis> (?<!/) (?<!/>) <%AXES> :: (*COMMIT)
     
-       <token: abbreviated> (?<!//) (?<!/>) (?> \.{1,2}+ | <id> )
+       <token: abbreviated> (?<!//) (?<!/>) (?: \.{1,2}+ | <id> )
     
-       <token: forward> (?> <wildcard> | <specific> | <pattern> )
+       <token: forward> <wildcard> | <specific> | <pattern>
     
        <token: wildcard> \*
     
-       <token: specific> (?>\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-:](?=[\p{L}_\$\p{N}])|\\.)*+
+       <token: specific>
+          ((?>\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-:](?=[\p{L}_\$\p{N}])|\\.)*+)
+          (?{ $MATCH = clean_escapes($^N) })
     
        <token: pattern>
           (~(?>[^~]|~~)++~)
@@ -67,11 +71,11 @@ our $path_grammar = do {
     
        <token: aname>
           @ ( (?>[\p{L}_\$]|\\.)(?>[\p{L}_\$\p{N}]|[-:](?=[\p{L}_\p{N}])|\\.)*+ )
-          (?{ ( $MATCH = $^N ) =~ s/\\(.)/$1/g })
+          (?{ $MATCH = clean_escapes($^N ) })
     
        <rule: attribute> <aname> <args>?
     
-       <rule: args> \( (*COMMIT) <[arg]> (?> ,  <[arg]> )* \) (*COMMIT)
+       <rule: args> \( (*COMMIT) <[arg]> (?: ,  <[arg]> )* \) (*COMMIT)
     
        <token: arg>
           <treepath> | <literal> | <num> | <attribute> | <attribute_test> | <condition>
@@ -216,7 +220,7 @@ sub operator_precedence {
                     if ( !ref $_ && /^!++$/ ) { ( my $s = $_ ) =~ s/..//g; $s }
                     else                      { $_ }
                 } @ar;
-				$ref->{$k} = \@ar if @$v != @ar;
+                $ref->{$k} = \@ar if @$v != @ar;
 
                 # depth first
                 operator_precedence($_) for @ar;
@@ -366,6 +370,12 @@ sub clean_operator {
     $m =~ s/and/&/;
     $m =~ s/xor/^/;
     $m =~ s/or/||/;
+    return $m;
+}
+
+sub clean_escapes {
+    my $m = shift // '';
+    $m =~ s/\\(.)/$1/g;
     return $m;
 }
 

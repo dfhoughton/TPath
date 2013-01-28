@@ -8,14 +8,6 @@ use Test::More;
 use Test::Exception;
 use List::MoreUtils qw(natatime);
 
-# convert a stringified list of expressions into the expressions to test
-sub make_paths {
-    my $text = shift;
-    grep { $_ !~ /^#/ }
-      map { ( my $v = $_ ) =~ s/^\s++|\s++$//g; $v ? $v : () }
-      $text =~ /^.*$/gm;
-}
-
 # a bunch of expressions licensed by the spec
 my @parsable = make_paths(<<'END');
 a
@@ -88,7 +80,62 @@ a[!@b]
 a[!!!@b]
 END
 
-plan tests => @parsable + @equivalent / 2;
+# some leaf values to test
+my @leaves = make_paths(<<'END');
+a[@b = 'foo']
+literal
+foo
+
+a[@b]
+aname
+b
+
+~a~~b~
+pattern
+a~b
+
+/>a
+separator
+/>
+
+a[@\'b]
+aname
+'b
+
+id(\))
+id
+)
+
+//\3
+specific
+3
+
+//a[9]
+idx
+9
+
+//a[-1]
+idx
+-1
+
+//a[@b = 'fo\'o']
+literal
+fo'o
+
+//a[@b = "fo\"o"]
+literal
+fo"o
+
+//a[@b('c')]
+literal
+c
+
+//a[@b(1)]
+num
+1
+END
+
+plan tests => @parsable + @equivalent / 2 + @leaves / 3;
 
 for my $e (@parsable) {
     lives_ok { parse($e) } "can parse $e";
@@ -99,5 +146,46 @@ while ( my ( $left, $right ) = $i->() ) {
     is_deeply parse($left), parse($right), "$left  ~  $right";
 }
 
+$i = natatime 3, @leaves;
+while ( my ( $expression, $key, $value ) = $i->() ) {
+    is leaf( $expression, $key ), $value,
+      "the value of $key in $expression is $value";
+}
+
 #done_testing();
+
+sub leaf {
+    my ( $expression, $key ) = @_;
+    my $ref = parse($expression);
+    return find_leaf( $ref, $key );
+}
+
+sub find_leaf {
+    my ( $ref, $key ) = @_;
+    my $type = ref $ref;
+    if ( $type eq 'HASH' ) {
+        while ( my ( $k, $v ) = each %$ref ) {
+            return $v if $k eq $key;
+            my $r = find_leaf( $v, $key );
+            return $r if defined $r;
+        }
+        return undef;
+    }
+    if ( $type eq 'ARRAY' ) {
+        for my $v (@$ref) {
+            my $r = find_leaf( $v, $key );
+            return $r if defined $r;
+        }
+        return undef;
+    }
+    return undef;
+}
+
+# convert a stringified list of expressions into the expressions to test
+sub make_paths {
+    my $text = shift;
+    grep { $_ !~ /^#/ }
+      map { ( my $v = $_ ) =~ s/^\s++|\s++$//g; $v ? $v : () }
+      $text =~ /^.*$/gm;
+}
 
