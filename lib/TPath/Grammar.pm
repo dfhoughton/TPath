@@ -11,32 +11,31 @@ our @EXPORT_OK = qw(parse %AXES);
 use Carp;
 
 our %AXES = map { $_ => 1 } qw(
-    ancestor
-    ancestor-or-self
-    child
-    descendant
-    descendant-or-self
-    following
-    following-sibling
-    leaf
-    parent
-    preceding
-    preceding-sibling
-    self
-    sibling
-    sibling-or-self
+  ancestor
+  ancestor-or-self
+  child
+  descendant
+  descendant-or-self
+  following
+  following-sibling
+  leaf
+  parent
+  preceding
+  preceding-sibling
+  self
+  sibling
+  sibling-or-self
 );
 
 our $path_grammar = do {
     use Regexp::Grammars;
     qr{
-    <logfile: /tmp/rx.log>
     <nocontext:>
     <timeout: 1>
     
     ^ <treepath> $
     
-       <rule: treepath> <[path]> (?> \| (*COMMIT) <[path]> )*
+       <rule: treepath> <[path]> (?> \| <[path]> )*
     
        <token: path> <[segment=first_step]> <[segment=subsequent_step]>*
     
@@ -96,11 +95,28 @@ our $path_grammar = do {
     
        <token: int> \b(?:0|[1-9][0-9]*+)\b
     
-       <token: condition> 
-          <term> | <group> | <not_cnd> | <or_cnd> | <and_cnd> | <xor_cnd>
+       <rule: condition> 
+          <[item=not]>? <[item]> (?: <[item=operator]> <[item=not]>? <[item]> )*
+
+       <token: not>
+          ((?>!|(?<=[\s\[])not(?=\s))(?>\s*+(?>!|(?<=\s)not(?=\s)))*+)
+          (?{$MATCH = clean_not($^N)})
+       
+       <token: operator>
+          (?: <.or> | <.xor> | <.and> )
+          (?{$MATCH = clean_operator($^N)})
+       
+       <token: xor>
+          (\^|(?<=\s)xor(?=\s))
+           
+       <token: and>
+          (&|(?<=\s)and(?=\s))
+           
+       <token: or>
+          (\|{2}|(?<=\s)or(?=\s))
     
        <token: term> 
-          (?: <attribute> | <attribute_test> | <treepath> )
+          <attribute> | <attribute_test> | <treepath>
     
        <rule: attribute_test>
           <attribute> <cmp> <value> | <value> <cmp> <attribute>
@@ -109,60 +125,219 @@ our $path_grammar = do {
     
        <token: value> <literal> | <num> | <attribute>
     
-       <rule: group> \( <condition> \)
+       <rule: group> \( (*COMMIT) <condition> \)
     
-       <rule: not_cnd>
-          (?: ! | (?<!\/)\bnot\b(?!\/) ) <[condition]>
-          <require: (?{ not_precedence($MATCH{condition}) }) >
-    
-       <rule: or_cnd>
-          <[condition]> (?: (?: \|{2} | (?<!/)\bor\b(?!/) ) <[condition]> )+
-    
-       <rule: and_cnd>
-          <[condition]> (?: (?: & | (?<!/)\band\b(?!/) ) <[condition]> )+
-          <require: (?{ and_precedence($MATCH{condition}) }) >
-    
-       <rule: xor_cnd>
-          <[condition]> (?: (?: ^ | (?<!/)\bxor\b(?!/) ) <[condition]> )+
-          <require: (?{ xor_precedence($MATCH{condition}) }) >
+       <token: item>
+          <term> | <group>
     }x;
 };
 
 sub parse {
     my ($expr) = @_;
     if ( $expr =~ $path_grammar ) {
-        return \%/;
+        my $ref = \%/;
+        if ( contains_condition($ref) ) {
+            normalize_parens($ref);
+            operator_precedence($ref);
+            merge_conditions($ref);
+        }
+        return $ref;
     }
     else {
         confess "could not parse '$expr' as a TPath expression";
     }
 }
 
-our $not_precedence = { map { $_ => 1 } qw(not_cnd term group) };
-our $and_precedence = { 'and_cnd' => 1, %$not_precedence };
-our $xor_precedence = { 'xor_cnd' => 1, %$and_precedence };
+# merge nested conditions with the same operator into containing conditions
+sub merge_conditions {
+    my $ref  = shift;
+    my $type = ref $ref;
+    return $ref unless $type;
+    if ( $type eq 'HASH' ) {
+        while ( my ( $k, $v ) = each %$ref ) {
+            if ( $k eq 'condition' ) {
+                if ( !exists $v->{args} ) {
+                    merge_conditions($_) for values %$v;
+                    next;
+                }
 
-# true if the children of the relevant logical operator are not
-# licensed by its precedence
-sub precedence_test {
-    my ( $h, $a ) = @_;
-    for my $c (@$a) {
-        my ($rule) = each %$c;
-        return 0 unless $h->{$rule};
+                # depth first
+                merge_conditions($_) for @{ $v->{args} };
+                my $op = $v->{operator};
+                my @args;
+                for my $a ( @{ $v->{args} } ) {
+                    my $condition = $a->{condition};
+                    if ( defined $condition ) {
+                        my $o = $condition->{operator};
+                        if ( defined $o ) {
+                            if ( $o eq $op ) {
+                                push @args, @{ $condition->{args} };
+                            }
+                            else {
+                                push @args, $a;
+                            }
+                        }
+                        else {
+                            push @args, $condition;
+                        }
+                    }
+                    else {
+                        push @args, $a;
+                    }
+                }
+                $v->{args} = \@args;
+            }
+            else {
+                merge_conditions($v);
+            }
+        }
     }
-    return 1;
+    elsif ( $type eq 'ARRAY' ) {
+        merge_conditions($_) for @$ref;
+    }
+    else {
+        confess "unexpected type $type";
+    }
+    return $ref;
 }
 
-sub not_precedence {
-    precedence_test( $not_precedence, @_ );
+# group operators and arguments according to operator precedence ! > & > ^ > ||
+sub operator_precedence {
+    my $ref  = shift;
+    my $type = ref $ref;
+    return $ref unless $type;
+    if ( $type eq 'HASH' ) {
+        while ( my ( $k, $v ) = each %$ref ) {
+            if ( $k eq 'condition' && ref $v eq 'ARRAY' ) {
+                my @ar = @$v;
+
+                # normalize ! strings
+                @ar = grep { $_ } map {
+                    if ( !ref $_ && /^!++$/ ) { ( my $s = $_ ) =~ s/..//g; $s }
+                    else                      { $_ }
+                } @ar;
+				$ref->{$k} = \@ar if @$v != @ar;
+
+                # depth first
+                operator_precedence($_) for @ar;
+                return $ref if @ar == 1;
+
+                # build binary logical operation tree
+              OUTER: while ( @ar > 1 ) {
+                    for my $op (qw(! & ^ ||)) {
+                        for my $i ( 0 .. $#ar ) {
+                            my $item = $ar[$i];
+                            next if ref $item;
+                            if ( $item eq $op ) {
+                                if ( $op eq '!' ) {
+                                    splice @ar, $i, 2,
+                                      {
+                                        condition => {
+                                            operator => '!',
+                                            args     => [ $ar[ $i + 1 ] ]
+                                        }
+                                      };
+                                }
+                                else {
+                                    splice @ar, $i - 1, 3,
+                                      {
+                                        condition => {
+                                            operator => $op,
+                                            args =>
+                                              [ $ar[ $i - 1 ], $ar[ $i + 1 ] ]
+                                        }
+                                      };
+                                }
+                                next OUTER;
+                            }
+                        }
+                    }
+                }
+
+                # replace condition with logical operation tree
+                $ref->{condition} = $ar[0]{condition};
+            }
+            else {
+                operator_precedence($v);
+            }
+        }
+    }
+    elsif ( $type eq 'ARRAY' ) {
+        operator_precedence($_) for @$ref;
+    }
+    else {
+        confess "unexpected type $type";
+    }
+    return $ref;
 }
 
-sub and_precedence {
-    precedence_test( $and_precedence, @_ );
+# looks for structures requiring normalization
+sub contains_condition {
+    my $ref  = shift;
+    my $type = ref $ref;
+    return 0 unless $type;
+    if ( $type eq 'HASH' ) {
+        while ( my ( $k, $v ) = each %$ref ) {
+            return 1 if $k eq 'condition' || contains_condition($v);
+        }
+        return 0;
+    }
+    for my $v (@$ref) {
+        return 1 if contains_condition($v);
+    }
+    return 0;
 }
 
-sub xor_precedence {
-    precedence_test( $xor_precedence, @_ );
+# removes redundant parentheses and simplifies condition elements somewhat
+sub normalize_parens {
+    my $ref  = shift;
+    my $type = ref $ref;
+    return $ref unless $type;
+    if ( $type eq 'ARRAY' ) {
+        normalize_parens($_) for @$ref;
+    }
+    elsif ( $type eq 'HASH' ) {
+        for my $name ( keys %$ref ) {
+            my $value = $ref->{$name};
+            if ( $name eq 'condition' ) {
+                my @ar = @{ $value->{item} };
+                for my $i ( 0 .. $#ar ) {
+                    $ar[$i] = normalize_item( $ar[$i] );
+                }
+                $ref->{condition} = \@ar;
+            }
+            else {
+                normalize_parens($value);
+            }
+        }
+    }
+    else {
+        confess "unexpected type: $type";
+    }
+    return $ref;
+}
+
+# normalizes parentheses in a condition item
+sub normalize_item {
+    my $item = shift;
+    return $item unless ref $item;
+    if ( exists $item->{term} ) {
+        return normalize_parens( $item->{term} );
+    }
+    elsif ( exists $item->{group} ) {
+
+        # remove redundant parentheses
+        while ( exists $item->{group}
+            && @{ $item->{group}{condition}{item} } == 1 )
+        {
+            $item = $item->{group}{condition}{item}[0];
+        }
+        return normalize_parens( $item->{group} // $item->{term} );
+    }
+    else {
+        confess
+          'items in a condition are expected to be either <term> or <group>';
+    }
 }
 
 sub clean_literal {
@@ -176,7 +351,22 @@ sub clean_pattern {
     my $m = shift;
     $m = substr $m, 1, -1;
     $m =~ s/~~/~/g;
-	return $m;
+    return $m;
+}
+
+sub clean_not {
+    my $m = shift;
+    $m =~ s/not/!/g;
+    $m =~ s/\s++//g;
+    return $m;
+}
+
+sub clean_operator {
+    my $m = shift;
+    $m =~ s/and/&/;
+    $m =~ s/xor/^/;
+    $m =~ s/or/||/;
+    return $m;
 }
 
 1;
