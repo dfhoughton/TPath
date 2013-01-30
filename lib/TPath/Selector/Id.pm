@@ -1,4 +1,4 @@
-package TPath::IdSelector;
+package TPath::Selector::Id;
 
 # ABSTRACT : C<TPath::Selector> that implements C<id(foo)>
 
