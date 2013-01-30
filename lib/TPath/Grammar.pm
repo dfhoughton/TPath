@@ -4,11 +4,28 @@ package TPath::Grammar;
 
 use strict;
 use warnings;
+use Carp;
 
 use parent qw(Exporter);
-our @EXPORT_OK = qw(parse %AXES);
 
-use Carp;
+our @EXPORT_OK = qw(parse);
+
+=head1 SYNOPSIS
+
+    use TPath::Grammar qw(parse);
+
+    my $ast = parse('/>a[child::b || @foo("bar")][-1]');
+
+=head1 DESCRIPTION
+
+c<TPath::Grammar> exposes a single function: C<parse>. Parsing is a preliminary step to
+compiling the expression into an object that will select the tree nodes matching
+the expression.
+
+C<TPath::Grammar> is really intended for use by C<TPath> modules, but if you want 
+a parse tree, here's how to get it.
+
+=cut
 
 our %AXES = map { $_ => 1 } qw(
   ancestor
@@ -135,6 +152,14 @@ our $path_grammar = do {
           <term> | <group>
     }x;
 };
+
+=method parse
+
+Converts a TPath expression to a parse tree, normalizing boolean expressions
+and parentheses and unescaping escaped strings. C<parse> throws an error with
+a stack trace if the expression is unparsable. Otherwise it returns a hashref.
+
+=cut
 
 sub parse {
     my ($expr) = @_;
@@ -343,6 +368,8 @@ sub normalize_item {
           'items in a condition are expected to be either <term> or <group>';
     }
 }
+
+# some functions to undo escaping and normalize strings
 
 sub clean_literal {
     my $m = shift;
