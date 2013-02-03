@@ -131,6 +131,17 @@ sub id {
     return undef;
 }
 
+=method is_root
+
+Returns whether the parameter node is the root node known to this index.
+
+=cut
+
+sub is_root {
+my ($self, $n) = @_;
+return $n == $self->root;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

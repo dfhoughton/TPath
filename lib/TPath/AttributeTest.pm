@@ -3,6 +3,7 @@ package TPath::AttributeTest;
 # ABSTRACT : compares an attribute value to another value
 
 use feature qw(switch);
+use Scalar::Util qw(looks_like_number);
 use Moose;
 use MooseX::Privacy;
 use Moose::Util::TypeConstraints;
@@ -33,12 +34,43 @@ sub BUILD {
                         if ( $type eq 'Array' ) {
                             $type = ref $r;
                             return @$l == @$r if $type eq 'Array';
+                            return @$l == $r;
                         }
                         elsif ( $l->can('equals') ) {
                             return $l->equals($r);
                         }
-                        else {
-                            return "$l" eq "$r";
+                    }
+                    else {
+                        $type = ref $r;
+                        if ($type) {
+                            return @$r == $l if $type eq 'ARRAY';
+                            return $r->equals($l) if $r->can('equals');
+                        }
+                    }
+                    "$l" eq "$r";
+                }
+              )
+        }
+        when ('==') {
+            $self->func(
+                sub {
+                    my ( $l, $r ) = @_;
+                    my $type = ref $l;
+                    if ($type) {
+                        if ( $type eq 'Array' ) {
+                            $type = ref $r;
+                            return @$l == @$r if $type eq 'Array';
+                            return @$l == $r;
+                        }
+                        elsif ( $l->can('equals') ) {
+                            return $l->equals($r);
+                        }
+                    }
+                    else {
+                        $type = ref $r;
+                        if ($type) {
+                            return @$r == $l if $type eq 'ARRAY';
+                            return $r->equals($l) if $r->can('equals');
                         }
                     }
                     "$l" eq "$r";
