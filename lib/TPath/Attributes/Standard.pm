@@ -3,23 +3,24 @@ package TPath::Attributes::Standard;
 # ABSTRACT : the standard collection of attributes available to any forester by default
 
 use Moose::Role;
+use MooseX::MethodAttributes::Role;
 
 requires qw(kids children parent);
 
-sub true {
+sub true : Attr {
     return 1;
 }
 
-sub false {
+sub false : Attr {
     return 0;
 }
 
-sub this {
+sub this : Attr {
     my ( $self, $n ) = @_;
     return $n;
 }
 
-sub uid {
+sub uid : Attr {
     my ( $self, $n, $c, $i ) = @_;
     my @list;
     my $node = $n;
@@ -37,28 +38,28 @@ sub uid {
     return '/' . join( '/', @list );
 }
 
-sub echo {
+sub echo : Attr {
     my ( $self, $n, $c, $i, $o ) = @_;
     return $o;
 }
 
-sub isLeaf {
+sub isLeaf : Attr {
     my ( $self, $n, $c, $i ) = @_;
     my @children = $self->kids( $n, $i );
     return !@children;
 }
 
-sub pick {
+sub pick : Attr {
     my ( $self, $n, $c, $i, $collection, $index ) = @_;
     return $collection->[$index];
 }
 
-sub size {
+sub size : Attr {
     my ( $self, $n, $c, $i, $collection ) = @_;
     return scalar @$collection;
 }
 
-sub tsize {
+sub tsize : Attr {
     my ( $self, $n, undef, $i ) = @_;
     my $size = 1;
     for my $kid ( $self->children( $n, $i ) ) {
@@ -67,7 +68,7 @@ sub tsize {
     return $size;
 }
 
-sub width {
+sub width : Attr {
     my ( $self, $n, $c, $i ) = @_;
     return 1 if $self->isLeaf( $n, $c, $i );
     my $width = 0;
@@ -77,7 +78,7 @@ sub width {
     return $width;
 }
 
-sub depth {
+sub depth : Attr {
     my ( $self, $n, $c, $i ) = @_;
     return 0 if $self->isRoot( $n, $c, $i );
     my $depth = -1;
@@ -88,7 +89,7 @@ sub depth {
     return $depth;
 }
 
-sub height {
+sub height : Attr {
     my ( $self, $n, $c, $i ) = @_;
     return 1 if $self->isLeaf( $n, $c, $i );
     my $max = 0;
@@ -99,16 +100,16 @@ sub height {
     return $max + 1;
 }
 
-sub isRoot {
+sub isRoot : Attr {
     my ( $self, $n, $c, $i ) = @_;
     return $i->is_root($n);
 }
 
-sub null {
+sub null : Attr {
     return undef;
 }
 
-sub index {
+sub index : Attr {
     my ( $self, $n, $c, $i ) = @_;
     return -1 if $i->is_root($n);
     my @siblings = $self->kids( [ $self->parent( $i, $n ) ], $i );
@@ -118,7 +119,7 @@ sub index {
     confess "$n not among children of its parent";
 }
 
-sub log {
+sub log : Attr {
     my ( $self, $n, $c, $i, @messages ) = @_;
     for my $m (@messages) {
         $self->log_stream->put($m);
