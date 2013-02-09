@@ -52,7 +52,7 @@ our $path_grammar = do {
     
     ^ <treepath> $
     
-       <rule: treepath> <[path]> (?> \| <[path]> )*
+       <rule: treepath> <[path]> (?: \| <[path]> )*
     
        <token: path> <[segment=first_step]> <[segment=subsequent_step]>*
     
@@ -66,11 +66,12 @@ our $path_grammar = do {
     
        <token: separator> \/[\/>]?+ (*COMMIT)
     
-       <token: step> (?: <full> | <abbreviated> ) <[predicate]>*
+       <token: step> <full> <[predicate]>* | <abbreviated>
     
        <token: full> <axis>? <forward>
     
-       <token: axis> (?<!/) (?<!/>) <%AXES> :: (*COMMIT)
+       <token: axis> (?<!/) (?<!/>) (<%AXES>) :: (*COMMIT)
+          (?{ $MATCH = $^N })
     
        <token: abbreviated> (?<!//) (?<!/>) (?: \.{1,2}+ | <id> )
     
@@ -92,7 +93,7 @@ our $path_grammar = do {
     
        <rule: attribute> <aname> <args>?
     
-       <rule: args> \( (*COMMIT) <[arg]> (?: ,  <[arg]> )* \) (*COMMIT)
+       <rule: args> \( (*COMMIT) <[arg]> (?: , <[arg]> )* \) (*COMMIT)
     
        <token: arg>
           <treepath> | <literal> | <num> | <attribute> | <attribute_test> | <condition>
@@ -128,13 +129,13 @@ our $path_grammar = do {
           (?{$MATCH = clean_operator($^N)})
        
        <token: xor>
-          (\^|(?<=\s)xor(?=\s))
+          ( \^ | (?<=\s) xor (?=\s) )
            
        <token: and>
-          (&|(?<=\s)and(?=\s))
+          ( & | (?<=\s) and (?=\s) )
            
        <token: or>
-          (\|{2}|(?<=\s)or(?=\s))
+          ( \|{2} | (?<=\s) or (?=\s) )
     
        <token: term> 
           <attribute> | <attribute_test> | <treepath>
