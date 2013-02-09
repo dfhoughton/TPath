@@ -11,7 +11,19 @@ The object that selects the correct member of collection based on its index.
 use Moose;
 use TPath::Predicate;
 
+=head1 ROLES
+
+L<TPath::Predicate>
+
+=cut
+
 with 'TPath::Predicate';
+
+=attr idx
+
+The index of the item selected.
+
+=cut
 
 has idx => ( is => 'ro', isa => 'Int', required => 1 );
 

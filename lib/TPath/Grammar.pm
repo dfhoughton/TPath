@@ -154,7 +154,7 @@ our $path_grammar = do {
     }x;
 };
 
-=method parse
+=func parse
 
 Converts a TPath expression to a parse tree, normalizing boolean expressions
 and parentheses and unescaping escaped strings. C<parse> throws an error with

@@ -3,6 +3,7 @@ package TPath::Selector::Test::Self;
 # ABSTRACT : note to self: analog of dfh.treepath.SelfSelector
 
 use Moose;
+use namespace::autoclean;
 
 =head1 ROLES
 

@@ -18,9 +18,7 @@ L<TPath::Selector>
 
 with 'TPath::Selector';
 
-=head1 ATTRIBUTES
-
-=head2 predicates
+=attr predicates
 
 Auto-deref'ed list of L<TPath::Predicate> objects that filter anything selected
 by this selector.

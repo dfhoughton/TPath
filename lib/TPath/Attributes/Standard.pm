@@ -2,8 +2,26 @@ package TPath::Attributes::Standard;
 
 # ABSTRACT : the standard collection of attributes available to any forester by default
 
+# TODO document methods
+
 use Moose::Role;
 use MooseX::MethodAttributes::Role;
+
+=head1 REQUIRED METHODS
+
+=head2 _kids
+
+See L<TPath::Forester>
+
+=head2 children
+
+See L<TPath::Forester>
+
+=head2 parent
+
+See L<TPath::Forester>
+
+=cut
 
 requires qw(_kids children parent);
 

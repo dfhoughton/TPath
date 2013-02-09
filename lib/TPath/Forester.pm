@@ -102,9 +102,7 @@ Expects a node and an index. Returns the parent of the node.
 
 requires qw(children has_tag matches_tag parent);
 
-=head1 ATTRIBUTES
-
-=head2 log_stream
+=attr log_stream
 
 A L<TPath::LogStream> required by the C<@log> attribute. By default it is L<TPath::StderrLog>.
 

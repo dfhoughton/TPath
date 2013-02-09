@@ -3,8 +3,13 @@ package TPath::Selector::Id;
 # ABSTRACT : C<TPath::Selector> that implements C<id(foo)>
 
 use Moose;
-use TPath::Selector;
 use namespace::autoclean;
+
+=head1 ROLES
+
+L<TPath::Selector>
+
+=cut
 
 with 'TPath::Selector';
 
