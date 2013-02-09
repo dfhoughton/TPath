@@ -29,57 +29,57 @@ Takes an AST reference and a L<TPath::Forester> reference and returns a L<TPath:
 =cut
 
 sub compile {
-    goto &compile_treepath;    # function alias
+    goto &treepath;    # function alias
 }
 
-sub compile_treepath {
+sub treepath {
     my ( $ref, $forester ) = @_;
     my @paths;
     for my $p ( @{ $ref->{treepath}{path} } ) {
-        push @paths, compile_path( $p, $forester );
+        push @paths, path( $p, $forester );
     }
     return TPath::Expression->new( f => $forester, selectors => \@paths );
 }
 
-sub compile_path {
+sub path {
     my ( $p, $forester ) = @_;
     my @selectors;
     for my $step ( @{ $p->{segment} } ) {
-        push @selectors, compile_step( $step, $forester );
+        push @selectors, step( $step, $forester );
     }
     return \@selectors;
 }
 
-sub compile_step {
+sub step {
     my ($step) = @_;
-    goto &compile_full if exists $step->{step}{full};
-    goto &compile_abbreviated;
+    return full(@_) if exists $step->{step}{full};
+    return abbreviated(@_);
 }
 
-sub compile_full {
+sub full {
     my ( $step, $forester ) = @_;
     croak 'not implemented yet';
 }
 
-sub compile_abbreviated {
+sub abbreviated {
     my ($step) = @_;
     my $abb = $step->{step}{abbreviated};
-    goto &compile_id   if ref $abb;
-    goto &compile_self if $abb eq '.';
-    goto &compile_parent;
+    return id(@_)   if ref $abb;
+    return self(@_) if $abb eq '.';
+    return parent(@_);
 }
 
-sub compile_id {
+sub id {
     my ($step) = @_;
     return TPath::Selector::Id->new( id => $step->{step}{abbreviated}{id} );
 }
 
-sub compile_self {
+sub self {
     my ( $step, $forester ) = @_;
     croak 'not implemented yet';
 }
 
-sub compile_parent {
+sub parent {
     my ( $step, $forester ) = @_;
     croak 'not implemented yet';
 }

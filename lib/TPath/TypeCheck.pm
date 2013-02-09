@@ -2,9 +2,30 @@ package TPath::TypeCheck;
 
 # ABSTRACT : applies type constraint on nodes
 
+=head1 DESCRIPTION
+
+Role of an object that checks the class of a node against the class it knows it can handle.
+
+=cut
+
 use Moose::Role;
 
-has node_type => ( isa => 'Str', is => 'ro' );
+=head1 ATTRIBUTES
+
+=over 8
+
+=item node_type
+
+If set on object construction, all nodes handled by the C<TPath::TypeCheck> will have 
+to be of this class or an error will be thrown. Can be used to enforce type safety. 
+The test is only performed on certain gateway methods -- C<TPath::Expression::select()> and 
+C<TPath::Index::index()> -- so little overhead is incurred.
+
+=back
+
+=cut
+
+has node_type => ( isa => 'Maybe[Str]', is => 'ro', default => undef );
 
 sub _typecheck {
     my ( $self, $n ) = @_;

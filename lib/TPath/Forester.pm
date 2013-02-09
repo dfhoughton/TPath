@@ -69,37 +69,46 @@ use Moose::Role;
 use TPath::Compiler qw(compile);
 use TPath::Grammar qw(parse);
 use TPath::StderrLog;
-use TPath::Attributes::Standard;
+
+=head1 ROLES
+
+L<TPath::Attributes::Standard>
+
+=cut
 
 with 'TPath::Attributes::Standard';
 
 =head1 REQUIRED METHODS
 
-=over 8
-
-=item B<children>
+=head2 children
 
 Expects a node and an index. Returns the children of the node as a list.
 
-=item B<has_tag>
+=head2 has_tag
 
 Expects a node and a string. Returns whether the node, in whatever sense is appropriate
 to this sort of node, "has" the string as a tag.
 
-=item B<matches_tag>
+=head2 matches_tag
 
 Expects a node and a compiled regex. Returns whether the node, in whatever sense is appropriate
 to this sort of node, has a tag that matches the regex.
 
-=item B<parent>
+=head2 parent
 
 Expects a node and an index. Returns the parent of the node.
-
-=back
 
 =cut
 
 requires qw(children has_tag matches_tag parent);
+
+=head1 ATTRIBUTES
+
+=head2 log_stream
+
+A L<TPath::LogStream> required by the C<@log> attribute. By default it is L<TPath::StderrLog>.
+
+=cut
 
 has log_stream => (
     is      => 'rw',
@@ -107,16 +116,14 @@ has log_stream => (
     default => sub { TPath::StderrLog->new }
 );
 
-=method add_test
+=method add_test, clear_tests
 
 Add a code ref that will be used to test whether a node is ignorable. The
 return value of this code will be treated as a boolean value. If it is true,
 the node, and all its children, will be passed over as possible items to return
 from a select.
 
-This method has companion methods C<tests>, C<count_tests>, and C<clear_tests>. The first returns
-the tests as a list. The last empties the list. C<count_tests> returns how many tests have
-been defined.
+This method has the companion method C<clear_tests>, which empties the test list.
 
 =cut
 
@@ -126,9 +133,8 @@ has _tests => (
     default => sub { [] },
     handles => {
         add_test    => 'push',
-        tests       => 'elements',
+        _tests       => 'elements',
         clear_tests => 'clear',
-        count_tests => 'count'
     }
 );
 

@@ -4,7 +4,9 @@ package TPath::Selector;
 
 use Moose::Role;
 
-=method select
+=head1 REQUIRED METHODS
+
+=head2 select
 
 Takes a node an an index and returns a collection of nodes.
 
