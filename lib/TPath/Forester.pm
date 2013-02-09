@@ -4,35 +4,33 @@ package TPath::Forester;
 
 =head1 SYNOPSIS
 
-  # define our own attributes
-  {
-    package MyAttributes;
-    use Moose::Role;
-    use MooseX::MethodAttributes::Role;
-   
-    sub baz :Attr {
-      # the canonical order of arguments, none of which we need
-      # my ($self, $node, $collection, $index, @args) = @_;
-      'baz';
-    }
-  }
-
   # we apply the TPath::Forester role to a class
+
   {
     package MyForester;
+
     use Moose;                                      # for simplicity we omit removing Moose droppings, etc.
-    with qw(TPath::Forester MyAttributes);
+    use MooseX::MethodAttributes;                   # needed if you're going to add some attributes
+
+    with 'TPath::Forester';                         # compose in the TPath::Forester methods and attributes
 
     # define abstract methods
-    sub children   { $_[1]->children }              # our nodes know their children
-    sub parent     { $_[1]->parent }                # our nodes know their parent
-    sub has_tag    {                                # our nodes have a tag attribute which is
-       my ($self, $node, $tag) = @_;                # their only tag
+    sub children    { $_[1]->children }             # our nodes know their children
+    sub parent      { $_[1]->parent }               # our nodes know their parent
+    sub has_tag     {                               # our nodes have a tag attribute which is
+       my ($self, $node, $tag) = @_;                #   their only tag
        $node->tag eq $tag;
     }
     sub matches_tag { 
        my ($self, $node, $re) = @_;
        $node->tag =~ $re;
+    }
+
+    # define an attribute
+    sub baz :Attr   {   
+      # the canonical order of arguments, none of which we need
+      # my ($self, $node, $collection, $index, @args) = @_;
+      'baz';
     }
   }
 
@@ -134,42 +132,7 @@ has _tests => (
     }
 );
 
-=method attributes (regard as protected)
-
-A map from attribute names to code refs. These will be only those
-subs marked with the C<Attr> attribute. If the attribute name differs from
-the sub name, the appropriate alias must be supplied inside parentheses after
-'Attr'. E.g.,
-
-  sub foo :Attr(baz) { 'bar' }
-
-Perl requires that the content between the braces not contain colons or parentheses.
-C<TPath::Forester> uses L<URI::Escape> to parse this content, so you can get around this
-restriction by URI escaping the offending characters:
-
-=over 4
-
-=item :
-
-%3A
-
-=item (
-
-%28
-
-=item )
-
-%29
-
-=item %
-
-%25
-
-=back
-
-=cut
-
-has attributes => (
+has _attributes => (
     is      => 'ro',
     isa     => 'HashRef[CodeRef]',
     lazy    => 1,
@@ -226,9 +189,11 @@ the tree rooted at the given node.
 
 sub index {
     my ( $self, $node ) = @_;
+
+# TODO construct a proper index here
 }
 
-sub kids {
+sub _kids {
     my ( $self, $n, $i ) = @_;
     my @children = $self->children( $n, $i );
     return @children unless $self->count_tests;

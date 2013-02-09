@@ -5,7 +5,7 @@ package TPath::Attributes::Standard;
 use Moose::Role;
 use MooseX::MethodAttributes::Role;
 
-requires qw(kids children parent);
+requires qw(_kids children parent);
 
 sub true : Attr {
     return 1;
@@ -45,7 +45,7 @@ sub echo : Attr {
 
 sub isLeaf : Attr {
     my ( $self, $n, $c, $i ) = @_;
-    my @children = $self->kids( $n, $i );
+    my @children = $self->_kids( $n, $i );
     return !@children;
 }
 
@@ -112,7 +112,7 @@ sub null : Attr {
 sub index : Attr {
     my ( $self, $n, $c, $i ) = @_;
     return -1 if $i->is_root($n);
-    my @siblings = $self->kids( [ $self->parent( $i, $n ) ], $i );
+    my @siblings = $self->_kids( [ $self->parent( $i, $n ) ], $i );
     for my $index ( 0 .. $#siblings ) {
         return $index if $siblings[$index] == $n;
     }
