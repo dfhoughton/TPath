@@ -1,4 +1,4 @@
-package TPath::Test::Node::Matches;
+package TPath::Test::Node::Match;
 
 # ABSTRACT: L<TPath::Test::Node> implementing matching; e.g., C<//~foo~>
 

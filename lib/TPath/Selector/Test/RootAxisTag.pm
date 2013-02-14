@@ -9,6 +9,7 @@ use namespace::autoclean;
 extends 'TPath::Selector::Test::AxisTag';
 
 sub candidates {
+    my ( $self, $n, $c, $i ) = @_;
     $self->SUPER::candidates( $i->root, $c, $i );
 }
 
