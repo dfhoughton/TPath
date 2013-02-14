@@ -9,6 +9,7 @@ A L<TPath::Selector> that holds a list of L<TPath::Predicate>s.
 =cut
 
 use Moose::Role;
+use TPath::TypeConstraints;
 
 =head1 ROLES
 
@@ -31,5 +32,41 @@ has predicates => (
     default    => sub { [] },
     auto_deref => 1
 );
+
+has axis =>
+  ( is => 'ro', isa => 'Axis', writer => '_axis', default => sub { 'child' } );
+
+has faxis => (
+    is   => 'ro',
+    isa  => 'Str',
+    lazy => 1,
+    default =>
+      sub { my $self = shift; ( my $v = $self->axis ) =~ tr/-/_/; "axis_$v" }
+);
+
+has node_test =>
+  ( is => 'ro', isa => 'TPath::Test::Node', writer => '_node_test' );
+
+=method candidates
+
+Expects a node and an index and returns nodes selected before filtering by predicates.
+
+=cut
+
+sub candidates {
+    my ( $self, $n, $c, $i ) = @_;
+    my $axis = $self->axis;
+    $i->f->$axis->( $n, $self->node_test, $i );
+}
+
+sub select {
+    my ( $self, $n, $i ) = @_;
+    my @candidates = $self->candidates( $n, $i );
+    for my $p ( $self->predicates ) {
+        last unless @candidates;
+        @candidates = $p->filter( \@candidates, $i );
+    }
+    return @candidates;
+}
 
 1;

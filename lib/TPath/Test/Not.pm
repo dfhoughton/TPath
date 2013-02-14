@@ -19,13 +19,13 @@ L<TPath::Test::Boolean>
 
 with 'TPath::Test::Boolean';
 
-=attr test
+=attr t
 
 The single test the negation of which will provide the value of this L<TPath::Test>.
 
 =cut
 
-has test => ( is => 'ro', isa => 'TPath::Test', required => 1 );
+has t => ( is => 'ro', isa => 'TPath::Test', required => 1 );
 
 =method test
 
@@ -35,7 +35,7 @@ Returns the negation of whether the C<test> attribute is true.
 
 sub test {
     my ( $self, $n, $c, $i ) = @_;
-    return !$self->test( $n, $c, $i );
+    return !$self->t( $n, $c, $i );
 }
 
 __PACKAGE__->meta->make_immutable;

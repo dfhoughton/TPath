@@ -8,7 +8,7 @@ use Carp;
 
 use parent qw(Exporter);
 
-our @EXPORT_OK = qw(parse);
+our @EXPORT_OK = qw(parse %AXES);
 
 =head1 SYNOPSIS
 

@@ -1,6 +1,6 @@
-package TPath::Selector::Test::Self;
+package TPath::Selector::Test::Parent;
 
-# ABSTRACT: note to self: analog of dfh.treepath.SelfSelector
+# ABSTRACT: handles C<..>
 
 use Moose;
 use namespace::autoclean;
@@ -15,13 +15,13 @@ with 'TPath::Selector::Test';
 
 =method candidates
 
-Expects node, collection, and index. Returns node.
+Expects node, collection, and index. Returns parent of current node.
 
 =cut
 
 sub candidates {
     my ( $self, $n, $c, $i ) = @_;
-    return $n;
+    return $n == $i->root ? () : $i->f->parent( $n, $i );
 }
 
 __PACKAGE__->meta->make_immutable;

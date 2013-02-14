@@ -64,6 +64,7 @@ must define how a tag string or regex may match a node, if at all.
 
 =cut
 
+use feature 'state';
 use Moose::Role;
 
 use TPath::Compiler qw(compile);
@@ -210,50 +211,61 @@ sub _kids {
     } @children;
 }
 
-sub _axis_ancestor { goto &_ancestors }
+sub axis_ancestor { my $self = shift; $self->_ancestors(@_) }
 
-sub _axis_ancestor_or_self {
+sub axis_ancestor_or_self {
     my ( $self, $n, $t, $i ) = @_;
     my @nodes = $self->_ancestors( $n, $t, $i );
     push @nodes, $n if $t->passes( $n, $i );
     return @nodes;
 }
 
-sub _axis_child { goto &_children }
+sub axis_child { my $self = shift; $self->_children(@_) }
 
-sub _axis_descendant { goto &_descendants }
+sub axis_descendant { my $self = shift; $self->_descendants(@_) }
 
-sub _axis_descendant_or_self {
+sub axis_descendant_or_self {
     my ( $self, $n, $t, $i ) = @_;
     my @descendants = $self->_descendants( $n, $t, $i );
     push @descendants, $n if $t->passes( $n, $i );
     return @descendants;
 }
 
-sub _axis_following { goto &_following }
+sub axis_following { my $self = shift; $self->_following(@_) }
 
-sub _axis_following_sibling { goto &_following_siblings }
+sub axis_following_sibling { my $self = shift; $self->_following_siblings(@_) }
 
-sub _axis_leaf { goto _&leaves }
+sub axis_leaf { my $self = shift; $self->_leaves(@_) }
 
-sub _axis_parent {
+sub axis_parent {
     my ( $self, $n, $t, $i ) = @_;
     my $parent = $self->parent( $n, $i );
     return $t->passes( $parent, $i ) ? $parent : ();
 }
 
-sub _axis_preceding { goto &_preceding }
+sub axis_preceding { my $self = shift; $self->_preceding(@_) }
 
-sub _axis_preceding_sibling { goto &_preceding_siblings }
+sub axis_preceding_sibling { my $self = shift; $self->_preceding_siblings(@_) }
 
-sub _axis_self {
+sub axis_self {
     my ( $self, $n, $t, $i ) = @_;
     return $t->passes( $n, $i ) ? $n : ();
 }
 
-sub _axis_sibling { goto &_siblings }
+sub axis_sibling { my $self = shift; $self->_siblings(@_) }
 
-sub _axis_sibling_or_self { goto &_siblings_or_self }
+sub axis_sibling_or_self { my $self = shift; $self->_siblings_or_self(@_) }
+
+sub closest {
+    my ($self, $n, $t, $i) = @_;
+    return $n if $t->passes($n, $i);
+    my @children = $self->_kids($n, $i);
+    my @closest;
+    for my $c (@children) {
+        push @closest, $self->closest($c, $t, $i);
+    }
+    return @closest;
+}
 
 sub _siblings_or_self {
     my ( $self, $n, $t, $i ) = @_;
@@ -278,7 +290,7 @@ sub _preceding {
     my ( $self, $n, $t, $i ) = @_;
     return () if $self->is_root( $n, undef, $i );
     my @preceding;
-    state $tt // = TPath::Test::Node::True->new;
+    state $tt = TPath::Test::Node::True->new;
     my @ancestors = $self->_ancestors( $n, $tt, $i );
     for my $a ( @ancestors[ 1 .. $#ancestors ] ) {
         for my $p ( $self->_preceding_siblings( $a, $tt, $i ) ) {
@@ -309,8 +321,7 @@ sub _preceding_siblings {
 sub _leaves {
     my ( $self, $n, $t, $i ) = @_;
     my @children = $self->_kids( $n, $i );
-    return $t->passes( $n, $i ) ? $n : ();
-    unless @children;
+    return $t->passes( $n, $i ) ? $n : () unless @children;
     my @leaves;
     push @leaves, $self->_leaves( $_, $t, $i ) for @children;
     return @leaves;
@@ -320,7 +331,7 @@ sub _following {
     my ( $self, $n, $t, $i ) = @_;
     return () if $self->is_root( $n, undef, $i );
     my @following;
-    state $tt // = TPath::Test::Node::True->new;
+    state $tt = TPath::Test::Node::True->new;
     my @ancestors = $self->_ancestors( $n, $tt, $i );
     for my $a ( @ancestors[ 1 .. $#ancestors ] ) {
         for my $p ( $self->_following_siblings( $a, $tt, $i ) ) {

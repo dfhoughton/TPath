@@ -55,7 +55,6 @@ indexed by this index.
 
 sub is_root {
     my ( $self, $n ) = @_;
-    $self->_typecheck($n);
     return $n == $self->root;
 }
 
@@ -129,17 +128,6 @@ sub id {
     my ( $self, $n ) = @_;
     $self->_typecheck($n);
     return undef;
-}
-
-=method is_root
-
-Returns whether the parameter node is the root node known to this index.
-
-=cut
-
-sub is_root {
-my ($self, $n) = @_;
-return $n == $self->root;
 }
 
 __PACKAGE__->meta->make_immutable;
