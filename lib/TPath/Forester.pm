@@ -69,6 +69,7 @@ use Moose::Role;
 use TPath::Compiler qw(compile);
 use TPath::Grammar qw(parse);
 use TPath::StderrLog;
+use TPath::Test::Node::True;
 
 =head1 ROLES
 
@@ -131,7 +132,7 @@ has _tests => (
     default => sub { [] },
     handles => {
         add_test    => 'push',
-        _tests       => 'elements',
+        _tests      => 'elements',
         clear_tests => 'clear',
     }
 );
@@ -194,7 +195,7 @@ the tree rooted at the given node.
 sub index {
     my ( $self, $node ) = @_;
 
-# TODO construct a proper index here
+    # TODO construct a proper index here
 }
 
 sub _kids {
@@ -207,6 +208,212 @@ sub _kids {
         }
         $_;
     } @children;
+}
+
+sub _axis_ancestor { goto &_ancestors }
+
+sub _axis_ancestor_or_self {
+    my ( $self, $n, $t, $i ) = @_;
+    my @nodes = $self->_ancestors( $n, $t, $i );
+    push @nodes, $n if $t->passes( $n, $i );
+    return @nodes;
+}
+
+sub _axis_child { goto &_children }
+
+sub _axis_descendant { goto &_descendants }
+
+sub _axis_descendant_or_self {
+    my ( $self, $n, $t, $i ) = @_;
+    my @descendants = $self->_descendants( $n, $t, $i );
+    push @descendants, $n if $t->passes( $n, $i );
+    return @descendants;
+}
+
+sub _axis_following { goto &_following }
+
+sub _axis_following_sibling { goto &_following_siblings }
+
+sub _axis_leaf { goto _&leaves }
+
+sub _axis_parent {
+    my ( $self, $n, $t, $i ) = @_;
+    my $parent = $self->parent( $n, $i );
+    return $t->passes( $parent, $i ) ? $parent : ();
+}
+
+sub _axis_preceding { goto &_preceding }
+
+sub _axis_preceding_sibling { goto &_preceding_siblings }
+
+sub _axis_self {
+    my ( $self, $n, $t, $i ) = @_;
+    return $t->passes( $n, $i ) ? $n : ();
+}
+
+sub _axis_sibling { goto &_siblings }
+
+sub _axis_sibling_or_self { goto &_siblings_or_self }
+
+sub _siblings_or_self {
+    my ( $self, $n, $t, $i ) = @_;
+    return $n if $i->is_root($n) && $t->passes( $n, $i );
+    return
+      grep { $t->passes( $_, $i ) } $self->_kids( $self->parent( $n, $i ), $i );
+}
+
+sub _siblings {
+    my ( $self, $n, $t, $i ) = @_;
+    my @siblings = $self->_untested_siblings( $self->parent( $n, $i ), $i );
+    return grep { $t->passes( $_, $i ) } $self->_untested_siblings( $n, $i );
+}
+
+sub _untested_siblings {
+    my ( $self, $n, $i ) = @_;
+    return () if $self->is_root( $n, undef, $i );
+    return grep { $_ != $n } $self->_kids( $self->parent( $n, $i ), $i );
+}
+
+sub _preceding {
+    my ( $self, $n, $t, $i ) = @_;
+    return () if $self->is_root( $n, undef, $i );
+    my @preceding;
+    state $tt // = TPath::Test::Node::True->new;
+    my @ancestors = $self->_ancestors( $n, $tt, $i );
+    for my $a ( @ancestors[ 1 .. $#ancestors ] ) {
+        for my $p ( $self->_preceding_siblings( $a, $tt, $i ) ) {
+            push @preceding, $self->descendants( $p, $t, $i );
+            push @preceding, $p if $t->passes( $p, $i );
+        }
+    }
+    for my $p ( $self->_preceding_siblings( $n, $tt, $i ) ) {
+        push @preceding, $self->_descendants( $p, $t, $i );
+        push @preceding, $p if $t->passes( $p, $i );
+    }
+    return @preceding;
+}
+
+sub _preceding_siblings {
+    my ( $self, $n, $t, $i ) = @_;
+    return () if $self->is_root( $n, undef, $i );
+    my @siblings = $self->_kids( $self->parent( $n, $i ), $i );
+    return () if @siblings == 1;
+    my @preceding_siblings;
+    for my $s (@siblings) {
+        last if $s == $n;
+        push @preceding_siblings, $s if $t->passes( $s, $i );
+    }
+    return @preceding_siblings;
+}
+
+sub _leaves {
+    my ( $self, $n, $t, $i ) = @_;
+    my @children = $self->_kids( $n, $i );
+    return $t->passes( $n, $i ) ? $n : ();
+    unless @children;
+    my @leaves;
+    push @leaves, $self->_leaves( $_, $t, $i ) for @children;
+    return @leaves;
+}
+
+sub _following {
+    my ( $self, $n, $t, $i ) = @_;
+    return () if $self->is_root( $n, undef, $i );
+    my @following;
+    state $tt // = TPath::Test::Node::True->new;
+    my @ancestors = $self->_ancestors( $n, $tt, $i );
+    for my $a ( @ancestors[ 1 .. $#ancestors ] ) {
+        for my $p ( $self->_following_siblings( $a, $tt, $i ) ) {
+            push @following, $self->_descendants( $p, $t, $i );
+            push @following, $p if $t->passes( $p, $i );
+        }
+    }
+    for my $p ( $self->_following_siblings( $n, $tt, $i ) ) {
+        push @following, $self->_descendants( $p, $t, $i );
+        push @following, $p if $t->passes( $p, $i );
+    }
+    return @following;
+}
+
+sub _following_siblings {
+    my ( $self, $n, $t, $i ) = @_;
+    return () if $self->is_root( $n, undef, $i );
+    my @siblings = $self->_kids( $self->parent( $n, $i ), $i );
+    return () if @siblings == 1;
+    my ( @following_siblings, $add );
+    for my $s (@siblings) {
+        if ($add) {
+            push @following_siblings, $s if $t->passes( $s, $i );
+        }
+        else {
+            $add = $n == $s;
+        }
+    }
+    return @following_siblings;
+}
+
+sub _descendants {
+    my ( $self, $n, $t, $i ) = @_;
+    my @children = $self->_kids( $n, $i );
+    return () unless @children;
+    my @descendants;
+    for my $c (@children) {
+        push @descendants, $self->_descendants( $c, $t, $i )
+          unless $self->is_leaf( $c, undef, $i );
+        push @descendants, $t if $t->passes( $c, $i );
+    }
+    return @descendants;
+}
+
+=method is_leaf
+
+Expects a node, a collection, and an index.
+
+Returns whether the context node is a leaf. Override this with something more
+efficient where available. E.g., where the node provides an C<is_leaf> method,
+
+  sub is_leaf { $_[1]->is_leaf }
+
+=cut
+
+sub is_leaf {
+    my ( $self, $n, $c, $i ) = @_;
+}
+
+=method is_root
+
+Expects a node, a collection, and an index.
+
+Returns whether the context node is the root. Delegates to index.
+
+Override this with something more efficient where available. E.g., where the 
+node provides an C<is_root> method,
+
+  sub is_root { $_[1]->is_root }
+
+=cut
+
+sub is_root {
+    my ( $self, $n, $c, $i ) = @_;
+    $i->is_root($n);
+}
+
+sub _ancestors {
+    my ( $self, $n, $t, $i ) = @_;
+    my @nodes;
+    while ( !$self->is_root( $n, undef, $i ) ) {
+        my $parent = $self->parent( $n, $i );
+        unshift @nodes, $parent if $t->passes( $parent, $i );
+        $n = $parent;
+    }
+    return @nodes;
+}
+
+sub _children {
+    my ( $self, $n, $t, $i ) = @_;
+    my @children = $self->_kids( $n, $i );
+    return () unless @children;
+    grep { $t->passes( $_, $i ) ? $_ : () } @children;
 }
 
 1;

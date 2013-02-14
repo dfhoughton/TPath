@@ -18,11 +18,17 @@ An object that will get us the nodes identified by our path expression.
 
 use TPath::TypeCheck;
 use Moose;
-use namespace::autoclean;
+use namespace::autoclean -also => qr/^_/;
+
+=attr f
+
+The expression's L<TPath::Forester>.
+
+=cut
 
 has f => ( is => 'ro', isa => 'TPath::Forester', required => 1 );
 
-has selectors =>
+has _selectors =>
   ( is => 'ro', isa => 'ArrayRef[ArrayRef[TPath::Selector]]', required => 1 );
 
 =method first
@@ -53,7 +59,7 @@ sub select {
     $i //= $self->f->index($n);
     $i->index;
     my @sel;
-    for my $fork ( @{ $self->selectors } ) {
+    for my $fork ( @{ $self->_selectors } ) {
         push @sel, _sel( $n, $i, $fork, 0 );
     }
     return @sel;

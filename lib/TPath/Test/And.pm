@@ -9,11 +9,20 @@ For use by compiled TPath expressions. Not for external consumption.
 =cut
 
 use Moose;
-use TPath::Test;
 
-with 'TPath::Test';
+=head1 ROLES
 
-has tests => ( is => 'ro', isa => 'ArrayRef[TPath::Test]', required => 1 );
+L<TPath::Test::Compound>
+
+=cut
+
+with 'TPath::Test::Compound';
+
+=method test
+
+Returns true if all subsidiary tests are true.
+
+=cut
 
 sub test {
     my ( $self, $n, $c, $i ) = @_;

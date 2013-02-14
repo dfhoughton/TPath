@@ -11,9 +11,27 @@ For use by compiled TPath expressions. Not for external consumption.
 use Moose;
 use TPath::Test;
 
-with 'TPath::Test';
+=head1 ROLES
+
+L<TPath::Test::Boolean>
+
+=cut
+
+with 'TPath::Test::Boolean';
+
+=attr test
+
+The single test the negation of which will provide the value of this L<TPath::Test>.
+
+=cut
 
 has test => ( is => 'ro', isa => 'TPath::Test', required => 1 );
+
+=method test
+
+Returns the negation of whether the C<test> attribute is true.
+
+=cut
 
 sub test {
     my ( $self, $n, $c, $i ) = @_;

@@ -12,9 +12,27 @@ use feature qw(switch);
 use Moose;
 use namespace::autoclean;
 
+=attr name
+
+The name of the attribute. E.g., in C<@foo>, C<foo>.
+
+=cut
+
 has name => ( is => 'ro', isa => 'Str', required => 1 );
 
+=attr args
+
+The arguments the attribute takes, if any.
+
+=cut
+
 has args => ( is => 'ro', isa => 'ArrayRef', default => sub { [] } );
+
+=method apply
+
+Expects a node, a collection, and an index. Returns some value.
+
+=cut
 
 sub apply {
     my ( $self, $n, $c, $i ) = @_;
@@ -24,7 +42,7 @@ sub apply {
     # invoke all code to reify arguments
     for my $a ( @{ $self->args } ) {
         if ( ref $a ) {
-            given ($a) {
+            for ($a) {
                 when ( $a->isa('TPath::Attribute') ) {
                     $a = $a->apply( $n, $c, $i )
                 }
