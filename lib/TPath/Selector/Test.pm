@@ -1,6 +1,6 @@
 package TPath::Selector::Test;
 
-# ABSTRACT : role of selectors that apply some test to a node to select it
+# ABSTRACT: role of selectors that apply some test to a node to select it
 
 =head1 DESCRIPTION
 

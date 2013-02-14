@@ -1,6 +1,6 @@
 package TPath::Expression;
 
-# ABSTRACT : a compiled TPath expression
+# ABSTRACT: a compiled TPath expression
 
 =head1 SYNOPSIS
 

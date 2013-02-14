@@ -1,6 +1,6 @@
 package TPath::StderrLog;
 
-# ABSTRACT : implementation of TPath::LogStream that simply prints to STDERR
+# ABSTRACT: implementation of TPath::LogStream that simply prints to STDERR
 
 =head1 DESCRIPTION
 

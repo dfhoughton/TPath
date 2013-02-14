@@ -1,6 +1,6 @@
 package TPath::Test::Not;
 
-# ABSTRACT : implements logical negation of a test
+# ABSTRACT: implements logical negation of a test
 
 =head1 DESCRIPTION
 

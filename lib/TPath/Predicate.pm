@@ -1,6 +1,6 @@
 package TPath::Predicate;
 
-# ABSTRACT : interface of square bracket sub-expressions in TPath expressions
+# ABSTRACT: interface of square bracket sub-expressions in TPath expressions
 
 use Moose::Role;
 

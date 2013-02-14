@@ -1,6 +1,6 @@
 package TPath::Test::Node::True;
 
-# ABSTRACT : TPath::Test::Node implementing the wildcard; e.g., //*
+# ABSTRACT: TPath::Test::Node implementing the wildcard; e.g., //*
 
 use Moose;
 use namespace::autoclean;

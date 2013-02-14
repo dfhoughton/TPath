@@ -1,6 +1,6 @@
 package TPath::TypeConstraints;
 
-# ABSTRACT : assorted type constraints
+# ABSTRACT: assorted type constraints
 
 use Moose::Util::TypeConstraints;
 

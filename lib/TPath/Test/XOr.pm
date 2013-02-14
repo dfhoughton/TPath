@@ -1,6 +1,6 @@
 package TPath::Test::XOr;
 
-# ABSTRACT : implements logical function of tests which returns true iff only one test is true
+# ABSTRACT: implements logical function of tests which returns true iff only one test is true
 
 =head1 DESCRIPTION
 

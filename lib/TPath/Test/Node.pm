@@ -1,6 +1,6 @@
 package TPath::Test::Node;
 
-# ABSTRACT : role for tests determining whether a node has some property
+# ABSTRACT: role for tests determining whether a node has some property
 
 =head1 DESCRIPTION
 

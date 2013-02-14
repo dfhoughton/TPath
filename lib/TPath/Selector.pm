@@ -1,6 +1,6 @@
 package TPath::Selector;
 
-# ABSTRACT : an interface for classes that select nodes from a candidate collection
+# ABSTRACT: an interface for classes that select nodes from a candidate collection
 
 use Moose::Role;
 

@@ -1,6 +1,6 @@
 package TPath::Attributes::Extended;
 
-# ABSTRACT : a collection of attributes beyond the standard set
+# ABSTRACT: a collection of attributes beyond the standard set
 
 =head1 SYNOPSIS
 

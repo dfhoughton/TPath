@@ -1,6 +1,6 @@
 package TPath::Test::Or;
 
-# ABSTRACT : implements logical disjunction of tests
+# ABSTRACT: implements logical disjunction of tests
 
 =head1 DESCRIPTION
 

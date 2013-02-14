@@ -1,6 +1,6 @@
 package TPath::Attributes::Standard;
 
-# ABSTRACT : the standard collection of attributes available to any forester by default
+# ABSTRACT: the standard collection of attributes available to any forester by default
 
 # TODO document methods
 

@@ -1,6 +1,6 @@
 package TPath::Selector::Id;
 
-# ABSTRACT : C<TPath::Selector> that implements C<id(foo)>
+# ABSTRACT: C<TPath::Selector> that implements C<id(foo)>
 
 use Moose;
 use namespace::autoclean;

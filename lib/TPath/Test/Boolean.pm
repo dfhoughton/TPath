@@ -1,6 +1,6 @@
 package TPath::Test::Boolean;
 
-# ABSTRACT : any empty role used to tag boolean TPath::Tests
+# ABSTRACT: any empty role used to tag boolean TPath::Tests
 
 use Moose::Role;
 

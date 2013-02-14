@@ -1,6 +1,6 @@
 package TPath::Test::And;
 
-# ABSTRACT : implements logical conjunction of tests
+# ABSTRACT: implements logical conjunction of tests
 
 =head1 DESCRIPTION
 

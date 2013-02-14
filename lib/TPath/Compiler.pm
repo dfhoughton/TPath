@@ -1,6 +1,6 @@
 package TPath::Compiler;
 
-# ABSTRACT : takes ASTs and returns compiled TPath::Expression objects
+# ABSTRACT: takes ASTs and returns compiled TPath::Expression objects
 
 =head1 DESCRIPTION
 

@@ -1,6 +1,6 @@
 package TPath::LogStream;
 
-# ABSTRACT : role of log-like things
+# ABSTRACT: role of log-like things
 
 =head1 DESCRIPTION
 

@@ -1,6 +1,6 @@
 package TPath::Test;
 
-# ABSTRACT : interface of conditional expressions in predicates
+# ABSTRACT: interface of conditional expressions in predicates
 
 =head1 DESCRIPTION
 

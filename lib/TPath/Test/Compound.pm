@@ -1,6 +1,6 @@
 package TPath::Test::Compound;
 
-# ABSTRACT : role of TPath::Tests that combine multiple other tests under some boolean operator
+# ABSTRACT: role of TPath::Tests that combine multiple other tests under some boolean operator
 
 use Moose::Role;
 

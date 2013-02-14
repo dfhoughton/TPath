@@ -1,6 +1,6 @@
 package TPath::AttributeTest;
 
-# ABSTRACT : compares an attribute value to another value
+# ABSTRACT: compares an attribute value to another value
 
 =head1 DESCRIPTION
 

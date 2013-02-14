@@ -1,6 +1,6 @@
 package TPath::Attribute;
 
-# ABSTRACT : handles evaluating an attribute for a particular node
+# ABSTRACT: handles evaluating an attribute for a particular node
 
 =head1 DESCRIPTION
 

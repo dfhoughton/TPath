@@ -1,6 +1,6 @@
 package TPath::TypeCheck;
 
-# ABSTRACT : applies type constraint on nodes
+# ABSTRACT: applies type constraint on nodes
 
 =head1 DESCRIPTION
 
