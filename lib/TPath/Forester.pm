@@ -78,7 +78,7 @@ L<TPath::Attributes::Standard>
 
 =cut
 
-with 'TPath::Attributes::Standard';
+with qw(TPath::Attributes::Standard TPath::TypeCheck);
 
 =head1 REQUIRED METHODS
 
@@ -116,14 +116,15 @@ has log_stream => (
     default => sub { TPath::StderrLog->new }
 );
 
-=method add_test, clear_tests
+=method add_test, has_tests, clear_tests
 
 Add a code ref that will be used to test whether a node is ignorable. The
 return value of this code will be treated as a boolean value. If it is true,
 the node, and all its children, will be passed over as possible items to return
 from a select.
 
-This method has the companion method C<clear_tests>, which empties the test list.
+This method has the companion methods C<has_tests> and C<clear_tests>. The former says
+whether the list is empty and the latter clears it.
 
 =cut
 
@@ -131,9 +132,10 @@ has _tests => (
     is      => 'ro',
     isa     => 'ArrayRef[CodeRef]',
     default => sub { [] },
+    traits  => ['Array'],
     handles => {
         add_test    => 'push',
-        _tests      => 'elements',
+        has_tests   => 'count',
         clear_tests => 'clear',
     }
 );
@@ -195,8 +197,8 @@ the tree rooted at the given node.
 
 sub index {
     my ( $self, $node ) = @_;
-
-    # TODO construct a proper index here
+    require TPath::Index;
+    return TPath::Index->new( f => $self, root => $node );
 }
 
 sub _kids {
@@ -257,12 +259,12 @@ sub axis_sibling { my $self = shift; $self->_siblings(@_) }
 sub axis_sibling_or_self { my $self = shift; $self->_siblings_or_self(@_) }
 
 sub closest {
-    my ($self, $n, $t, $i) = @_;
-    return $n if $t->passes($n, $i);
-    my @children = $self->_kids($n, $i);
+    my ( $self, $n, $t, $i ) = @_;
+    return $n if $t->passes( $n, $i );
+    my @children = $self->_kids( $n, $i );
     my @closest;
     for my $c (@children) {
-        push @closest, $self->closest($c, $t, $i);
+        push @closest, $self->closest( $c, $t, $i );
     }
     return @closest;
 }

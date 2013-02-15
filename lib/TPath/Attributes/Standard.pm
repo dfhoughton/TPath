@@ -127,7 +127,7 @@ sub null : Attr {
     return undef;
 }
 
-sub index : Attr {
+sub idx : Attr(index) {
     my ( $self, $n, $c, $i ) = @_;
     return -1 if $i->is_root($n);
     my @siblings = $self->_kids( [ $self->parent( $i, $n ) ], $i );

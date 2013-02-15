@@ -17,9 +17,10 @@ has tag => (
 );
 
 has children => (
-    is      => 'ro',
-    isa     => 'ArrayRef[Str]',
-    default => sub { [] },
+    is         => 'ro',
+    isa        => 'ArrayRef[Str]',
+    default    => sub { [] },
+    auto_deref => 1,
 );
 
 has attributes => (

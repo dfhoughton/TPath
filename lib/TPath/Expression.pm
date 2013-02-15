@@ -17,6 +17,7 @@ An object that will get us the nodes identified by our path expression.
 =cut
 
 use TPath::TypeCheck;
+use TPath::TypeConstraints;
 use Moose;
 use namespace::autoclean -also => qr/^_/;
 
@@ -26,7 +27,7 @@ The expression's L<TPath::Forester>.
 
 =cut
 
-has f => ( is => 'ro', isa => 'TPath::Forester', required => 1 );
+has f => ( is => 'ro', does => 'TPath::Forester', required => 1 );
 
 has _selectors =>
   ( is => 'ro', isa => 'ArrayRef[ArrayRef[TPath::Selector]]', required => 1 );

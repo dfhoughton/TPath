@@ -25,7 +25,8 @@ C<TPath::Index::index()> -- so little overhead is incurred.
 
 =cut
 
-has node_type => ( isa => 'Maybe[Str]', is => 'ro', default => undef );
+has node_type =>
+  ( isa => 'Maybe[Str]', is => 'ro', writer => '_node_type', default => undef );
 
 sub _typecheck {
     my ( $self, $n ) = @_;

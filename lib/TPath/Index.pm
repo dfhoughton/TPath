@@ -19,6 +19,8 @@ use MooseX::Privacy;
 use Scalar::Util qw(refaddr weaken);
 use namespace::autoclean;
 
+use TPath::TypeConstraints;
+
 with 'TPath::TypeCheck';
 
 =attribute f
@@ -27,7 +29,7 @@ The L<TPath::Forester> that generated this index.
 
 =cut
 
-has f => ( is => 'ro', isa => 'TPath::Forester', required => 1, );
+has f => ( is => 'ro', does => 'TPath::Forester', required => 1, );
 
 has indexed => (
     is      => 'ro',

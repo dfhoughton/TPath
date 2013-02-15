@@ -58,7 +58,7 @@ sub treepath {
     for my $p ( @{ $ref->{treepath}{path} } ) {
         push @paths, path( $p, $forester );
     }
-    return TPath::Expression->new( f => $forester, selectors => \@paths );
+    return TPath::Expression->new( f => $forester, _selectors => \@paths );
 }
 
 sub path {
@@ -80,8 +80,8 @@ sub full {
     my ( $first, $step, $forester ) = @_;
     my @predicates = predicates( $step->{predicate}, $forester );
     my $sep        = $step->{separator};
-    my $type       = $step->{full}{forward};
-    my $axis       = $step->{full}{axis};
+    my $type       = $step->{step}{full}{forward};
+    my $axis       = $step->{step}{full}{axis};
     my ( $key, $val ) = each %$type;
     for ($key) {
         when ('wildcard') {
