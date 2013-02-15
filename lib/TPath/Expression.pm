@@ -56,7 +56,7 @@ save some work by using a common index for all selections.
 sub select {
     my ( $self, $n, $i ) = @_;
     confess 'select called on a null node' unless defined $n;
-    $self->f->_type_check($n);
+    $self->f->_typecheck($n);
     $i //= $self->f->index($n);
     $i->index;
     my @sel;

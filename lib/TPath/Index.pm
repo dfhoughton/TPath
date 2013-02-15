@@ -67,7 +67,7 @@ sub BUILD {
       . ' while index node type is '
       . $self->node_type
       unless $self->f->node_type eq $self->node_type;
-    $self->_walk( $self->root );
+    $self->walk( $self->root );
 }
 
 =method index
@@ -85,7 +85,7 @@ sub index {
 
 protected_method walk => sub {
     my ( $self, $n ) = @_;
-    my @children = $self->f->kids( $n, $self );
+    my @children = $self->f->_kids( $n, $self );
     $self->n_index($n);
     for my $c (@children) {
         $self->pc_index( $n, $c );

@@ -198,13 +198,13 @@ the tree rooted at the given node.
 sub index {
     my ( $self, $node ) = @_;
     require TPath::Index;
-    return TPath::Index->new( f => $self, root => $node );
+    return TPath::Index->new( f => $self, root => $node, node_type => $self->node_type );
 }
 
 sub _kids {
     my ( $self, $n, $i ) = @_;
     my @children = $self->children( $n, $i );
-    return @children unless $self->count_tests;
+    return @children unless $self->has_tests;
     grep {
         for my $t ( $self->tests ) {
             return () if $t->( $_, $i );
