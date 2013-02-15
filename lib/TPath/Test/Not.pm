@@ -10,6 +10,7 @@ For use by compiled TPath expressions. Not for external consumption.
 
 use Moose;
 use TPath::Test;
+use TPath::TypeConstraints;
 
 =head1 ROLES
 
@@ -25,7 +26,7 @@ The single test the negation of which will provide the value of this L<TPath::Te
 
 =cut
 
-has t => ( is => 'ro', isa => 'TPath::Test', required => 1 );
+has t => ( is => 'ro', isa => 'CondArg', required => 1 );
 
 =method test
 

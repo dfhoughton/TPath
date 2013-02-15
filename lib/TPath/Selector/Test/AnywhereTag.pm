@@ -3,6 +3,7 @@ package TPath::Selector::Test::AnywhereTag;
 # ABSTRACT: handles C<//foo> expression
 
 use Moose;
+use TPath::Test::Node::Tag;
 use namespace::autoclean;
 
 =head1 ROLES

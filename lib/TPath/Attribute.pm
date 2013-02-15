@@ -26,7 +26,15 @@ The arguments the attribute takes, if any.
 
 =cut
 
-has args => ( is => 'ro', isa => 'ArrayRef', default => sub { [] } );
+has args => ( is => 'ro', isa => 'ArrayRef', required => 1 );
+
+=attr code
+
+The actual code reference invoked when C<apply> is called.
+
+=cut
+
+has code => ( is => 'ro', isa => 'CodeRef', required => 1);
 
 =method apply
 
@@ -36,7 +44,6 @@ Expects a node, a collection, and an index. Returns some value.
 
 sub apply {
     my ( $self, $n, $c, $i ) = @_;
-    my $method = $self->name;
     my @args = ( $n, $c, $i );
 
     # invoke all code to reify arguments
@@ -58,7 +65,7 @@ sub apply {
         }
         push @args, $a;
     }
-    $i->f->$method(@args);
+    $self->code->($i->f, @args);
 }
 
 __PACKAGE__->meta->make_immutable;

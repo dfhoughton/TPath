@@ -96,7 +96,7 @@ our $path_grammar = do {
        <rule: args> \( (*COMMIT) <[arg]> (?: , <[arg]> )* \) (*COMMIT)
     
        <token: arg>
-          <treepath> | <literal> | <num> | <attribute> | <attribute_test> | <condition>
+          <treepath> | <v=literal> | <v=num> | <attribute> | <attribute_test> | <condition>
     
        <token: num> <.signed_int> | <.float>
     
@@ -141,11 +141,11 @@ our $path_grammar = do {
           <attribute> | <attribute_test> | <treepath>
     
        <rule: attribute_test>
-          <attribute> <cmp> <value> | <value> <cmp> <attribute>
+          <[args=attribute]> <cmp> <[args=value]> | <[args=value]> <cmp> <[args=attribute]>
     
        <token: cmp> [<>=]=?+|!=
     
-       <token: value> <literal> | <num> | <attribute>
+       <token: value> <v=literal> | <v=num> | <attribute>
     
        <rule: group> \( (*COMMIT) <condition> \)
     

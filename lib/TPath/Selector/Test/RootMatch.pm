@@ -1,9 +1,9 @@
-package TPath::Selector::Test::RootMatches;
+package TPath::Selector::Test::RootMatch;
 
 # ABSTRACT: handles C</~foo~>
 
 use Moose;
-use TPath::Test::Node::Matches;
+use TPath::Test::Node::Match;
 use namespace::autoclean;
 
 =head1 ROLES
@@ -18,12 +18,12 @@ has rx => ( is => 'ro', isa => 'RegexpRef', required => 1 );
 
 sub BUILD {
     my $self = shift;
-    $self->_node_test( TPath::Test::Node::Matches->new( rx => $self->rx ) );
+    $self->_node_test( TPath::Test::Node::Match->new( rx => $self->rx ) );
 }
 
 =method candidates
 
-Expects node, collection, and index. Returns root node if its value matches has the specified regex.
+Expects node, collection, and index. Returns root node if it matches the specified pattern.
 
 =cut
 
