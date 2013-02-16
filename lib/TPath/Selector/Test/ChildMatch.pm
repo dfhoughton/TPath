@@ -23,12 +23,12 @@ sub BUILD {
 
 =method candidates
 
-Expects node, collection, and index. Returns root node if it has the specified tag.
+Expects node and index. Returns root node if it has the specified tag.
 
 =cut
 
 sub candidates {
-    my ( $self, $n, $c, $i ) = @_;
+    my ( $self, $n, $i ) = @_;
     return $i->f->_children( $n, $self->node_test, $i );
 }
 

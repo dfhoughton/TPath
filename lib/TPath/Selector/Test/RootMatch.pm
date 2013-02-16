@@ -23,12 +23,12 @@ sub BUILD {
 
 =method candidates
 
-Expects node, collection, and index. Returns root node if it matches the specified pattern.
+Expects node and index. Returns root node if it matches the specified pattern.
 
 =cut
 
 sub candidates {
-    my ( $self, $n, $c, $i ) = @_;
+    my ( $self, $n, $i ) = @_;
     my $r = $i->root;
     return $self->node_test( $r, $i ) ? $r : ();
 }

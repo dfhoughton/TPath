@@ -46,7 +46,7 @@ Map from children to their parents. This should be regarded as private.
 
 has cp_index => ( is => 'ro', isa => 'HashRef', default => sub { {} } );
 
-has root => ( is => 'ro', required => 1, traits => ['Private']);
+has root => ( is => 'ro', required => 1 );
 
 =method is_root
 

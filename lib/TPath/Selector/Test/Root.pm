@@ -15,12 +15,12 @@ with 'TPath::Selector::Test';
 
 =method candidates
 
-Expects node, collection, and index. Returns root node.
+Expects node and index. Returns root node.
 
 =cut
 
 sub candidates {
-    my ( $self, $n, $c, $i ) = @_;
+    my ( $self, $n, $i ) = @_;
     return $i->root;
 }
 

@@ -9,8 +9,8 @@ use namespace::autoclean;
 extends 'TPath::Selector::Test::AxisMatch';
 
 sub candidates {
-    my ( $self, $n, $c, $i ) = @_;
-    $self->SUPER::candidates( $i->root, $c, $i );
+    my ( $self, $n, $i ) = @_;
+    $self->SUPER::candidates( $i->root, $i );
 }
 
 __PACKAGE__->meta->make_immutable;
