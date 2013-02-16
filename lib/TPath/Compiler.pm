@@ -78,7 +78,7 @@ sub step {
 
 sub full {
     my ( $first, $step, $forester ) = @_;
-    my @predicates = predicates( $step->{predicate}, $forester );
+    my @predicates = predicates( $step->{step}{predicate}, $forester );
     my $sep        = $step->{separator};
     my $type       = $step->{step}{full}{forward};
     my $axis       = $step->{step}{full}{axis};
@@ -91,14 +91,15 @@ sub full {
                         return TPath::Selector::Test::RootAxisWildcard->new(
                             axis => $axis )
                           if $axis;
-                        return TPath::Selector::Test::Root->new;
+                        return TPath::Selector::Test::Root->new(
+                            predicates => \@predicates );
                     }
                     return TPath::Selector::Test::AxisWildcard->new(
                         axis       => $axis,
-                        predicates => \@predicates
+                        predicates => \@predicates,
                     ) if $axis;
                     return TPath::Selector::Test::Child->new(
-                        predicates => \@predicates );
+                        predicates => \@predicates, );
                 }
                 when ('//') {
                     croak 'axes disallowed with // separator' if defined $axis;
@@ -113,29 +114,39 @@ sub full {
                 when ('/') {
                     if ($first) {
                         return TPath::Selector::Test::RootAxisTag->new(
-                            axis => $axis,
-                            tag  => $val
+                            axis       => $axis,
+                            tag        => $val,
+                            predicates => \@predicates,
                         ) if $axis;
                         return TPath::Selector::Test::RootTag->new(
-                            tag => $val );
+                            tag        => $val,
+                            predicates => \@predicates,
+                        );
                     }
                     return TPath::Selector::Test::AxisTag(
-                        axis => $axis,
-                        tag  => $val
+                        axis       => $axis,
+                        tag        => $val,
+                        predicates => \@predicates,
                     ) if $axis;
-                    return TPath::Selector::Test::ChildTag->new( tag => $val );
+                    return TPath::Selector::Test::ChildTag->new(
+                        tag        => $val,
+                        predicates => \@predicates,
+                    );
                 }
                 when ('//') {
                     croak 'axes disallowed with // separator' if defined $axis;
                     return TPath::Selector::Test::AnywhereTag->new(
-                        tag   => $val,
-                        first => $first
+                        tag        => $val,
+                        first      => $first,
+                        predicates => \@predicates,
                     );
                 }
                 when ('/>') {
                     croak 'axes disallowed with /> separator' if defined $axis;
                     return TPath::Selector::Test::ClosestTag->new(
-                        tag => $val );
+                        tag        => $val,
+                        predicates => \@predicates,
+                    );
                 }
             }
         }
@@ -145,29 +156,39 @@ sub full {
                 when ('/') {
                     if ($first) {
                         return TPath::Selector::Test::RootAxisMatch->new(
-                            axis => $axis,
-                            rx   => $rx
+                            axis       => $axis,
+                            rx         => $rx,
+                            predicates => \@predicates,
                         ) if $axis;
                         return TPath::Selector::Test::RootMatch->new(
-                            rx => $rx );
+                            rx         => $rx,
+                            predicates => \@predicates,
+                        );
                     }
                     return TPath::Selector::Test::AxisMatch(
-                        axis => $axis,
-                        rx   => $rx
+                        axis       => $axis,
+                        rx         => $rx,
+                        predicates => \@predicates,
                     ) if $axis;
-                    return TPath::Selector::Test::ChildMatch->new( rx => $rx );
+                    return TPath::Selector::Test::ChildMatch->new(
+                        rx         => $rx,
+                        predicates => \@predicates,
+                    );
                 }
                 when ('//') {
                     croak 'axes disallowed with // separator' if defined $axis;
                     return TPath::Selector::Test::AnywhereMatch->new(
-                        rx    => $rx,
-                        first => $first
+                        rx         => $rx,
+                        first      => $first,
+                        predicates => \@predicates,
                     );
                 }
                 when ('/>') {
                     croak 'axes disallowed with /> separator' if defined $axis;
                     return TPath::Selector::Test::ClosestMatch->new(
-                        rx => $rx );
+                        rx         => $rx,
+                        predicates => \@predicates,
+                    );
                 }
             }
         }
