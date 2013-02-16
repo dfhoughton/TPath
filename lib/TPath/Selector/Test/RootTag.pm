@@ -30,7 +30,7 @@ Expects node and index. Returns root node if it has the specified tag.
 sub candidates {
     my ( $self, $n, $i ) = @_;
     my $r = $i->root;
-    return $self->node_test( $r, $i ) ? $r : ();
+    return $self->node_test->passes( $r, $i ) ? $r : ();
 }
 
 __PACKAGE__->meta->make_immutable;
