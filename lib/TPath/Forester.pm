@@ -371,9 +371,8 @@ sub _descendants {
     return () unless @children;
     my @descendants;
     for my $c (@children) {
-        push @descendants, $self->_descendants( $c, $t, $i )
-          unless $self->is_leaf( $c, undef, $i );
-        push @descendants, $t if $t->passes( $c, $i );
+        push @descendants, $self->_descendants( $c, $t, $i );
+        push @descendants, $c if $t->passes( $c, $i );
     }
     return @descendants;
 }
@@ -391,6 +390,8 @@ efficient where available. E.g., where the node provides an C<is_leaf> method,
 
 sub is_leaf {
     my ( $self, $n, $c, $i ) = @_;
+    my @children = $self->children($n, $i);
+    return !@children;
 }
 
 =method is_root

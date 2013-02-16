@@ -54,9 +54,9 @@ Expects a node and an index and returns nodes selected before filtering by predi
 =cut
 
 sub candidates {
-    my ( $self, $n, $c, $i ) = @_;
-    my $axis = $self->axis;
-    $i->f->$axis->( $n, $self->node_test, $i );
+    my ( $self, $n, $i ) = @_;
+    my $axis = $self->faxis;
+    $i->f->$axis( $n, $self->node_test, $i );
 }
 
 sub select {

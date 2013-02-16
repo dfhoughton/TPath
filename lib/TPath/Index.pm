@@ -29,7 +29,7 @@ The L<TPath::Forester> that generated this index.
 
 =cut
 
-has f => ( is => 'ro', does => 'TPath::Forester', required => 1, );
+has f => ( is => 'ro', does => 'TPath::Forester', required => 1 );
 
 has indexed => (
     is      => 'ro',
