@@ -2,6 +2,7 @@
 
 package TPath::Grammar;
 
+use feature 'switch';
 use strict;
 use warnings;
 use Carp;
@@ -170,11 +171,39 @@ sub parse {
             normalize_parens($ref);
             operator_precedence($ref);
             merge_conditions($ref);
+            fix_predicates($ref);
         }
         return $ref;
     }
     else {
         confess "could not parse '$expr' as a TPath expression";
+    }
+}
+
+# remove unnecessary levels in predicate trees
+sub fix_predicates {
+    my $ref  = shift;
+    my $type = ref $ref;
+    for ($type) {
+        when ('HASH') {
+            while ( my ( $k, $v ) = each %$ref ) {
+                if ( $k eq 'predicate' ) {
+                    for my $i ( 0 .. $#$v ) {
+                        my $item = $v->[$i];
+                        next if exists $item->{idx};
+                        if ( ref $item->{condition} eq 'ARRAY' ) {
+                            $item = $item->{condition}[0];
+                            splice @$v, $i, 1, $item;
+                        }
+                        fix_predicates($item);
+                    }
+                }
+                else {
+                    fix_predicates($v);
+                }
+            }
+        }
+        when ('ARRAY') { fix_predicates($_) for @$ref }
     }
 }
 
