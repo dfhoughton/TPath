@@ -93,7 +93,7 @@ our $path_grammar = do {
     
        <rule: attribute> <aname> <args>?
     
-       <rule: args> \( (*COMMIT) <[arg]> (?: , <[arg]> )* \) (*COMMIT)
+       <rule: args> \( <[arg]> (?: , <[arg]> )* \)
     
        <token: arg>
           <treepath> | <v=literal> | <v=num> | <attribute> | <attribute_test> | <condition>

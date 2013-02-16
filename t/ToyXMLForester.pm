@@ -1,10 +1,20 @@
+package MyAttributes;
+
+use Moose::Role;
+use MooseX::MethodAttributes::Role;
+
+sub attr : Attr {
+    my ( $self, $n, $c, $i, $name ) = @_;
+    $n->attribute($name);
+}
+
 package ToyXMLForester;
 
 use Moose;
 use namespace::autoclean;
 use TPath::Index;
 
-with 'TPath::Forester';
+with qw(TPath::Forester MyAttributes);
 
 sub children { my ( $self, $n ) = @_; $n->children }
 sub has_tag     { my ( $self, $n, $tag ) = @_; $n->tag eq $tag }

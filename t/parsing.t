@@ -54,6 +54,10 @@ leaf::a
 /a[0][@test]
 /a[b[c]]
 /a|//b
+//b:b
+//b:b[@attr != "1"]
+//b:b[@attr(1) != "1"]
+//b:b[@attr("fo:o") != "1"]
 END
 
 # pairs of expressions that should have the same ASTs
@@ -83,7 +87,7 @@ END
 # some leaf values to test
 my @leaves = make_paths(<<'END');
 a[@b = 'foo']
-literal
+v
 foo
 
 a[@b]
@@ -119,19 +123,19 @@ idx
 -1
 
 //a[@b = 'fo\'o']
-literal
+v
 fo'o
 
 //a[@b = "fo\"o"]
-literal
+v
 fo"o
 
 //a[@b('c')]
-literal
+v
 c
 
 //a[@b(1)]
-num
+v
 1
 END
 

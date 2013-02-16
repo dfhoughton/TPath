@@ -50,16 +50,15 @@ is( scalar @elements,
     1, "found the right number of elements with //b[1] on $p" );
 is( $elements[0]->attribute('foo'), '2', 'found expected attribute' );
 
-		# Element root = parse("");
-		# Path<Element> p = new XMLToyForester().path("//a/b[1]");
-		# List<Element> bs = p.select(root);
-		# assertEquals(2, bs.size());
-		# assertEquals("2", bs.get(0).attributes.get("foo"));
-		# assertEquals("3", bs.get(1).attributes.get("foo"));
 $p        = parse('<root><a><b foo="1"/><b foo="2"/><b foo="3"/></a><a><b foo="2"/><b foo="3"/></a></root>');
 @elements = $f->path('//a/b[1]')->select($p);
 is( scalar @elements,2, "found the right number of elements with //b[1] on $p" );
 is( $elements[0]->attribute('foo'), '2', 'found expected attribute' );
 is( $elements[1]->attribute('foo'), '3', 'found expected attribute' );
+
+$p        = parse('<a:b><b:b/><b:b fo:o="1"/><b:b fo:o="2"/></a:b>');
+my $path = '//b:b[@attr("fo:o") != "1"]';
+@elements = $f->path($path)->select($p);
+is( scalar @elements,1, "found the right number of elements with $path on $p" );
 
 done_testing();

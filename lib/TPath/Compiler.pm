@@ -221,7 +221,7 @@ sub attribute {
     my @args;
     my $args = $attribute->{args};
     if ( defined $args ) {
-        push @args, arg( $_, $forester ) for @$args;
+        push @args, arg( $_, $forester ) for @{ $args->{arg} };
     }
     my $name = $attribute->{aname};
     my $code = $forester->_attributes->{$name};
