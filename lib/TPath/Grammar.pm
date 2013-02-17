@@ -352,10 +352,11 @@ sub normalize_parens {
     my $ref  = shift;
     my $type = ref $ref;
     return $ref unless $type;
-    if ( $type eq 'ARRAY' ) {
+    for ($type) {
+        when ('ARRAY') {
         normalize_parens($_) for @$ref;
-    }
-    elsif ( $type eq 'HASH' ) {
+        }
+        when ('HASH') {
         for my $name ( keys %$ref ) {
             my $value = $ref->{$name};
             if ( $name eq 'condition' ) {
@@ -369,9 +370,16 @@ sub normalize_parens {
                 normalize_parens($value);
             }
         }
+        }
+        default {
+        confess "unexpected type: $type";
+        }
+    }
+    if ( $type eq 'ARRAY' ) {
+    }
+    elsif ( $type eq 'HASH' ) {
     }
     else {
-        confess "unexpected type: $type";
     }
     return $ref;
 }
