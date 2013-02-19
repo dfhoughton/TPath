@@ -18,6 +18,7 @@ use feature 'switch';
 use parent 'Exporter';
 
 use TPath::Attribute;
+use TPath::AttributeTest;
 use TPath::Expression;
 use TPath::Predicate::Index;
 use TPath::Selector;
@@ -211,7 +212,7 @@ sub predicate {
     return TPath::Predicate::Index->new( idx => $idx ) if defined $idx;
     my $op = $predicate->{condition}{operator};
     return condition( $predicate, $forester, $op ) if defined $op;
-    my $at = $predicate->{condition}{attribute_test};
+    my $at = $predicate->{attribute_test};
     return attribute_test( $at, $forester ) if defined $at;
     return attribute( $predicate->{condition}{attribute}, $forester );
 }

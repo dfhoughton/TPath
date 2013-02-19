@@ -12,6 +12,14 @@ use feature qw(switch);
 use Moose;
 use namespace::autoclean;
 
+=head1 ROLES
+
+L<TPath::Predicate>
+
+=cut
+
+with 'TPath::Predicate';
+
 =attr name
 
 The name of the attribute. E.g., in C<@foo>, C<foo>.
@@ -67,6 +75,12 @@ sub apply {
     }
     $self->code->($i->f, @args);
 }
+
+sub filter {
+    my ( $self, $c, $i ) = @_;
+    return grep { $self->apply($_, $c, $i) } @$c;
+}
+
 
 __PACKAGE__->meta->make_immutable;
 

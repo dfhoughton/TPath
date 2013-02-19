@@ -7,7 +7,7 @@ use TPath::Grammar qw(%AXES);
 
 class_type $_ for qw(TPath::Attribute TPath::Expression TPath::AttributeTest);
 
-role_type $_ for qw(TPath::Test::Boolean TPath::Selector TPath::Forester);
+role_type $_ for qw(TPath::Test::Boolean TPath::Selector TPath::Forester TPath::Predicate);
 
 union 'ATArg', [qw( Num TPath::Attribute Str )];
 
