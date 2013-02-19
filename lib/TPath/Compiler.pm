@@ -99,7 +99,7 @@ sub full {
                         axis       => $axis,
                         predicates => \@predicates,
                     ) if $axis;
-                    return TPath::Selector::Test::Child->new(
+                    return TPath::Selector::Test::AxisWildcard->new(
                         predicates => \@predicates, );
                 }
                 when ('//') {

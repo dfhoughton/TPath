@@ -123,6 +123,16 @@ return value of this code will be treated as a boolean value. If it is true,
 the node, and all its children, will be passed over as possible items to return
 from a select.
 
+Example test:
+
+  $f->add_test(sub {
+      my ($forester, $node, $index) = @_;
+      return $forester->has_tag('foo');
+  });
+
+Every test will receive the forester itself, the node, and the index as arguments. This test
+will cause the forester C<$f> to ignore C<foo> nodes.
+
 This method has the companion methods C<has_tests> and C<clear_tests>. The former says
 whether the list is empty and the latter clears it.
 
@@ -137,7 +147,8 @@ has _tests => (
         add_test    => 'push',
         has_tests   => 'count',
         clear_tests => 'clear',
-    }
+    },
+    auto_deref => 1
 );
 
 has _attributes => (
@@ -198,7 +209,11 @@ the tree rooted at the given node.
 sub index {
     my ( $self, $node ) = @_;
     require TPath::Index;
-    return TPath::Index->new( f => $self, root => $node, node_type => $self->node_type );
+    return TPath::Index->new(
+        f         => $self,
+        root      => $node,
+        node_type => $self->node_type
+    );
 }
 
 sub _kids {
@@ -206,10 +221,12 @@ sub _kids {
     my @children = $self->children( $n, $i );
     return @children unless $self->has_tests;
     grep {
-        for my $t ( $self->tests ) {
-            return () if $t->( $_, $i );
+        my $good = 1;
+        for my $t ( $self->_tests ) {
+            $good &= $t->( $self, $_, $i );
+            last unless $good;
         }
-        $_;
+        $good;
     } @children;
 }
 
@@ -390,7 +407,7 @@ efficient where available. E.g., where the node provides an C<is_leaf> method,
 
 sub is_leaf {
     my ( $self, $n, $c, $i ) = @_;
-    my @children = $self->children($n, $i);
+    my @children = $self->children( $n, $i );
     return !@children;
 }
 
