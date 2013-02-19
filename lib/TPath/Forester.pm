@@ -100,9 +100,13 @@ to this sort of node, has a tag that matches the regex.
 
 Expects a node and an index. Returns the parent of the node.
 
+=head2 id
+
+Expects a node and returns an id for that node, if any.
+
 =cut
 
-requires qw(children has_tag matches_tag parent);
+requires qw(children has_tag matches_tag parent id);
 
 =attr log_stream
 

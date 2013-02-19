@@ -35,7 +35,6 @@ has indexed => (
     is      => 'ro',
     isa     => 'HashRef',
     default => sub { {} },
-    traits  => ['Private']
 );
 
 =attribute cp_index
@@ -78,7 +77,7 @@ Cause this index to walk its tree and perform all necessary indexation.
 
 sub index {
     my $self = shift;
-	return if $self->{is_indexed};
+    return if $self->{is_indexed};
     $self->walk( $self->root );
     $self->{is_indexed} = 1;
 }
@@ -97,7 +96,7 @@ protected_method n_index => sub {
     my ( $self, $n ) = @_;
     my $id = $self->id($n);
     if ( defined $id ) {
-        $self->identified->{$id} = $n;
+        $self->indexed->{$id} = $n;
     }
 };
 
@@ -129,7 +128,7 @@ it returns C<undef>.
 sub id {
     my ( $self, $n ) = @_;
     $self->_typecheck($n);
-    return undef;
+    return $self->f->id($n);
 }
 
 __PACKAGE__->meta->make_immutable;

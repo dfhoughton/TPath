@@ -20,6 +20,7 @@ sub children { my ( $self, $n ) = @_; $n->children }
 sub has_tag     { my ( $self, $n, $tag ) = @_; $n->tag eq $tag }
 sub matches_tag { my ( $self, $n, $rx )  = @_; $n->tag =~ $rx }
 sub parent { my ( $self, $n ) = @_; $n->parent }
+sub id { my ($self, $n) = @_; $n->attribute('id') }
 
 sub BUILD { $_[0]->_node_type('Element') }
 

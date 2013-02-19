@@ -23,7 +23,7 @@ Expects a node and an index. Returns the node, if any, bearing this selector's i
 
 sub select {
     my ( $self, undef, $idx ) = @_;
-    my $n = $idx->identified->{ $self->id };
+    my $n = $idx->indexed->{ $self->id };
     $n // ();
 }
 

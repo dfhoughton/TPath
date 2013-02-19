@@ -65,8 +65,8 @@ my $path = '//b:b[@attr("fo:o") != "1"]';
 is( scalar @elements, 1,
     "found the right number of elements with $path on $p" );
 
-$p = parse('<a><b/><c/></a>');
-my $path = '/a/*';
+$p    = parse('<a><b/><c/></a>');
+$path = '/a/*';
 $f->add_test(
     sub {
         my ( $f, $n, $i ) = @_;
@@ -84,7 +84,45 @@ $f->clear_tests;
 is(
     scalar @elements,
     2,
-    "found the right number of elements with $path on $p when not ignoring c nodes"
+"found the right number of elements with $path on $p when not ignoring c nodes"
 );
+
+for my $line ( <<END =~ /^.*$/mg ) {
+<root><a><b/><c><a/></c></a><b><b><a><c/></a></b></b></root>
+//root 1
+//a 3
+//b 3
+//c 2
+<root><c><b><a/></b></c></root>
+//root 1
+//a 1
+//b 1
+//c 1
+END
+    if ( $line !~ / / ) {
+        $p = parse($line);
+        next;
+    }
+    my ( $l, $r ) = split / /, $line;
+    $path = $l;
+    my $expectation = $r;
+    @elements = $f->path($path)->select($p);
+    is scalar @elements, $expectation,
+      "got expected number of elements for $path on $p";
+}
+
+$p = parse('<a><b id="foo"><c/><c/><c/></b><b id="bar"><c/></b><b id="(foo)"><c/><c/></b></a>');
+for my $line ( <<'END' =~ /^.*$/mg ) {
+id(foo)/* 3
+id(bar)/* 1
+id(\(foo\))/* 2
+END
+    my ( $l, $r ) = split / /, $line;
+    $path = $l;
+    my $expectation = $r;
+    @elements = $f->path($path)->select($p);
+    is scalar @elements, $expectation,
+      "got expected number of elements for $path on $p";
+}
 
 done_testing();
