@@ -1,0 +1,6 @@
+Key
+ . = still to do
+ - = discarded
+ * = completed
+
+. get rid of MooseX::Privacy to speed things up somewhat
