@@ -174,4 +174,10 @@ $path     = 'c';
 is scalar @elements, 1, "correct number of elements from $p by $path";
 is $elements[0], '<c/>', 'correct element found by relative path';
 
+$p = parse(q{<a><b/><c/></a>});
+my $index = $f->index($p);
+$path = '/a/*[1]';
+@elements = $f->path($path)->select( $p, $index );
+is scalar @elements, 1, "correct number of elements from $p by $path";
+is $elements[0]->tag, 'c', 'correct element found';
 done_testing();
