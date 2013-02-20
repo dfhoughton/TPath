@@ -26,7 +26,7 @@ The L<TPath::Test> evaluated by the predicate.
 
 =cut
 
-has t => ( is => 'ro', isa => 'TPath::Test', required => 1 );
+has t => ( is => 'ro', does => 'TPath::Test', required => 1 );
 
 sub filter {
     my ( $self, $c, $i ) = @_;

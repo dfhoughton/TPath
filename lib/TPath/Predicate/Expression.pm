@@ -30,7 +30,7 @@ has e => ( is => 'ro', isa => 'TPath::Expression', required => 1 );
 
 sub filter {
     my ( $self, $c, $i ) = @_;
-    return grep { $self->e->select($_, $i) } @$c;
+    return grep { $self->e->test( $_, $c, $i ) } @$c;
 }
 
 __PACKAGE__->meta->make_immutable;

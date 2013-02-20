@@ -29,7 +29,7 @@ has a => ( is => 'ro', isa => 'TPath::Attribute', required => 1 );
 
 sub filter {
     my ( $self, $c, $i ) = @_;
-    return grep { defined $self->a->apply($_, $c, $i) } @$c;
+    return grep { $self->a->test( $_, $c, $i ) } @$c;
 }
 
 __PACKAGE__->meta->make_immutable;

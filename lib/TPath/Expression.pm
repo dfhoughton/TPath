@@ -21,6 +21,14 @@ use TPath::TypeConstraints;
 use Moose;
 use namespace::autoclean -also => qr/^_/;
 
+=head1 ROLES
+
+L<TPath::Test>
+
+=cut
+
+with 'TPath::Test';
+
 =attr f
 
 The expression's L<TPath::Forester>.
@@ -42,7 +50,7 @@ the given tree. This method just delegates to C<select>.
 sub first {
     my ( $self, $n, $i ) = @_;
     my @c = $self->select( $n, $i );
-	return shift @c;
+    return shift @c;
 }
 
 =method select
@@ -64,6 +72,18 @@ sub select {
         push @sel, _sel( $n, $i, $fork, 0 );
     }
     return @sel;
+}
+
+=method test
+
+Takes a node, a collection, and an index and returns whether this expression selects
+any nodes given this context. This is basically C<select> given a boolean interpretation.
+
+=cut
+
+sub test {
+    my ( $self, $n, $c, $i ) = @_;
+    !!$self->select( $n, $i );
 }
 
 sub _sel {

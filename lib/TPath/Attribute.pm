@@ -14,11 +14,11 @@ use namespace::autoclean;
 
 =head1 ROLES
 
-L<TPath::Predicate>
+L<TPath::Test>
 
 =cut
 
-with 'TPath::Predicate';
+with 'TPath::Test';
 
 =attr name
 
@@ -76,9 +76,9 @@ sub apply {
     $self->code->($i->f, @args);
 }
 
-sub filter {
-    my ( $self, $c, $i ) = @_;
-    return grep { $self->apply($_, $c, $i) } @$c;
+sub test {
+    my ( $self, $n, $c, $i ) = @_;
+    defined $self->apply($n, $c, $i);
 }
 
 
