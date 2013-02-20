@@ -56,7 +56,7 @@ indexed by this index.
 
 sub is_root {
     my ( $self, $n ) = @_;
-    return $n == $self->root;
+    return ref $n eq ref $self->root;
 }
 
 sub BUILD {
