@@ -111,7 +111,9 @@ END
       "got expected number of elements for $path on $p";
 }
 
-$p = parse('<a><b id="foo"><c/><c/><c/></b><b id="bar"><c/></b><b id="(foo)"><c/><c/></b></a>');
+$p = parse(
+'<a><b id="foo"><c/><c/><c/></b><b id="bar"><c/></b><b id="(foo)"><c/><c/></b></a>'
+);
 for my $line ( <<'END' =~ /^.*$/mg ) {
 id(foo)/* 3
 id(bar)/* 1
@@ -124,5 +126,17 @@ END
     is scalar @elements, $expectation,
       "got expected number of elements for $path on $p";
 }
+
+$f->add_attribute(
+    'foobar',
+    sub {
+        my ( $self, $n, $c, $i ) = @_;
+        return defined $n->attribute('foo') && defined $n->attribute('bar');
+    }
+);
+$p        = parse(q{<a><b foo="bar" bar="foo"/><b foo="foo"/></a>});
+$path     = '//*[@foobar]';
+@elements = $f->path($path)->select($p);
+is scalar @elements, 1, "got element from $p using new attribute \@foobar";
 
 done_testing();

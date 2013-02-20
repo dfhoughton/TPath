@@ -66,6 +66,7 @@ must define how a tag string or regex may match a node, if at all.
 
 use feature 'state';
 use Moose::Role;
+use Moose::Util qw( apply_all_roles );
 
 use TPath::Compiler qw(compile);
 use TPath::Grammar qw(parse);
@@ -188,6 +189,40 @@ sub _collect_attributes {
         }
     }
     return \%attributes;
+}
+
+=method add_attribute
+
+Expects a name, a code reference, and possibly options. Adds the attribute to the forester.
+
+If the attribute name is already in use, the method will croak unless you specify that this
+attribute should override the already named attribute. E.g.,
+
+  $f->add_attribute( 'foo', sub { ... }, -override => 1 );
+
+If you specify the attribute as overriding and the name is *not* already in use, the method
+will carp. You can use the C<-force> option to skip all this checking and just add the
+attribute.
+
+=cut
+
+sub add_attribute {
+    my ( $self, $name, $attr, %options ) = @_;
+    die 'attributes must have non-empty names' unless $name;
+    die "attribute $name but be a code reference" unless ref $attr eq 'CODE';
+    if ( $options{-force} ) {
+        $self->_attributes->{$name} = $attr;
+    }
+    elsif ( $options{-override} ) {
+        carp("override used by attribute $name does not exist")
+          unless exists $self->_attributes->{$name};
+        $self->_attributes->{$name} = $attr;
+    }
+    else {
+        croak("attribute $name already exists")
+          if exists $self->_attributes->{$name};
+        $self->_attributes->{$name} = $attr;
+    }
 }
 
 =method path

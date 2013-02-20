@@ -105,7 +105,9 @@ sub full {
                 when ('//') {
                     croak 'axes disallowed with // separator' if defined $axis;
                     return TPath::Selector::Test::Anywhere->new(
-                        predicates => \@predicates );
+                        first      => $first,
+                        predicates => \@predicates
+                    );
                 }
                 when ('/>') { croak '/>* disallowed' }
             }
@@ -214,7 +216,7 @@ sub predicate {
     return condition( $predicate, $forester, $op ) if defined $op;
     my $at = $predicate->{attribute_test};
     return attribute_test( $at, $forester ) if defined $at;
-    return attribute( $predicate->{condition}{attribute}, $forester );
+    return attribute( $predicate->{attribute}, $forester );
 }
 
 sub attribute {
