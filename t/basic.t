@@ -154,4 +154,13 @@ my %set = map { $_ => 1 } @elements;
 ok $set{'<c/>'},        "found <c/>";
 ok $set{'<b><c/></b>'}, "found <b><c/></b>";
 
+$p        = parse(q{<a><b><c/></b><foo><d/><e><foo/></e></foo></a>});
+$path     = '/leaf::*';
+@elements = $f->path($path)->select($p);
+is scalar @elements, 3, "correct number of elements selected from $p by $path";
+my %set = map { $_ => 1 } @elements;
+ok $set{'<c/>'},   "found <c/>";
+ok $set{'<d/>'},   "found <d/>";
+ok $set{'<foo/>'}, "found <foo/>";
+
 done_testing();
