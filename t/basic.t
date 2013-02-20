@@ -196,4 +196,9 @@ $path = '//$b';
 my $e = $f->path($path)->first($p);
 ok defined $e, 'can use dollar sign in path';
 
+$p = parse(q{<a><~b/><c/><d/></a>});
+$path = '//~~~~';
+my $e = $f->path($path)->first($p);
+ok defined $e, 'can escape tildes in patterns';
+
 done_testing();

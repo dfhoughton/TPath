@@ -42,7 +42,7 @@ our $parsing_re = qr!
       </ \k<t> >
       (?{ pop @stack })
    )
-   (?<tag> [\pL $ ](?::?+\w)*+ )
+   (?<tag> [^"<>=/\s]++ )
    (?<attributes> (?: \s++ (?&attribute) )*+ )
    (?<attribute>
       ((?&tag)) 
