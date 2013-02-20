@@ -21,10 +21,10 @@ use aliased 'TPath::Attribute';
 use aliased 'TPath::AttributeTest';
 use aliased 'TPath::Expression';
 use aliased 'TPath::Predicate::Index';
-use aliased 'TPath::Predicate::Attribute' => 'PA';
+use aliased 'TPath::Predicate::Attribute'     => 'PA';
 use aliased 'TPath::Predicate::AttributeTest' => 'PAT';
-use aliased 'TPath::Predicate::Boolean' => 'PB';
-use aliased 'TPath::Predicate::Expression' => 'PE';
+use aliased 'TPath::Predicate::Boolean'       => 'PB';
+use aliased 'TPath::Predicate::Expression'    => 'PE';
 use aliased 'TPath::Selector';
 use aliased 'TPath::Selector::Id';
 use aliased 'TPath::Selector::Parent';
@@ -143,8 +143,10 @@ sub full {
                         tag        => $val,
                         predicates => \@predicates
                     ) if $axis;
-                    return ChildTag->new( tag => $val,
-                        predicates => \@predicates );
+                    return ChildTag->new(
+                        tag        => $val,
+                        predicates => \@predicates
+                    );
                 }
                 when ('//') {
                     croak 'axes disallowed with // separator' if defined $axis;
@@ -167,8 +169,10 @@ sub full {
                         tag        => $val,
                         predicates => \@predicates
                     ) if $axis;
-                    return ChildTag->new( tag => $val,
-                        predicates => \@predicates );
+                    return ChildTag->new(
+                        tag        => $val,
+                        predicates => \@predicates
+                    );
                 }
             }
         }
@@ -192,8 +196,10 @@ sub full {
                         rx         => $rx,
                         predicates => \@predicates
                     ) if $axis;
-                    return ChildMatch->new( rx => $rx,
-                        predicates => \@predicates );
+                    return ChildMatch->new(
+                        rx         => $rx,
+                        predicates => \@predicates
+                    );
                 }
                 when ('//') {
                     croak 'axes disallowed with // separator' if defined $axis;
@@ -216,8 +222,10 @@ sub full {
                         rx         => $rx,
                         predicates => \@predicates
                     ) if $axis;
-                    return ChildMatch->new( rx => $rx,
-                        predicates => \@predicates );
+                    return ChildMatch->new(
+                        rx         => $rx,
+                        predicates => \@predicates
+                    );
                 }
             }
         }
@@ -239,10 +247,11 @@ sub predicate {
     my $idx = $predicate->{idx};
     return Index->new( idx => $idx ) if defined $idx;
     my $op = $predicate->{condition}{operator};
-    return PB->new(t=>condition( $predicate, $forester, $op )) if defined $op;
+    return PB->new( t => condition( $predicate, $forester, $op ) )
+      if defined $op;
     my $at = $predicate->{attribute_test};
-    return PAT->new(at=>attribute_test( $at, $forester )) if defined $at;
-    return PA->new(a=>attribute( $predicate->{attribute}, $forester ));
+    return PAT->new( at => attribute_test( $at, $forester ) ) if defined $at;
+    return PA->new( a => attribute( $predicate->{attribute}, $forester ) );
 }
 
 sub attribute {

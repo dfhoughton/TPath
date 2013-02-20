@@ -203,6 +203,10 @@ If you specify the attribute as overriding and the name is *not* already in use,
 will carp. You can use the C<-force> option to skip all this checking and just add the
 attribute.
 
+Note that the code reference will receive the forester, a node, a collection of nodes, an index, and
+optionally any additional arguments. B<If you want the attribute to evaluate as undefined for
+a particular node, it must return C<undef> for this node.>
+
 =cut
 
 sub add_attribute {
