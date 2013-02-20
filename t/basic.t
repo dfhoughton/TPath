@@ -180,4 +180,10 @@ $path = '/a/*[1]';
 @elements = $f->path($path)->select( $p, $index );
 is scalar @elements, 1, "correct number of elements from $p by $path";
 is $elements[0]->tag, 'c', 'correct element found';
+
+$p        = parse(q{<a><b/><c><b/><d><b/><b/></d></c></a>});
+$path     = '//\b';
+@elements = $f->path($path)->select($p);
+is scalar @elements, 4, "correct number of elements from $p by $path";
+
 done_testing();
