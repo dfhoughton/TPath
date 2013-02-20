@@ -21,6 +21,10 @@ use aliased 'TPath::Attribute';
 use aliased 'TPath::AttributeTest';
 use aliased 'TPath::Expression';
 use aliased 'TPath::Predicate::Index';
+use aliased 'TPath::Predicate::Attribute' => 'PA';
+use aliased 'TPath::Predicate::AttributeTest' => 'PAT';
+use aliased 'TPath::Predicate::Boolean' => 'PB';
+use aliased 'TPath::Predicate::Expression' => 'PE';
 use aliased 'TPath::Selector';
 use aliased 'TPath::Selector::Id';
 use aliased 'TPath::Selector::Parent';
@@ -235,10 +239,10 @@ sub predicate {
     my $idx = $predicate->{idx};
     return Index->new( idx => $idx ) if defined $idx;
     my $op = $predicate->{condition}{operator};
-    return condition( $predicate, $forester, $op ) if defined $op;
+    return PB->new(t=>condition( $predicate, $forester, $op )) if defined $op;
     my $at = $predicate->{attribute_test};
-    return attribute_test( $at, $forester ) if defined $at;
-    return attribute( $predicate->{attribute}, $forester );
+    return PAT->new(at=>attribute_test( $at, $forester )) if defined $at;
+    return PA->new(a=>attribute( $predicate->{attribute}, $forester ));
 }
 
 sub attribute {

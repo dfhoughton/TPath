@@ -9,7 +9,6 @@ The object that selects the correct member of collection based on its index.
 =cut
 
 use Moose;
-use TPath::Predicate;
 
 =head1 ROLES
 

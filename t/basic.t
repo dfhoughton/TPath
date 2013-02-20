@@ -2,6 +2,11 @@
 
 use strict;
 use warnings;
+use File::Basename qw(dirname);
+
+BEGIN {
+    push @INC, dirname($0);
+}
 
 use Test::More tests => 55;
 use Test::Exception;
@@ -131,7 +136,8 @@ $f->add_attribute(
     'foobar',
     sub {
         my ( $self, $n, $c, $i ) = @_;
-        return defined $n->attribute('foo') && defined $n->attribute('bar');
+        my $v = defined $n->attribute('foo') && defined $n->attribute('bar'); 
+        $v ? 1 : undef;
     }
 );
 $p        = parse(q{<a><b foo="bar" bar="foo"/><b foo="foo"/></a>});

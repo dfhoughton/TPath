@@ -20,14 +20,6 @@ use MooseX::SingletonMethod;
 use TPath::TypeConstraints;
 use namespace::autoclean;
 
-=head1 ROLES
-
-L<TPath::Predicate>
-
-=cut
-
-with 'TPath::Predicate';
-
 =method test
 
 The test function applied to the values. This method is constructed in C<BUILD> and
@@ -74,11 +66,6 @@ sub BUILD {
         when ('!=') { $func = $self->_ne_func( $l, $r, $lr ) }
     }
     $self->add_singleton_method( test => $func );
-}
-
-sub filter {
-    my ( $self, $c, $i ) = @_;
-    return grep { $self->test($_, $c, $i) } @$c;
 }
 
 # a bunch of private methods that construct custom test methods
