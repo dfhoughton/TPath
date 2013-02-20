@@ -119,12 +119,10 @@ sub _se_func {
                     };
                 }
                 when ('t') {
-                    confess
-"handling of values of type TPath::AttributeTest not yet implemented"
+                    ...;
                 }
                 when ('e') {
-                    confess
-"handling of values of type TPath::Expression not yet implemented"
+                    ...;
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -144,12 +142,10 @@ sub _se_func {
                     };
                 }
                 when ('t') {
-                    confess
-"handling of values of type TPath::AttributeTest not yet implemented"
+                    ...;
                 }
                 when ('e') {
-                    confess
-"handling of values of type TPath::Expression not yet implemented"
+                    ...;
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -225,12 +221,10 @@ sub _se_func {
                     };
                 }
                 when ('t') {
-                    confess
-"handling of values of type TPath::AttributeTest not yet implemented"
+                    ...;
                 }
                 when ('e') {
-                    confess
-"handling of values of type TPath::Expression not yet implemented"
+                    ...;
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -238,12 +232,10 @@ sub _se_func {
             }
         }
         when ('t') {
-            confess
-"handling of values of type TPath::AttributeTest not yet implemented"
+            ...;
         }
         when ('e') {
-            confess
-              "handling of values of type TPath::Expression not yet implemented"
+            ...;
         }
         default { confess "fatal logic error! unexpected argument type $l" }
     }
@@ -318,12 +310,10 @@ sub _ne_func {
                     };
                 }
                 when ('t') {
-                    confess
-"handling of values of type TPath::AttributeTest not yet implemented"
+                    ...;
                 }
                 when ('e') {
-                    confess
-"handling of values of type TPath::Expression not yet implemented"
+                    ...;
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -343,12 +333,10 @@ sub _ne_func {
                     };
                 }
                 when ('t') {
-                    confess
-"handling of values of type TPath::AttributeTest not yet implemented"
+                    ...;
                 }
                 when ('e') {
-                    confess
-"handling of values of type TPath::Expression not yet implemented"
+                    ...;
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -424,12 +412,10 @@ sub _ne_func {
                     };
                 }
                 when ('t') {
-                    confess
-"handling of values of type TPath::AttributeTest not yet implemented"
+                    ...;
                 }
                 when ('e') {
-                    confess
-"handling of values of type TPath::Expression not yet implemented"
+                    ...;
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -437,12 +423,10 @@ sub _ne_func {
             }
         }
         when ('t') {
-            confess
-"handling of values of type TPath::AttributeTest not yet implemented"
+            ...;
         }
         when ('e') {
-            confess
-              "handling of values of type TPath::Expression not yet implemented"
+            ...;
         }
         default { confess "fatal logic error! unexpected argument type $l" }
     }
