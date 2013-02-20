@@ -225,6 +225,22 @@ sub add_attribute {
     }
 }
 
+=method attribute
+
+Expects a node, an attribute name, a collection, an index, and a parameter list. Returns
+the value of the attribute in that context. If C<undef> is provided for the collection and
+index, default values are created -- a single element collection containing the node and a
+new index.
+
+=cut
+
+sub attribute {
+    my ( $self, $n, $aname, $c, $i, @params ) = @_;
+    $c //= [$n];
+    $i //= $self->index($n);
+    $self->_attributes->{$aname}->( $self, $n, $c, $i, @params );
+}
+
 =method path
 
 Takes a TPath expression and returns a L<TPath::Expression>.
