@@ -163,4 +163,15 @@ ok $set{'<c/>'},   "found <c/>";
 ok $set{'<d/>'},   "found <d/>";
 ok $set{'<foo/>'}, "found <foo/>";
 
+$p = parse(q{<a><b><c/></b></a>});
+my $index = $f->index($p);
+$path = '//b';
+@elements = $f->path($path)->select( $p, $index );
+is scalar @elements, 1, "correct number of elements from $p by $path";
+$p        = $elements[0];
+$path     = 'c';
+@elements = $f->path($path)->select( $p, $index );
+is scalar @elements, 1, "correct number of elements from $p by $path";
+is $elements[0], '<c/>', 'correct element found by relative path';
+
 done_testing();

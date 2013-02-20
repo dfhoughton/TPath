@@ -151,6 +151,17 @@ sub full {
                         predicates => \@predicates,
                     );
                 }
+                default {
+                    return TPath::Selector::Test::AxisTag(
+                        axis       => $axis,
+                        tag        => $val,
+                        predicates => \@predicates,
+                    ) if $axis;
+                    return TPath::Selector::Test::ChildTag->new(
+                        tag        => $val,
+                        predicates => \@predicates,
+                    );
+                }
             }
         }
         when ('pattern') {
@@ -189,6 +200,17 @@ sub full {
                 when ('/>') {
                     croak 'axes disallowed with /> separator' if defined $axis;
                     return TPath::Selector::Test::ClosestMatch->new(
+                        rx         => $rx,
+                        predicates => \@predicates,
+                    );
+                }
+                default {
+                    return TPath::Selector::Test::AxisMatch(
+                        axis       => $axis,
+                        rx         => $rx,
+                        predicates => \@predicates,
+                    ) if $axis;
+                    return TPath::Selector::Test::ChildMatch->new(
                         rx         => $rx,
                         predicates => \@predicates,
                     );
