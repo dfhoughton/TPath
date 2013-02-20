@@ -158,7 +158,7 @@ $p        = parse(q{<a><b><c/></b><foo><d/><e><foo/></e></foo></a>});
 $path     = '/leaf::*';
 @elements = $f->path($path)->select($p);
 is scalar @elements, 3, "correct number of elements selected from $p by $path";
-my %set = map { $_ => 1 } @elements;
+%set = map { $_ => 1 } @elements;
 ok $set{'<c/>'},   "found <c/>";
 ok $set{'<d/>'},   "found <d/>";
 ok $set{'<foo/>'}, "found <foo/>";
@@ -175,7 +175,7 @@ is scalar @elements, 1, "correct number of elements from $p by $path";
 is $elements[0], '<c/>', 'correct element found by relative path';
 
 $p = parse(q{<a><b/><c/></a>});
-my $index = $f->index($p);
+$index = $f->index($p);
 $path = '/a/*[1]';
 @elements = $f->path($path)->select( $p, $index );
 is scalar @elements, 1, "correct number of elements from $p by $path";
