@@ -186,4 +186,9 @@ $path     = '//\b';
 @elements = $f->path($path)->select($p);
 is scalar @elements, 4, "correct number of elements from $p by $path";
 
+$p = parse(q{<a><b/><c/><d/></a>});
+$path = '*';
+@elements = $f->path($path)->first($p);
+is $elements[0]->tag, 'b', 'first() picked correct element';
+
 done_testing();

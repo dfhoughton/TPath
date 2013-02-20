@@ -110,6 +110,14 @@ sub full {
                     );
                 }
                 when ('/>') { croak '/>* disallowed' }
+                default {
+                    return TPath::Selector::Test::AxisWildcard->new(
+                        axis       => $axis,
+                        predicates => \@predicates,
+                    ) if $axis;
+                    return TPath::Selector::Test::AxisWildcard->new(
+                        predicates => \@predicates, );
+                }
             }
         }
         when ('specific') {
