@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More;
+use Test::More tests => 55;
 use Test::Exception;
 use ToyXMLForester;
 use ToyXML qw(parse);
@@ -174,9 +174,9 @@ $path     = 'c';
 is scalar @elements, 1, "correct number of elements from $p by $path";
 is $elements[0], '<c/>', 'correct element found by relative path';
 
-$p = parse(q{<a><b/><c/></a>});
-$index = $f->index($p);
-$path = '/a/*[1]';
+$p        = parse(q{<a><b/><c/></a>});
+$index    = $f->index($p);
+$path     = '/a/*[1]';
 @elements = $f->path($path)->select( $p, $index );
 is scalar @elements, 1, "correct number of elements from $p by $path";
 is $elements[0]->tag, 'c', 'correct element found';
@@ -186,19 +186,31 @@ $path     = '//\b';
 @elements = $f->path($path)->select($p);
 is scalar @elements, 4, "correct number of elements from $p by $path";
 
-$p = parse(q{<a><b/><c/><d/></a>});
+$p    = parse(q{<a><b/><c/><d/></a>});
 $path = '*';
 my $e = $f->path($path)->first($p);
 is $e->tag, 'b', 'first() picked correct element';
 
-$p = parse(q{<a><$b/><c/><d/></a>});
+$p    = parse(q{<a><$b/><c/><d/></a>});
 $path = '//$b';
-my $e = $f->path($path)->first($p);
+$e    = $f->path($path)->first($p);
 ok defined $e, 'can use dollar sign in path';
 
-$p = parse(q{<a><~b/><c/><d/></a>});
+$p    = parse(q{<a><~b/><c/><d/></a>});
 $path = '//~~~~';
-my $e = $f->path($path)->first($p);
+$e    = $f->path($path)->first($p);
 ok defined $e, 'can escape tildes in patterns';
+
+$p    = parse(q{<a><~b/><c/><d/></a>});
+$path = '//~\bb~';
+$e    = $f->path($path)->first($p);
+ok defined $e, 'can use regular regex escapes such as \b in patterns';
+
+$p = parse('<a><b/><c/><d/></a>');
+$e = $f->path('/a')->first($p);
+my $e2 = $f->path('/.')->first($p);
+my $e3 = $f->path('/*')->first($p);
+is $e->tag,  $e2->tag, '/. selects the root element';
+is $e2->tag, $e3->tag, '/. and /* select same element';
 
 done_testing();
