@@ -188,7 +188,12 @@ is scalar @elements, 4, "correct number of elements from $p by $path";
 
 $p = parse(q{<a><b/><c/><d/></a>});
 $path = '*';
-@elements = $f->path($path)->first($p);
-is $elements[0]->tag, 'b', 'first() picked correct element';
+my $e = $f->path($path)->first($p);
+is $e->tag, 'b', 'first() picked correct element';
+
+$p = parse(q{<a><$b/><c/><d/></a>});
+$path = '//$b';
+my $e = $f->path($path)->first($p);
+ok defined $e, 'can use dollar sign in path';
 
 done_testing();
