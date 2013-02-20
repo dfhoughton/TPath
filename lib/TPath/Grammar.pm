@@ -71,7 +71,7 @@ our $path_grammar = do {
     
        <token: full> <axis>? <forward>
     
-       <token: axis> (?<!/) (?<!/>) (<%AXES>) :: (*COMMIT)
+       <token: axis> (?<!//) (?<!/>) (<%AXES>) :: (*COMMIT)
           (?{ $MATCH = $^N })
     
        <token: abbreviated> (?<!//) (?<!/>) (?: \.{1,2}+ | <id> )

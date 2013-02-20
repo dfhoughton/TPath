@@ -21,6 +21,7 @@ id(bar)
 child::a
 ancestor-or-self::a
 leaf::a
+/b/leaf::a
 /a/b
 /a[@test]
 /a[@t-est]

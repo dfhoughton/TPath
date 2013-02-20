@@ -139,11 +139,19 @@ $path     = '//*[@foobar]';
 @elements = $f->path($path)->select($p);
 is scalar @elements, 1, "got element from $p using new attribute \@foobar";
 
-$p = parse(q{<a><b foo="bar" bar="foo"/><b foo="foo"/></a>});
-$path = '//*[@attr("foo")]';
+$p        = parse(q{<a><b foo="bar" bar="foo"/><b foo="foo"/></a>});
+$path     = '//*[@attr("foo")]';
 @elements = $f->path($path)->select($p);
 is scalar @elements, 2, "correct number of elements in $p with $path";
-my $v = $f->attribute($elements[0], 'attr', undef, undef, 'foo');
+my $v = $f->attribute( $elements[0], 'attr', undef, undef, 'foo' );
 is $v, 'bar', "correct value of attribute";
+
+$p        = parse(q{<a><b><c/></b><foo><d/><e><foo/></e></foo></a>});
+$path     = '/>foo/preceding::*';
+@elements = $f->path($path)->select($p);
+is scalar @elements, 2, "correct number of elements selected from $p by $path";
+my %set = map { $_ => 1 } @elements;
+ok $set{'<c />'},        "found <c />";
+ok $set{'<b><c /></b>'}, "found <b><c /></b>";
 
 done_testing();
