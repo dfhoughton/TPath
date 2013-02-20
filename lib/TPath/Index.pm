@@ -47,6 +47,14 @@ has cp_index => ( is => 'ro', isa => 'HashRef', default => sub { {} } );
 
 has root => ( is => 'ro', required => 1 );
 
+# micro-optimization
+has _root_ref => (
+    is      => 'ro',
+    isa     => 'Str',
+    lazy    => 1,
+    default => sub { refaddr $_[0]->root }
+);
+
 =method is_root
 
 Expects a node. Returns whether this node is the root of the tree
@@ -56,7 +64,7 @@ indexed by this index.
 
 sub is_root {
     my ( $self, $n ) = @_;
-    return ref $n eq ref $self->root;
+    return refaddr $n eq $self->_root_ref;
 }
 
 sub BUILD {

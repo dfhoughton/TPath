@@ -151,7 +151,7 @@ $path     = '/>foo/preceding::*';
 @elements = $f->path($path)->select($p);
 is scalar @elements, 2, "correct number of elements selected from $p by $path";
 my %set = map { $_ => 1 } @elements;
-ok $set{'<c />'},        "found <c />";
-ok $set{'<b><c /></b>'}, "found <b><c /></b>";
+ok $set{'<c/>'},        "found <c/>";
+ok $set{'<b><c/></b>'}, "found <b><c/></b>";
 
 done_testing();

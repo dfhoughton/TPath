@@ -66,7 +66,6 @@ must define how a tag string or regex may match a node, if at all.
 
 use feature 'state';
 use Moose::Role;
-use Moose::Util qw( apply_all_roles );
 
 use TPath::Compiler qw(compile);
 use TPath::Grammar qw(parse);
@@ -386,7 +385,7 @@ sub _preceding_siblings {
     return () if @siblings == 1;
     my @preceding_siblings;
     for my $s (@siblings) {
-        last if $s == $n;
+        last if $s eq $n;
         push @preceding_siblings, $s if $t->passes( $s, $i );
     }
     return @preceding_siblings;
