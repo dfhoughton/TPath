@@ -212,52 +212,49 @@ sub merge_conditions {
     my $ref  = shift;
     my $type = ref $ref;
     return $ref unless $type;
-    if ( $type eq 'HASH' ) {
-        while ( my ( $k, $v ) = each %$ref ) {
-            if ( $k eq 'condition' ) {
-                if ( !exists $v->{args} ) {
-                    merge_conditions($_) for values %$v;
-                    next;
-                }
+    for ($type) {
+        when ('HASH') {
+            while ( my ( $k, $v ) = each %$ref ) {
+                if ( $k eq 'condition' ) {
+                    if ( !exists $v->{args} ) {
+                        merge_conditions($_) for values %$v;
+                        next;
+                    }
 
-                # depth first
-                merge_conditions($_) for @{ $v->{args} };
-                my $op = $v->{operator};
-                my @args;
-                for my $a ( @{ $v->{args} } ) {
-                    my $condition = $a->{condition};
-                    if ( defined $condition ) {
-                        my $o = $condition->{operator};
-                        if ( defined $o ) {
-                            if ( $o eq $op ) {
-                                push @args, @{ $condition->{args} };
+                    # depth first
+                    merge_conditions($_) for @{ $v->{args} };
+                    my $op = $v->{operator};
+                    my @args;
+                    for my $a ( @{ $v->{args} } ) {
+                        my $condition = $a->{condition};
+                        if ( defined $condition ) {
+                            my $o = $condition->{operator};
+                            if ( defined $o ) {
+                                if ( $o eq $op ) {
+                                    push @args, @{ $condition->{args} };
+                                }
+                                else {
+                                    push @args, $a;
+                                }
                             }
                             else {
-                                push @args, $a;
+                                push @args, $condition;
                             }
                         }
                         else {
-                            push @args, $condition;
+                            push @args, $a;
                         }
                     }
-                    else {
-                        push @args, $a;
-                    }
+                    $v->{args} = \@args;
                 }
-                $v->{args} = \@args;
-            }
-            else {
-                merge_conditions($v);
+                else {
+                    merge_conditions($v);
+                }
             }
         }
+        when ('ARRAY') { merge_conditions($_) for @$ref }
+        default { confess "unexpected type $type" }
     }
-    elsif ( $type eq 'ARRAY' ) {
-        merge_conditions($_) for @$ref;
-    }
-    else {
-        confess "unexpected type $type";
-    }
-    return $ref;
 }
 
 # group operators and arguments according to operator precedence ! > & > ^ > ||
@@ -265,67 +262,70 @@ sub operator_precedence {
     my $ref  = shift;
     my $type = ref $ref;
     return $ref unless $type;
-    if ( $type eq 'HASH' ) {
-        while ( my ( $k, $v ) = each %$ref ) {
-            if ( $k eq 'condition' && ref $v eq 'ARRAY' ) {
-                my @ar = @$v;
+    for ($type) {
+        when ('HASH') {
+            while ( my ( $k, $v ) = each %$ref ) {
+                if ( $k eq 'condition' && ref $v eq 'ARRAY' ) {
+                    my @ar = @$v;
 
-                # normalize ! strings
-                @ar = grep { $_ } map {
-                    if ( !ref $_ && /^!++$/ ) { ( my $s = $_ ) =~ s/..//g; $s }
-                    else                      { $_ }
-                } @ar;
-                $ref->{$k} = \@ar if @$v != @ar;
+                    # normalize ! strings
+                    @ar = grep { $_ } map {
+                        if ( !ref $_ && /^!++$/ ) {
+                            ( my $s = $_ ) =~ s/..//g;
+                            $s;
+                        }
+                        else { $_ }
+                    } @ar;
+                    $ref->{$k} = \@ar if @$v != @ar;
 
-                # depth first
-                operator_precedence($_) for @ar;
-                return $ref if @ar == 1;
+                    # depth first
+                    operator_precedence($_) for @ar;
+                    return $ref if @ar == 1;
 
-                # build binary logical operation tree
-              OUTER: while ( @ar > 1 ) {
-                    for my $op (qw(! & ^ ||)) {
-                        for my $i ( 0 .. $#ar ) {
-                            my $item = $ar[$i];
-                            next if ref $item;
-                            if ( $item eq $op ) {
-                                if ( $op eq '!' ) {
-                                    splice @ar, $i, 2,
-                                      {
-                                        condition => {
-                                            operator => '!',
-                                            args     => [ $ar[ $i + 1 ] ]
-                                        }
-                                      };
+                    # build binary logical operation tree
+                  OUTER: while ( @ar > 1 ) {
+                        for my $op (qw(! & ^ ||)) {
+                            for my $i ( 0 .. $#ar ) {
+                                my $item = $ar[$i];
+                                next if ref $item;
+                                if ( $item eq $op ) {
+                                    if ( $op eq '!' ) {
+                                        splice @ar, $i, 2,
+                                          {
+                                            condition => {
+                                                operator => '!',
+                                                args     => [ $ar[ $i + 1 ] ]
+                                            }
+                                          };
+                                    }
+                                    else {
+                                        splice @ar, $i - 1, 3,
+                                          {
+                                            condition => {
+                                                operator => $op,
+                                                args     => [
+                                                    $ar[ $i - 1 ],
+                                                    $ar[ $i + 1 ]
+                                                ]
+                                            }
+                                          };
+                                    }
+                                    next OUTER;
                                 }
-                                else {
-                                    splice @ar, $i - 1, 3,
-                                      {
-                                        condition => {
-                                            operator => $op,
-                                            args =>
-                                              [ $ar[ $i - 1 ], $ar[ $i + 1 ] ]
-                                        }
-                                      };
-                                }
-                                next OUTER;
                             }
                         }
                     }
-                }
 
-                # replace condition with logical operation tree
-                $ref->{condition} = $ar[0]{condition};
-            }
-            else {
-                operator_precedence($v);
+                    # replace condition with logical operation tree
+                    $ref->{condition} = $ar[0]{condition};
+                }
+                else {
+                    operator_precedence($v);
+                }
             }
         }
-    }
-    elsif ( $type eq 'ARRAY' ) {
-        operator_precedence($_) for @$ref;
-    }
-    else {
-        confess "unexpected type $type";
+        when ('ARRAY') { operator_precedence($_) for @$ref }
+        default { confess "unexpected type $type" }
     }
     return $ref;
 }
@@ -354,32 +354,26 @@ sub normalize_parens {
     return $ref unless $type;
     for ($type) {
         when ('ARRAY') {
-        normalize_parens($_) for @$ref;
+            normalize_parens($_) for @$ref;
         }
         when ('HASH') {
-        for my $name ( keys %$ref ) {
-            my $value = $ref->{$name};
-            if ( $name eq 'condition' ) {
-                my @ar = @{ $value->{item} };
-                for my $i ( 0 .. $#ar ) {
-                    $ar[$i] = normalize_item( $ar[$i] );
+            for my $name ( keys %$ref ) {
+                my $value = $ref->{$name};
+                if ( $name eq 'condition' ) {
+                    my @ar = @{ $value->{item} };
+                    for my $i ( 0 .. $#ar ) {
+                        $ar[$i] = normalize_item( $ar[$i] );
+                    }
+                    $ref->{condition} = \@ar;
                 }
-                $ref->{condition} = \@ar;
+                else {
+                    normalize_parens($value);
+                }
             }
-            else {
-                normalize_parens($value);
-            }
-        }
         }
         default {
-        confess "unexpected type: $type";
+            confess "unexpected type: $type";
         }
-    }
-    if ( $type eq 'ARRAY' ) {
-    }
-    elsif ( $type eq 'HASH' ) {
-    }
-    else {
     }
     return $ref;
 }
