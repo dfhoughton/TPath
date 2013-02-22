@@ -55,51 +55,56 @@ our $path_grammar = do {
     
        <rule: treepath> <[path]> (?: \| <[path]> )*
     
-       <token: path> <[segment=first_step]> <[segment=subsequent_step]>*
+       <token: path> <[segment=first_step]> <[segment=subsequent_step]>* | <error:>
     
-       <token: first_step> <separator>? <step>
+       <token: first_step> <separator>? <step> | <error: Expected path step>
     
        <token: id>
           id\( ( (?>[^\)\\]|\\.)++ ) \)
           (?{ $MATCH=clean_escapes($^N) })
+          | <error: Expected id expression>
     
-       <token: subsequent_step> <separator> <step>
+       <token: subsequent_step> <separator> <step> | <error: Expected path step>
     
-       <token: separator> \/[\/>]?+ (*COMMIT)
+       <token: separator> \/[\/>]?+ | <error:>
     
-       <token: step> <full> <[predicate]>* | <abbreviated>
+       <token: step> <full> <[predicate]>* | <abbreviated> | <error:>
     
        <token: full> <axis>? <forward>
     
        <token: axis> (?<!//) (?<!/>) (<%AXES>) :: (*COMMIT)
           (?{ $MATCH = $^N })
+          | <error:>
     
-       <token: abbreviated> (?<!//) (?<!/>) (?: \.{1,2}+ | <id> )
+       <token: abbreviated> (?<!/[/>]) (?: \.{1,2}+ | <id> )
     
-       <token: forward> <wildcard> | <specific> | <pattern>
+       <token: forward> <wildcard> | <specific> | <pattern> | <error: Expecting tag selector>
     
-       <token: wildcard> \*
+       <token: wildcard> \* | <error:>
     
        <token: specific>
           ((?>\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-:](?=[\p{L}_\$\p{N}])|\\.)*+)
           (?{ $MATCH = clean_escapes($^N) })
+          | <error: Expected specific tag name>
     
        <token: pattern>
           (~(?>[^~]|~~)++~)
           (?{ $MATCH = clean_pattern($^N) })
+          | <error:>
     
        <token: aname>
           @ ( (?>[\p{L}_\$]|\\.)(?>[\p{L}_\$\p{N}]|[-:](?=[\p{L}_\p{N}])|\\.)*+ )
           (?{ $MATCH = clean_escapes($^N ) })
+          | <error: expected attribute name>
     
-       <rule: attribute> <aname> <args>?
+       <rule: attribute> <aname> <args>? | <error:>
     
-       <rule: args> \( <[arg]> (?: , <[arg]> )* \)
+       <rule: args> \( <[arg]> (?: , <[arg]> )* \) | <error: Expected attribute arguments>
     
        <token: arg>
           <treepath> | <v=literal> | <v=num> | <attribute> | <attribute_test> | <condition>
     
-       <token: num> <.signed_int> | <.float>
+       <token: num> <.signed_int> | <.float> | <error:>
     
        <token: signed_int> [+-]?+ <.int>   
     
@@ -108,6 +113,7 @@ our $path_grammar = do {
        <token: literal>
           ((?> <.squote> | <.dquote> ))
           (?{ $MATCH = clean_literal($^N) })
+          | <error:>
     
        <token: squote> ' (*COMMIT) (?>[^'\\]|\\.)*+ '
     
@@ -115,19 +121,23 @@ our $path_grammar = do {
     
        <rule: predicate>
           \[ (*COMMIT) (?: <idx=signed_int> | <condition> ) \]
+          | <error:>
     
        <token: int> \b(?:0|[1-9][0-9]*+)\b
     
        <rule: condition> 
           <[item=not]>? <[item]> (?: <[item=operator]> <[item=not]>? <[item]> )*
+          | <error: Expecting sequence of boolean operators and operands>
 
        <token: not>
           ((?>!|(?<=[\s\[])not(?=\s))(?>\s*+(?>!|(?<=\s)not(?=\s)))*+)
           (?{$MATCH = clean_not($^N)})
+          | <error:>
        
        <token: operator>
           (?: <.or> | <.xor> | <.and> )
           (?{$MATCH = clean_operator($^N)})
+          | <error: Expecting binary boolean operator>
        
        <token: xor>
           ( \^ | (?<=\s) xor (?=\s) )
@@ -144,14 +154,14 @@ our $path_grammar = do {
        <rule: attribute_test>
           <[args=attribute]> <cmp> <[args=value]> | <[args=value]> <cmp> <[args=attribute]>
     
-       <token: cmp> [<>=]=?+|!=
+       <token: cmp> [<>=]=?+|!= | <error: Expecting comparison operator>
     
        <token: value> <v=literal> | <v=num> | <attribute>
     
-       <rule: group> \( (*COMMIT) <condition> \)
+       <rule: group> \( (*COMMIT) <condition> \) | <error:>
     
        <token: item>
-          <term> | <group>
+          <term> | <group> | <error: Expected operand in a boolean expression>
     }x;
 };
 
@@ -176,7 +186,7 @@ sub parse {
         return $ref;
     }
     else {
-        confess "could not parse '$expr' as a TPath expression";
+        confess "could not parse '$expr' as a TPath expression:\n" . join "\n", @!;
     }
 }
 

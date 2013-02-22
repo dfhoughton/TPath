@@ -88,4 +88,9 @@ $path = q{//a[@root]};
 @c = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
 
+$p = parse q{<a><b/><b><c/></b><b><c/><c/></b></a>};
+$path = q{//b[@size(*) = 1]};
+@c = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
+
 done_testing();
