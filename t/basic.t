@@ -219,4 +219,9 @@ my $e3 = $f->path('/*')->first($p);
 is $e->tag,  $e2->tag, '/. selects the root element';
 is $e2->tag, $e3->tag, '/. and /* select same element';
 
+$p = parse(q{<a><b><c/></b><b/></a>});
+$path = q{//b[c]};
+@c = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
+
 done_testing();

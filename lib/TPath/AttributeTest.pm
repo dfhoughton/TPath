@@ -98,7 +98,7 @@ sub _se_func {
                         return 0 unless defined $v;
                         if ( my $type = ref $v ) {
                             for ($type) {
-                                when ('ARRAY') { return $n == @$v }
+                                when ('ARRAY') { return $rv == @$v }
                                 default        { return 0 }
                             }
                         }
@@ -150,7 +150,7 @@ sub _se_func {
                         return 0 unless defined $v;
                         if ( my $type = ref $v ) {
                             for ($type) {
-                                when ('ARRAY') { return $n == @$v }
+                                when ('ARRAY') { return $rv == @$v }
                                 default        { return 0 }
                             }
                         }

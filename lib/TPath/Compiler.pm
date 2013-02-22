@@ -249,6 +249,8 @@ sub predicate {
     my $op = $predicate->{condition}{operator};
     return PB->new( t => condition( $predicate, $forester, $op ) )
       if defined $op;
+    return PE->new( e => treepath( $predicate, $forester ) )
+      if exists $predicate->{treepath};
     my $at = $predicate->{attribute_test};
     return PAT->new( at => attribute_test( $at, $forester ) ) if defined $at;
     return PA->new( a => attribute( $predicate->{attribute}, $forester ) );

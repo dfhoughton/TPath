@@ -42,7 +42,7 @@ The actual code reference invoked when C<apply> is called.
 
 =cut
 
-has code => ( is => 'ro', isa => 'CodeRef', required => 1);
+has code => ( is => 'ro', isa => 'CodeRef', required => 1 );
 
 =method apply
 
@@ -56,31 +56,32 @@ sub apply {
 
     # invoke all code to reify arguments
     for my $a ( @{ $self->args } ) {
-        if ( ref $a ) {
-            for ($a) {
-                when ( $a->isa('TPath::Attribute') ) {
-                    $a = $a->apply( $n, $c, $i )
-                }
-                when ( $a->isa('TPath::AttributeTest') ) {
-                    $a = $a->test( $n, $c, $i )
-                }
-                when ( $a->isa('TPath::Expression') ) {
-                    $a = [ $a->select( $n, $i ) ]
-                }
-                when ( $a->does('TPath::Test') ) { $a = $a->test( $n, $c, $i ) }
-                default { confess 'unknown argument type: ' . ( ref $a ) }
+        my $value = $a;
+        my $type = ref $a;
+        if ( $type && $type !~ /ARRAY|HASH/ ) {
+            if ( $a->isa('TPath::Attribute') ) {
+                $value = $a->apply( $n, $c, $i );
             }
+            elsif ( $a->isa('TPath::AttributeTest') ) {
+                $value = $a->test( $n, $c, $i );
+            }
+            elsif ( $a->isa('TPath::Expression') ) {
+                $value = [ $a->select( $n, $i ) ];
+            }
+            elsif ( $a->does('TPath::Test') ) {
+                $value = $a->test( $n, $c, $i );
+            }
+            else { confess 'unknown argument type: ' . ( ref $a ) }
         }
-        push @args, $a;
+        push @args, $value;
     }
-    $self->code->($i->f, @args);
+    $self->code->( $i->f, @args );
 }
 
 sub test {
     my ( $self, $n, $c, $i ) = @_;
-    defined $self->apply($n, $c, $i);
+    defined $self->apply( $n, $c, $i );
 }
-
 
 __PACKAGE__->meta->make_immutable;
 
