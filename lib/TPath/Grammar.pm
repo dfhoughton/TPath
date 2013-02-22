@@ -72,7 +72,7 @@ our $path_grammar = do {
     
        <token: full> <axis>? <forward>
     
-       <token: axis> (?<!//) (?<!/>) (<%AXES>) :: (*COMMIT)
+       <token: axis> (?<!//) (?<!/>) (<%AXES>) ::
           (?{ $MATCH = $^N })
           | <error:>
     
@@ -115,9 +115,9 @@ our $path_grammar = do {
           (?{ $MATCH = clean_literal($^N) })
           | <error:>
     
-       <token: squote> ' (*COMMIT) (?>[^'\\]|\\.)*+ '
+       <token: squote> ' (?>[^'\\]|\\.)*+ '
     
-       <token: dquote> " (*COMMIT) (?>[^"\\]|\\.)*+ "   
+       <token: dquote> " (?>[^"\\]|\\.)*+ "   
     
        <rule: predicate>
           \[ (*COMMIT) (?: <idx=signed_int> | <condition> ) \]
@@ -158,7 +158,7 @@ our $path_grammar = do {
     
        <token: value> <v=literal> | <v=num> | <attribute>
     
-       <rule: group> \( (*COMMIT) <condition> \) | <error:>
+       <rule: group> \( <condition> \) | <error:>
     
        <token: item>
           <term> | <group> | <error: Expected operand in a boolean expression>
