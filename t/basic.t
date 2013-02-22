@@ -8,7 +8,7 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 55;
+use Test::More tests => 56;
 use Test::Exception;
 use ToyXMLForester;
 use ToyXML qw(parse);
@@ -221,7 +221,7 @@ is $e2->tag, $e3->tag, '/. and /* select same element';
 
 $p = parse(q{<a><b><c/></b><b/></a>});
 $path = q{//b[c]};
-@c = $f->path($path)->select($p);
+my @c = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
 
 done_testing();

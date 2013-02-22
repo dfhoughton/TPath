@@ -57,8 +57,8 @@ sub BUILD {
     my $lr = $l . $r;
     my $func;
     for ( $self->op ) {
-        when ('=') { $func = $self->_se_func( $l, $r, $lr ) }
-        when ('==') { $func = $self->_de_func( $l, $r, $lr ) }
+        when ('=') { $func = $self->_e_func( $l, $r, $lr, \&_se ) }
+        when ('==') { $func = $self->_e_func( $l, $r, $lr, \&_de ) }
         when ('<=') { $func = $self->_le_func( $l, $r, $lr ) }
         when ('<') { $func = $self->_l_func( $l, $r, $lr ) }
         when ('>=') { $func = $self->_ge_func( $l, $r, $lr ) }
@@ -71,10 +71,10 @@ sub BUILD {
 # a bunch of private methods that construct custom test methods
 
 # generate = test
-sub _se_func {
+sub _e_func {
 
-    # left type, right type, the conjunction
-    my ( $self, $l, $r, $lr ) = @_;
+    # left type, right type, the conjunction, the equality function
+    my ( $self, $l, $r, $lr, $ef ) = @_;
 
     my $lv = $self->left;
     my $rv = $self->right;
@@ -91,8 +91,6 @@ sub _se_func {
             for ($r) {
                 when ('a') {
                     return sub {
-
-                        # node, collection, index
                         my ( $self, $n, $c, $i ) = @_;
                         my $v = $rv->apply( $n, $c, $i );
                         return 0 unless defined $v;
@@ -106,10 +104,18 @@ sub _se_func {
                     };
                 }
                 when ('t') {
-                    ...;
+                    return sub {
+                        my ( $self, $n, $c, $i ) = @_;
+                        my $v = $rv->test( $n, $c, $i );
+                        $lv == $v;
+                      }
                 }
                 when ('e') {
-                    ...;
+                    return sub {
+                        my ( $self, $n, $c, $i ) = @_;
+                        my @c = $rv->select( $n, $i );
+                        $lv == @c;
+                      }
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -120,8 +126,6 @@ sub _se_func {
             for ($r) {
                 when ('a') {
                     return sub {
-
-                        # node, collection, index
                         my ( $self, $n, $c, $i ) = @_;
                         my $v = $rv->apply( $n, $c, $i );
                         return 0 unless defined $v;
@@ -129,10 +133,16 @@ sub _se_func {
                     };
                 }
                 when ('t') {
-                    ...;
+                    return sub {
+                        my ( $self, $n, $c, $i ) = @_;
+                        my $v = $rv->test( $n, $c, $i );
+                        $lv eq $v;
+                      }
                 }
                 when ('e') {
-                    ...;
+                    my ( $self, $n, $c, $i ) = @_;
+                    my @c = $rv->select( $n, $i );
+                    $lv eq join '', @c;
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -143,8 +153,6 @@ sub _se_func {
             for ($r) {
                 when ('n') {
                     return sub {
-
-                        # node, collection, index
                         my ( $self, $n, $c, $i ) = @_;
                         my $v = $lv->apply( $n, $c, $i );
                         return 0 unless defined $v;
@@ -159,8 +167,6 @@ sub _se_func {
                 }
                 when ('s') {
                     return sub {
-
-                        # node, collection, index
                         my ( $self, $n, $c, $i ) = @_;
                         my $v = $lv->apply( $n, $c, $i );
                         return 0 unless defined $v;
@@ -169,49 +175,25 @@ sub _se_func {
                 }
                 when ('a') {
                     return sub {
-
-                        # node, collection, index
                         my ( $self, $n, $c, $i ) = @_;
                         my $v1 = $lv->apply( $n, $c, $i );
                         my $v2 = $rv->apply( $n, $c, $i );
-                        if ( !( defined $v1 && defined $v2 ) ) {
-                            return !( $v1 ^ $v2 );
-                        }
-                        ( $l, $r ) = map { _type($_) } $v1, $v2;
-                        $lr = "$l$r";
-                        for ($lr) {
-                            when ('ss') { return $v1 eq $v2 }
-                            when ('nn') { return $v1 == $v2 }
-                            when ('na') { return $v1 == @$v2 }
-                            when ('an') { return @$v1 == $v2 }
-                            when ('aa') { return @$v1 == @$v2 }
-                            when ('oo') {
-                                my $f = $v1->can('equals');
-                                return $f->( $v1, $v2 ) if $f;
-                                $f = $v2->can('equals');
-                                return $f->( $v2, $v1 ) if $f;
-                                return $v1 == $v2;
-                            }
-                            when (/o./) {
-                                my $f = $v1->can('equals');
-                                return $f->( $v1, $v2 ) if $f;
-                                return 0;
-                            }
-                            when (/.o/) {
-                                my $f = $v2->can('equals');
-                                return $f->( $v2, $v1 ) if $f;
-                                return 0;
-                            }
-                            default { return $v1 == $v2 }
-                        }
-                        return $rv eq $v1;
+                        return $ef->( $v1, $v2 );
                     };
                 }
                 when ('t') {
-                    ...;
+                    return sub {
+                        my ( $self, $n, $c, $i ) = @_;
+                        my $v1 = $lv->apply( $n, $c, $i );
+                        my $v2 = $rv->test( $n, $c, $i );
+                        return $ef->( $v1, $v2 );
+                      }
                 }
                 when ('e') {
-                    ...;
+                    my ( $self, $n, $c, $i ) = @_;
+                    my $v1 = $lv->apply( $n, $c, $i );
+                    my @c = $rv->select( $n, $i );
+                    return $ef->( $v1, \@c );
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -219,24 +201,93 @@ sub _se_func {
             }
         }
         when ('t') {
-            ...;
+            for ($r) {
+                when ('n') {
+                    return sub {
+                        my ( $self, $n, $c, $i ) = @_;
+                        my $v1 = $lv->test( $n, $c, $i );
+                        return $v1 == $rv;
+                    };
+                }
+                when ('s') {
+                    return sub {
+                        my ( $self, $n, $c, $i ) = @_;
+                        my $v1 = $lv->test( $n, $c, $i );
+                        return $v1 eq $rv;
+                    };
+                }
+                when ('a') {
+                    return sub {
+                        my ( $self, $n, $c, $i ) = @_;
+                        my $v1 = $lv->test( $n, $c, $i );
+                        my $v2 = $rv->apply( $n, $c, $i );
+                        return $ef->( $v1, $v2 );
+                    };
+                }
+                when ('t') {
+                    return sub {
+                        my ( $self, $n, $c, $i ) = @_;
+                        my $v1 = $lv->test( $n, $c, $i );
+                        my $v2 = $rv->test( $n, $c, $i );
+                        return $v1 == $v2;
+                      }
+                }
+                when ('e') {
+                    my ( $self, $n, $c, $i ) = @_;
+                    my $v1 = $lv->test( $n, $c, $i );
+                    my @c = $lv->select( $n, $i );
+                    return $v1 == @c;
+                }
+                default {
+                    confess "fatal logic error! unexpected argument type $r"
+                }
+            }
         }
         when ('e') {
-            ...;
+            for ($r) {
+                when ('n') {
+                    return sub {
+                        my ( $self, $n, $c, $i ) = @_;
+                        my @c = $lv->select( $n, $i );
+                        return @c == $rv;
+                    };
+                }
+                when ('s') {
+                    return sub {
+                        my ( $self, $n, $c, $i ) = @_;
+                        my @c = $lv->select( $n, $i );
+                        return $rv eq join '', @c;
+                    };
+                }
+                when ('a') {
+                    return sub {
+                        my ( $self, $n, $c, $i ) = @_;
+                        my @c = $lv->select( $n, $i );
+                        my $v2 = $rv->apply( $n, $c, $i );
+                        return $ef->( \@c, $v2 );
+                    };
+                }
+                when ('t') {
+                    return sub {
+                        my ( $self, $n, $c, $i ) = @_;
+                        my @c = $lv->select( $n, $i );
+                        my $v2 = $rv->test( $n, $c, $i );
+                        return @c == $v2;
+                      }
+                }
+                when ('e') {
+                    my ( $self, $n, $c, $i ) = @_;
+                    my @c1 = $lv->select( $n, $i );
+                    my @c2 = $rv->select( $n, $i );
+                    return @c1 == @c2;
+                }
+                default {
+                    confess "fatal logic error! unexpected argument type $r"
+                }
+            }
         }
         default { confess "fatal logic error! unexpected argument type $l" }
     }
-}
-
-# generate == test
-sub _de_func {
-    my $self = shift;
-    my ( $lt, $rt ) = $self->_types;
-    my $lrt = $lt . $rt;
-    return 0 + $_[0]->left == 0 + $_[0]->right ? sub { 1 } : sub { 0 }
-      if $lrt =~ /n[ns]|sn/;
-    return "" . $_[0]->left eq "" . $_[0]->right ? sub { 1 } : sub { 0 }
-      if $lrt eq 'ss';
 }
 
 # generate <= test
@@ -358,7 +409,7 @@ sub _ne_func {
                         return $rv ne $v;
                     };
                 }
-                when ('a') {
+                when ('r') {
                     return sub {
 
                         # node, collection, index
@@ -373,9 +424,9 @@ sub _ne_func {
                         for ($lr) {
                             when ('ss') { return $v1 ne $v2 }
                             when ('nn') { return $v1 != $v2 }
-                            when ('na') { return $v1 != @$v2 }
-                            when ('an') { return @$v1 != $v2 }
-                            when ('aa') { return @$v1 != @$v2 }
+                            when ('nr') { return $v1 != @$v2 }
+                            when ('rn') { return @$v1 != $v2 }
+                            when ('rr') { return @$v1 != @$v2 }
                             when ('oo') {
                                 my $f = $v1->can('equals');
                                 return $f->( $v1, $v2 ) if $f;
@@ -449,7 +500,99 @@ sub _swap {
     $self->_right($v);
 }
 
-# type left and right
+# single equals
+sub _se {
+    my ( $v1, $v2 ) = @_;
+
+    if ( !( defined $v1 && defined $v2 ) ) {
+        return !( $v1 ^ $v2 );
+    }
+    my ( $l, $r ) = map { _type($_) } $v1, $v2;
+    my $lr = "$l$r";
+    for ($lr) {
+        when ('ss') { return $v1 eq $v2 }
+        when ('nn') { return $v1 == $v2 }
+        when ('nr') { return $v1 == @$v2 }
+        when ('rn') { return @$v1 == $v2 }
+        when ('rr') { return @$v1 == @$v2 }
+        when ('oo') {
+            my $f = $v1->can('equals');
+            return $f->( $v1, $v2 ) if $f;
+            $f = $v2->can('equals');
+            return $f->( $v2, $v1 ) if $f;
+            return refaddr $v1 eq refaddr $v2;
+        }
+        when (/o./) {
+            my $f = $v1->can('equals');
+            return $f->( $v1, $v2 ) if $f;
+            return $v1 eq $v2;
+        }
+        when (/.o/) {
+            my $f = $v2->can('equals');
+            return $f->( $v2, $v1 ) if $f;
+            return $v1 eq $v2;
+        }
+        default { return $v1 eq $v2 }
+    }
+}
+
+# double equals
+sub _de {
+    my ( $v1, $v2 ) = @_;
+
+    if ( !( defined $v1 && defined $v2 ) ) {
+        return !( defined $v1 || defined $v2 );
+    }
+    my ( $l, $r ) = map { _type($_) } $v1, $v2;
+    my $lr = "$l$r";
+    for ($lr) {
+        when ('ss') { return $v1 eq $v2 }
+        when ('nn') { return $v1 == $v2 }
+        when ('hn') { return keys %$v1 == $v2 }
+        when ('nh') { return $v1 == keys %$v2 }
+        when ('hh') {
+            my @keys = keys %$v1;
+            return 0 unless @keys == keys %$v2;
+            for my $k (@keys) {
+                return 0 unless exists $v2->{$k};
+                my $o1 = $v1->{$k};
+                my $o2 = $v2->{$k};
+                return 0 unless _de( $o1, $o2 );
+            }
+            return 1;
+        }
+        when ('na') { return $v1 == @$v2 }
+        when ('an') { return @$v1 == $v2 }
+        when ('aa') {
+            return 0 unless @$v1 == @$v2;
+            for my $i ( 0 .. $#$v1 ) {
+                my $o1 = $v1->[$i];
+                my $o2 = $v2->[$i];
+                return 0 unless _de( $o1, $o2 );
+            }
+            return 1;
+        }
+        when ('oo') {
+            my $f = $v1->can('equals');
+            return $f->( $v1, $v2 ) if $f;
+            $f = $v2->can('equals');
+            return $f->( $v2, $v1 ) if $f;
+            return refaddr $v1 eq refaddr $v2;
+        }
+        when (/o./) {
+            my $f = $v1->can('equals');
+            return $f->( $v1, $v2 ) if $f;
+            return $v1 eq $v2;
+        }
+        when (/.o/) {
+            my $f = $v2->can('equals');
+            return $f->( $v2, $v1 ) if $f;
+            return $v1 eq $v2;
+        }
+        default { return $v1 eq $v2 }
+    }
+}
+
 sub _types {
     my $self = shift;
     _type( $self->left ), _type( $self->right );
