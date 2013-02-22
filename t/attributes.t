@@ -44,16 +44,26 @@ is @c, 3, "received expected from $p with $path";
 is $trap->stderr, "1\n2\n3\n", 'received correct log messages';
 my $message_log = '';
 {
+
     package MyLog;
     use Moose;
     with 'TPath::LogStream';
+
     sub put {
-        my ($self, $msg) = @_;
+        my ( $self, $msg ) = @_;
         $message_log .= "$msg\n";
     }
 }
-$f->log_stream(MyLog->new);
+$f->log_stream( MyLog->new );
 $f->path($path)->select($p);
 is $message_log, "1\n2\n3\n", 'able to replace message log';
+
+$p = parse(q{<a><b id="foo"><c/><c/><c/></b><b id="bar"><c/></b></a>});
+$path = q{//b[@id = 'foo']/*};
+@c = $f->path($path)->select($p);
+is @c, 3, "received expected from $p with $path";
+$path = q{//b[@id = 'bar']/*};
+@c = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
 
 done_testing();

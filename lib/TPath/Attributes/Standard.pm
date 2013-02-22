@@ -145,4 +145,9 @@ sub log : Attr {
     return 1;
 }
 
+sub nid : Attr(id) {
+    my ( $self, $n, $c, $i ) = @_;
+    $self->id($n);
+}
+
 1;
