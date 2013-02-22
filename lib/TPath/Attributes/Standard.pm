@@ -80,7 +80,13 @@ sub echo : Attr {
     return $o;
 }
 
-sub isLeaf : Attr {
+=method isLeaf => C<@leaf>
+
+Returns whether the node is without children.
+
+=cut
+
+sub isLeaf : Attr(leaf) {
     my ( $self, $n, $c, $i ) = @_;
     my @children = $self->_kids( $n, $i );
     return @children ? undef : 1;
