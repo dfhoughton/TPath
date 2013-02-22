@@ -4,4 +4,4 @@ Key
  * = completed
 
 . get rid of MooseX::Privacy to speed things up somewhat
-. improve error message when expression is unparsable
+* improve error message when expression is unparsable
