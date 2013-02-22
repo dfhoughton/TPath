@@ -96,14 +96,6 @@ to this sort of node, "has" the string as a tag.
 Expects a node and a compiled regex. Returns whether the node, in whatever sense is appropriate
 to this sort of node, has a tag that matches the regex.
 
-=head2 parent
-
-Expects a node and an index. Returns the parent of the node.
-
-=head2 id
-
-Expects a node and returns an id for that node, if any.
-
 =cut
 
 requires qw(children has_tag matches_tag parent id);
@@ -273,6 +265,28 @@ sub index {
         node_type => $self->node_type
     );
 }
+
+=method parent
+
+Expects a node and an index and returns the parent of the given node according to the index.
+If your nodes know their own parents, you probably want to override this method. See also
+L<TPath::Index>.
+
+=cut
+
+sub parent {
+    my ($self, $n, $i) = @_;
+    return $i->parent($n);
+}
+
+=method id
+
+Expects a node. Returns id of node, if any. By default this method always returns undef.
+Override if your node has some defined notion of id.
+
+=cut
+
+sub id { }
 
 sub _kids {
     my ( $self, $n, $i ) = @_;

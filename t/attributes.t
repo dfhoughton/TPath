@@ -70,6 +70,16 @@ is @c, 1, "received expected from $p with $path";
 $p = parse(q{<a><b id='foo'/></a>});
 $path = q{//b[@log(@id = 'foo')]};
 trap { $f->path($path)->select($p) };
-is $trap->stderr, "1\n", "attribute test evaluated as expected in $p with $path";
+is $trap->stderr, "1\n" , "attribute test evaluated as expected in $p with $path";
+
+$p = parse q{<a><b/><b foo='bar' /></a>};
+$path = q{//b[@false]};
+@c = $f->path($path)->select($p);
+is @c, 0, '@false attribute works';
+
+$p = parse q{<a><b/><b id='bar' /></a>};
+$path = q{//b[@id = 'bar' and @index = 1]};
+@c = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
 
 done_testing();

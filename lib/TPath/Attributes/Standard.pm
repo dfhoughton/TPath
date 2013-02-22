@@ -6,6 +6,7 @@ package TPath::Attributes::Standard;
 
 use Moose::Role;
 use MooseX::MethodAttributes::Role;
+use Scalar::Util qw(refaddr);
 
 =head1 REQUIRED METHODS
 
@@ -162,9 +163,9 @@ node.
 sub idx : Attr(index) {
     my ( $self, $n, $c, $i ) = @_;
     return -1 if $i->is_root($n);
-    my @siblings = $self->_kids( [ $self->parent( $i, $n ) ], $i );
+    my @siblings = $self->_kids( $self->parent( $n, $i ), $i );
     for my $index ( 0 .. $#siblings ) {
-        return $index if $siblings[$index] == $n;
+        return $index if refaddr $siblings[$index] eq refaddr $n;
     }
     confess "$n not among children of its parent";
 }

@@ -100,6 +100,17 @@ protected_method walk => sub {
     }
 };
 
+=method parent
+
+Expects a node and returns the parent of this node.
+
+=cut
+
+sub parent {
+    my ( $self, $n ) = @_;
+    return $self->cp_index->{ refaddr $n};
+}
+
 protected_method n_index => sub {
     my ( $self, $n ) = @_;
     my $id = $self->id($n);
