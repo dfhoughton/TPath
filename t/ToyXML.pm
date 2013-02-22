@@ -47,13 +47,13 @@ our $parsing_re = qr!
    (?<attribute>
       ((?&tag)) 
       (?{ local $b1 = $^N })
-      = "((?&att_val))"
+      = (?: "((?&att_val))" | '((?&att_val))' )
       (?{
          local $b2 = $^N;
          push @attributes, [ $b1, $b2 ];
       })
    )
-   (?<att_val> [^"]*+ )
+   (?<att_val> [^"']*+ )
 )
 !x;
 

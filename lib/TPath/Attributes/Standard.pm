@@ -25,13 +25,31 @@ See L<TPath::Forester>
 
 requires qw(_kids children parent);
 
+=method C<@true>
+
+Returns a value, 1, evaluating to true.
+
+=cut
+
 sub true : Attr {
     return 1;
 }
 
+=method C<@false>
+
+Returns a value, C<undef>, evaluating to false.
+
+=cut
+
 sub false : Attr {
-    return 0;
+    return undef;
 }
+
+=method C<@this>
+
+Returns the node itself.
+
+=cut
 
 sub this : Attr {
     my ( $self, $n ) = @_;
@@ -123,9 +141,23 @@ sub isRoot : Attr {
     return $i->is_root($n);
 }
 
+=method C<@null>
+
+Returns C<undef>. This is chiefly useful as an argument to other attributes. It will
+always evaluate as false if used as a predicate.
+
+=cut
+
 sub null : Attr {
     return undef;
 }
+
+=method idx => C<@index>
+
+Returns the index of this node among its parent's children, or -1 if it is the root
+node.
+
+=cut
 
 sub idx : Attr(index) {
     my ( $self, $n, $c, $i ) = @_;
@@ -137,6 +169,13 @@ sub idx : Attr(index) {
     confess "$n not among children of its parent";
 }
 
+=method C<@log('m1','m2','m3','...')>
+
+Prints each message argument to the log stream, one per line, and returns 1.
+See attribute C<log_stream> in L<TPath::Forester>.
+
+=cut
+
 sub log : Attr {
     my ( $self, $n, $c, $i, @messages ) = @_;
     for my $m (@messages) {
@@ -144,6 +183,12 @@ sub log : Attr {
     }
     return 1;
 }
+
+=method nid => C<@id>
+
+Returns the id of the current node, if any.
+
+=cut
 
 sub nid : Attr(id) {
     my ( $self, $n, $c, $i ) = @_;
