@@ -83,7 +83,7 @@ sub echo : Attr {
 sub isLeaf : Attr {
     my ( $self, $n, $c, $i ) = @_;
     my @children = $self->_kids( $n, $i );
-    return !@children;
+    return @children ? undef : 1;
 }
 
 sub pick : Attr {
@@ -137,9 +137,9 @@ sub height : Attr {
     return $max + 1;
 }
 
-sub isRoot : Attr {
+sub isRoot : Attr(root) {
     my ( $self, $n, $c, $i ) = @_;
-    return $i->is_root($n);
+    return $i->is_root($n) ? 1 : undef;
 }
 
 =method C<@null>

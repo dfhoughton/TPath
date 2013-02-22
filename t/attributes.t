@@ -57,28 +57,34 @@ my $message_log = '';
 $f->log_stream( MyLog->new );
 $f->path($path)->select($p);
 is $message_log, "1\n2\n3\n", 'able to replace message log';
-$f->log_stream(TPath::StderrLog->new);
+$f->log_stream( TPath::StderrLog->new );
 
-$p = parse(q{<a><b id="foo"><c/><c/><c/></b><b id="bar"><c/></b></a>});
+$p    = parse(q{<a><b id="foo"><c/><c/><c/></b><b id="bar"><c/></b></a>});
 $path = q{//b[@id = 'foo']/*};
-@c = $f->path($path)->select($p);
+@c    = $f->path($path)->select($p);
 is @c, 3, "received expected from $p with $path";
 $path = q{//b[@id = 'bar']/*};
-@c = $f->path($path)->select($p);
+@c    = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
 
-$p = parse(q{<a><b id='foo'/></a>});
+$p    = parse(q{<a><b id='foo'/></a>});
 $path = q{//b[@log(@id = 'foo')]};
 trap { $f->path($path)->select($p) };
-is $trap->stderr, "1\n" , "attribute test evaluated as expected in $p with $path";
+is $trap->stderr, "1\n",
+  "attribute test evaluated as expected in $p with $path";
 
-$p = parse q{<a><b/><b foo='bar' /></a>};
+$p    = parse q{<a><b/><b foo='bar' /></a>};
 $path = q{//b[@false]};
-@c = $f->path($path)->select($p);
+@c    = $f->path($path)->select($p);
 is @c, 0, '@false attribute works';
 
-$p = parse q{<a><b/><b id='bar' /></a>};
+$p    = parse q{<a><b/><b id='bar' /></a>};
 $path = q{//b[@id = 'bar' and @index = 1]};
+@c    = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
+
+$p = parse q{<a><b/><b id='bar' /><a/></a>};
+$path = q{//a[@root]};
 @c = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
 

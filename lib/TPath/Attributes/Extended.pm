@@ -150,7 +150,7 @@ if the regex is C<$re>, the regex tested against is C<^$re$>.
 
 sub matches : Attr(s%3Amatches) {
     my ( $str, $re ) = @_[ 4, 5 ];
-    $str =~ /^$re$/;
+    $str =~ /^$re$/ ? 1 : undef;
 }
 
 =method C<@s:looking-at('str','re')>
@@ -163,7 +163,7 @@ C<^$re>.
 
 sub looking_at : Attr(s%3Alooking-at) {
     my ( $str, $re ) = @_[ 4, 5 ];
-    $str =~ /^$re/;
+    $str =~ /^$re/ ? 1 : undef;
 }
 
 =method C<@s:find('str','re')>
@@ -174,7 +174,7 @@ Returns whether a prefix of the given string matches the given regex anywhere.
 
 sub find : Attr(s%3Alfind) {
     my ( $str, $re ) = @_[ 4, 5 ];
-    $str =~ /$re/;
+    $str =~ /$re/ ? 1 : undef;
 }
 
 =method C<@s:starts-with('str','prefix')>
@@ -185,7 +185,7 @@ Whether the string has the given prefix.
 
 sub starts_with : Attr(s%3Astarts-with) {
     my ( $str, $prefix ) = @_[ 4, 5 ];
-    0 == index $str, $prefix;
+    0 == index $str, $prefix ? 1 : undef;
 }
 
 =method C<@s:ends-with('str','suffix')>
@@ -196,7 +196,7 @@ Whether the string has the given suffix.
 
 sub ends_with : Attr(s%3Aends-with) {
     my ( $str, $suffix ) = @_[ 4, 5 ];
-    -1 < index $str, $suffix, length($str) - length($suffix);
+    -1 < index( $str, $suffix, length($str) - length($suffix) ) ? 1 : undef;
 }
 
 =method C<@s:contains('str','infix')>
@@ -207,7 +207,7 @@ Whether the string contains the given substring.
 
 sub contains : Attr(s%3Acontains) {
     my ( $str, $infix ) = @_[ 4, 5 ];
-    -1 < index $str, $infix;
+    -1 < index( $str, $infix ) ? 1 : undef;
 }
 
 =method C<@s:index('str','substr')>
@@ -414,7 +414,7 @@ Whether the argument is defined.
 =cut
 
 sub udef : Attr(u%3Adef) {
-    defined $_[4];
+    defined $_[4] ? 1 : undef;
 }
 
 1;
