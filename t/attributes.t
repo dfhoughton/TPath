@@ -108,4 +108,9 @@ $path = q{//b[@pick(*, 1) == @null]};
 @c    = $f->path($path)->select($p);
 is @c, 2, "received expected from $p with $path";
 
+$p = parse q{<a><b/><b id='bar' /></a>};
+$path = q{//a[@this == @pick(/., 0)]};
+@c    = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
+
 done_testing();

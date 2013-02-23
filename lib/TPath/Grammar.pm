@@ -49,7 +49,7 @@ our $path_grammar = do {
     use Regexp::Grammars;
     qr{
     <nocontext:>
-    <timeout: 1>
+    <timeout: 100>
     
     ^ <treepath> $
     
