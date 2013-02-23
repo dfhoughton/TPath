@@ -265,6 +265,7 @@ sub attribute {
     }
     my $name = $attribute->{aname};
     my $code = $forester->_attributes->{$name};
+    croak 'unkown attribute @' . $name unless defined $code;
     return Attribute->new( name => $name, args => \@args, code => $code );
 }
 
