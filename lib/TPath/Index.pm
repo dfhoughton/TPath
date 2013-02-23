@@ -37,6 +37,8 @@ has indexed => (
     default => sub { {} },
 );
 
+has _is_indexed => ( is => 'rw', isa => 'Bool', default => 0 );
+
 =attribute cp_index
 
 Map from children to their parents. This should be regarded as private.
@@ -85,9 +87,9 @@ Cause this index to walk its tree and perform all necessary indexation.
 
 sub index {
     my $self = shift;
-    return if $self->{is_indexed};
+    return if $self->_is_indexed;
     $self->walk( $self->root );
-    $self->{is_indexed} = 1;
+    $self->_is_indexed(1);
 }
 
 protected_method walk => sub {

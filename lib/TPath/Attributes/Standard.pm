@@ -62,10 +62,11 @@ sub uid : Attr {
     my @list;
     my $node = $n;
     while ( !$i->is_root($node) ) {
-        my $parent = $self->parent( $n, $i );
+        my $ra       = refaddr $node;
+        my $parent   = $self->parent( $node, $i );
         my @children = $self->children( $parent, $i );
         for my $index ( 0 .. $#children ) {
-            if ( $children[$index] == $node ) {
+            if ( refaddr $children[$index] eq $ra ) {
                 push @list, $index;
                 last;
             }

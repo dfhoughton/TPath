@@ -108,9 +108,19 @@ $path = q{//b[@pick(*, 1) == @null]};
 @c    = $f->path($path)->select($p);
 is @c, 2, "received expected from $p with $path";
 
-$p = parse q{<a><b/><b id='bar' /></a>};
+$p    = parse q{<a><b/><b id='bar' /></a>};
 $path = q{//a[@this == @pick(/., 0)]};
 @c    = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
+
+$p    = parse q{<a><b/><b foo='bar' /></a>};
+$path = q{//b[@true]};
+@c    = $f->path($path)->select($p);
+is @c, 2, "received expected from $p with $path";
+
+$p    = parse q{<a><b/><c><d/><d id='foo'/></c></a>};
+$path = q{//*[@id = 'foo'][@log(@uid)]};
+trap { $f->path($path)->select($p) };
+is $trap->stderr, "/1/1\n", '@uid works as expected';
 
 done_testing();

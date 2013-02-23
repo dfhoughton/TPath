@@ -48,10 +48,12 @@ our %AXES = map { $_ => 1 } qw(
 our $path_grammar = do {
     use Regexp::Grammars;
     qr{
-    <nocontext:>
-    <timeout: 100>
+       <nocontext:>
+       <timeout: 100>
+    
     
     ^ <treepath> $
+    
     
        <rule: treepath> <[path]> (?: \| <[path]> )*
     
