@@ -10,6 +10,7 @@ BEGIN {
 
 use Test::More;    # tests => 55;
 use Test::Trap;
+use Test::Exception;
 use ToyXMLForester;
 use ToyXML qw(parse);
 
@@ -122,5 +123,12 @@ $p    = parse q{<a><b/><c><d/><d id='foo'/></c></a>};
 $path = q{//*[@id = 'foo'][@log(@uid)]};
 trap { $f->path($path)->select($p) };
 is $trap->stderr, "/1/1\n", '@uid works as expected';
+
+dies_ok { $f->path(q{/.[@quux]}) } 'unknown attribute throws exception';
+
+$p = parse q{<a><b><c/><d/></b><b><e/><d/></b><b><c/><e/></b></a>};
+$path = q{//b[child::*[1][@tag = 'e']]};
+@c    = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path with double predicate";
 
 done_testing();

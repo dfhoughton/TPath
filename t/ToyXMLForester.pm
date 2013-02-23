@@ -8,6 +8,11 @@ sub attr : Attr {
     $n->attribute($name);
 }
 
+sub tag : Attr {
+    my ( $self, $n, $c, $i, $name ) = @_;
+    $n->tag;
+}
+
 package ToyXMLForester;
 
 use Moose;
