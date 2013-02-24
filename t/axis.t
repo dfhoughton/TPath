@@ -64,4 +64,14 @@ $path = q{id(foo)/following::*};
 @c    = $f->path($path)->select($p);
 is @c, 2, "received expected from $p with $path";
 
+$p    = parse q{<a><b><c id='foo'/><d/></b><e/></a>};
+$path = q{id(foo)/following-sibling::*};
+@c    = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
+
+$p    = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
+$path = q{id(foo)/preceding::*};
+@c    = $f->path($path)->select($p);
+is @c, 2, "received expected from $p with $path";
+
 done_testing();

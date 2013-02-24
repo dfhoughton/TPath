@@ -385,7 +385,7 @@ sub _preceding {
     my @ancestors = $self->_ancestors( $n, $tt, $i );
     for my $a ( @ancestors[ 1 .. $#ancestors ] ) {
         for my $p ( $self->_preceding_siblings( $a, $tt, $i ) ) {
-            push @preceding, $self->descendants( $p, $t, $i );
+            push @preceding, $self->_descendants( $p, $t, $i );
             push @preceding, $p if $t->passes( $p, $i );
         }
     }
