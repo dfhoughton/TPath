@@ -131,4 +131,9 @@ $path = q{//b[child::*[1][@tag = 'e']]};
 @c    = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path with double predicate";
 
+$p = parse q{<a><b/><b foo='bar'/></a>};
+$path = q{//b[@\attr('foo')]};
+@c    = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
+
 done_testing();
