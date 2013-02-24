@@ -1,4 +1,4 @@
-    # checks whether attributes are working as expected
+# checks whether attributes are working as expected
 
 use strict;
 use warnings;
@@ -74,14 +74,38 @@ $path = q{id(foo)/preceding::*};
 @c    = $f->path($path)->select($p);
 is @c, 2, "received expected from $p with $path";
 
-$p = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
+$p    = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
 $path = q{id(foo)/preceding-sibling::*};
 @c    = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
 
-$p = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
+$p    = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
 $path = q{id(foo)/sibling::*};
 @c    = $f->path($path)->select($p);
 is @c, 2, "received expected from $p with $path";
+
+$p    = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
+$path = q{id(foo)/sibling-or-self::*};
+@c    = $f->path($path)->select($p);
+is @c, 3, "received expected from $p with $path";
+
+$p    = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
+$path = q{/./leaf::*};
+@c    = $f->path($path)->select($p);
+is @c, 5, "received expected from $p with $path";
+my @c2 = $f->path('//*[@leaf]')->select($p);
+is_deeply \@c, \@c2, 'leaf:: and @leaf return the same results';
+
+$p    = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
+$path = q{/./self::*};
+@c    = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
+is $c[0]->tag, 'a', 'self:: selected correct element';
+
+$p    = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
+$path = q{id(foo)/parent::*};
+@c    = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
+is $c[0]->tag, 'b', 'parent:: selected correct element';
 
 done_testing();
