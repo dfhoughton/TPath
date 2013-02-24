@@ -1,4 +1,4 @@
-# checks whether attributes are working as expected
+    # checks whether attributes are working as expected
 
 use strict;
 use warnings;
@@ -71,6 +71,16 @@ is @c, 1, "received expected from $p with $path";
 
 $p    = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
 $path = q{id(foo)/preceding::*};
+@c    = $f->path($path)->select($p);
+is @c, 2, "received expected from $p with $path";
+
+$p = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
+$path = q{id(foo)/preceding-sibling::*};
+@c    = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
+
+$p = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
+$path = q{id(foo)/sibling::*};
 @c    = $f->path($path)->select($p);
 is @c, 2, "received expected from $p with $path";
 

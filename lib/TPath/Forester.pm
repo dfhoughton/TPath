@@ -374,7 +374,9 @@ sub _siblings {
 sub _untested_siblings {
     my ( $self, $n, $i ) = @_;
     return () if $self->is_root( $n, undef, $i );
-    return grep { $_ != $n } $self->_kids( $self->parent( $n, $i ), $i );
+    my $ra = refaddr $n;
+    return
+      grep { refaddr $_ ne $ra } $self->_kids( $self->parent( $n, $i ), $i );
 }
 
 sub _preceding {
