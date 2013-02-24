@@ -44,4 +44,24 @@ $path = q{//d/ancestor::*};
 @c    = $f->path($path)->select($p);
 is @c, 3, "received expected from $p with $path";
 
+$p    = parse q{<a><b><c><d/></c></b></a>};
+$path = q{//d/ancestor-or-self::*};
+@c    = $f->path($path)->select($p);
+is @c, 4, "received expected from $p with $path";
+
+$p    = parse q{<a><b><c><d/></c></b></a>};
+$path = q{//a/descendant::*};
+@c    = $f->path($path)->select($p);
+is @c, 3, "received expected from $p with $path";
+
+$p    = parse q{<a><b><c><d/></c></b></a>};
+$path = q{//a/descendant-or-self::*};
+@c    = $f->path($path)->select($p);
+is @c, 4, "received expected from $p with $path";
+
+$p    = parse q{<a><b><c id='foo'/><d/></b><e/></a>};
+$path = q{id(foo)/following::*};
+@c    = $f->path($path)->select($p);
+is @c, 2, "received expected from $p with $path";
+
 done_testing();

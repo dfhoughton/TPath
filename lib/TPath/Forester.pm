@@ -275,7 +275,7 @@ L<TPath::Index>.
 =cut
 
 sub parent {
-    my ($self, $n, $i) = @_;
+    my ( $self, $n, $i ) = @_;
     return $i->parent($n);
 }
 
@@ -443,12 +443,13 @@ sub _following_siblings {
     my @siblings = $self->_kids( $self->parent( $n, $i ), $i );
     return () if @siblings == 1;
     my ( @following_siblings, $add );
+    my $ra = refaddr $n;
     for my $s (@siblings) {
         if ($add) {
             push @following_siblings, $s if $t->passes( $s, $i );
         }
         else {
-            $add = $n == $s;
+            $add = $ra eq refaddr $s;
         }
     }
     return @following_siblings;
