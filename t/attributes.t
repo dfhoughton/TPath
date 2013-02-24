@@ -8,7 +8,7 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More;    # tests => 55;
+use Test::More tests => 32;
 use Test::Trap;
 use Test::Exception;
 use ToyXMLForester;
@@ -126,14 +126,38 @@ is $trap->stderr, "/1/1\n", '@uid works as expected';
 
 dies_ok { $f->path(q{/.[@quux]}) } 'unknown attribute throws exception';
 
-$p = parse q{<a><b><c/><d/></b><b><e/><d/></b><b><c/><e/></b></a>};
+$p    = parse q{<a><b><c/><d/></b><b><e/><d/></b><b><c/><e/></b></a>};
 $path = q{//b[child::*[1][@tag = 'e']]};
 @c    = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path with double predicate";
 
-$p = parse q{<a><b/><b foo='bar'/></a>};
+$p    = parse q{<a><b/><b foo='bar'/></a>};
 $path = q{//b[@\attr('foo')]};
 @c    = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
+
+$p    = parse q{<a><b/><b foo='bar'/></a>};
+$path = q{//*[@tsize = 1]};
+@c    = $f->path($path)->select($p);
+is @c, 2, "received expected from $p with $path";
+is $c[0]->tag, 'b', 'first element has expected tag';
+
+$p    = parse q{<a><b/><b foo='bar'/></a>};
+$path = q{//*[@width = 2]};
+@c    = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
+is $c[0]->tag, 'a', 'first element has expected tag';
+
+$p    = parse q{<a><b/><b foo='bar'/></a>};
+$path = q{//*[@depth = 1]};
+@c    = $f->path($path)->select($p);
+is @c, 2, "received expected from $p with $path";
+is $c[0]->tag, 'b', 'first element has expected tag';
+
+$p    = parse q{<a><b/><b foo='bar'/></a>};
+$path = q{//*[@height = 2]};
+@c    = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
+is $c[0]->tag, 'a', 'first element has expected tag';
 
 done_testing();

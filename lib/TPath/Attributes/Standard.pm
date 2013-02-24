@@ -89,13 +89,12 @@ Returns whether the node is without children.
 
 sub isLeaf : Attr(leaf) {
     my ( $self, $n, $c, $i ) = @_;
-    my @children = $self->_kids( $n, $i );
-    return @children ? undef : 1;
+    return $i->f->is_leaf( $n, $i ) ? 1 : undef;
 }
 
 sub pick : Attr {
     my ( $self, $n, $c, $i, $collection, $index ) = @_;
-    return $collection->[$index];
+    return $collection->[ $index // 0 ];
 }
 
 sub size : Attr {
@@ -114,7 +113,7 @@ sub tsize : Attr {
 
 sub width : Attr {
     my ( $self, $n, $c, $i ) = @_;
-    return 1 if $self->isLeaf( $n, $c, $i );
+    return 1 if $self->is_leaf( $n, $c, $i );
     my $width = 0;
     for my $kid ( $self->children( $n, $i ) ) {
         $width += $self->width( $kid, $c, $i );

@@ -479,7 +479,7 @@ efficient where available. E.g., where the node provides an C<is_leaf> method,
 
 sub is_leaf {
     my ( $self, $n, $c, $i ) = @_;
-    my @children = $self->children( $n, $i );
+    my @children = $self->_kids( $n, $i );
     return !@children;
 }
 
