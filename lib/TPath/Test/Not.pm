@@ -36,7 +36,7 @@ Returns the negation of whether the C<test> attribute is true.
 
 sub test {
     my ( $self, $n, $c, $i ) = @_;
-    return !$self->t->test( $n, $c, $i );
+    return $self->t->test( $n, $c, $i ) ? 0 : 1;
 }
 
 __PACKAGE__->meta->make_immutable;
