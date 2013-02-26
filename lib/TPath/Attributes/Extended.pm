@@ -172,7 +172,7 @@ Returns whether a prefix of the given string matches the given regex anywhere.
 
 =cut
 
-sub find : Attr(s%3Alfind) {
+sub find : Attr(s%3Afind) {
     my ( $str, $re ) = @_[ 4, 5 ];
     $str =~ /$re/ ? 1 : undef;
 }
@@ -352,7 +352,7 @@ The function C<ucfirst> applied to the string parameter.
 
 =cut
 
-sub uc_first {
+sub uc_first : Attr(s%3Aucfirst) {
     ucfirst $_[4];
 }
 
