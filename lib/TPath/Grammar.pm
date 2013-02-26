@@ -105,6 +105,7 @@ our $path_grammar = do {
     
        <token: arg>
           <treepath> | <v=literal> | <v=num> | <attribute> | <attribute_test> | <condition>
+          | <error: Expected attribute argument>
     
        <token: num> <.signed_int> | <.float> | <error:>
     
@@ -132,7 +133,10 @@ our $path_grammar = do {
           | <error: Expecting sequence of boolean operators and operands>
 
        <token: not>
-          ((?>!|(?<=[\s\[])not(?=\s))(?>\s*+(?>!|(?<=\s)not(?=\s)))*+)
+          ( 
+             (?: ! | (?<=[\s\[(]) not (?=\s) ) 
+             (?: \s*+ (?: ! | (?<=\s) not (?=\s) ) )*+ 
+          )
           (?{$MATCH = clean_not($^N)})
           | <error:>
        
@@ -155,6 +159,7 @@ our $path_grammar = do {
     
        <rule: attribute_test>
           <[args=attribute]> <cmp> <[args=value]> | <[args=value]> <cmp> <[args=attribute]>
+          | <error:>
     
        <token: cmp> [<>=]=?+|!= | <error: Expecting comparison operator>
     

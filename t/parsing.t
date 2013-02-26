@@ -10,6 +10,7 @@ use List::MoreUtils qw(natatime);
 
 # a bunch of expressions licensed by the spec
 my @parsable = make_paths(<<'END');
+a[@b(not @c)]
 a
 ~a~
 ~a~~b~
