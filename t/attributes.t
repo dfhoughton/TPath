@@ -124,7 +124,7 @@ $path = q{//*[@id = 'foo'][@log(@uid)]};
 trap { $f->path($path)->select($p) };
 is $trap->stderr, "/1/1\n", '@uid works as expected';
 
-dies_ok { $f->path(q{/.[@quux]}) } 'unknown attribute throws exception';
+dies_ok { $f->path(q{a[@quux]}) } 'unknown attribute throws exception';
 
 $p    = parse q{<a><b><c/><d/></b><b><e/><d/></b><b><c/><e/></b></a>};
 $path = q{//b[child::*[1][@tag = 'e']]};

@@ -68,7 +68,7 @@ while ( my ( $xml, $path, $matches, $text ) = $i->() ) {
 
 my $p = parse '<a/>';
 my $index = $f->index($p);
-my $i = natatime 2, grep /\S/, <<'END' =~ /.*/mg;
+$i = natatime 2, grep /\S/, <<'END' =~ /.*/mg;
 /*[@log(@true and @true)]
 1
 
