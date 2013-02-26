@@ -8,7 +8,7 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More;    # tests => 32;
+use Test::More tests => 39;
 use Test::Trap;
 use Test::Exception;
 use ToyXMLForester;

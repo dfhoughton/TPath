@@ -2,7 +2,7 @@
 
 package TPath::Grammar;
 
-use feature 'switch';
+use v5.10;
 use strict;
 use warnings;
 use Carp;
