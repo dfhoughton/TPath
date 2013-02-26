@@ -70,7 +70,7 @@ our $path_grammar = do {
     
        <token: separator> \/[\/>]?+ | <error:>
     
-       <token: step> (?: <full> | <abbreviated> ) <[predicate]>* | <error:>
+       <token: step> <full> <[predicate]>* | <abbreviated> | <error:>
     
        <token: full> <axis>? <forward>
     

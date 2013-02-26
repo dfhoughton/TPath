@@ -8,7 +8,7 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 33;
+use Test::More tests => 32;
 use Test::Trap;
 use Test::Exception;
 use ToyXMLForester;
@@ -123,10 +123,6 @@ $p    = parse q{<a><b/><c><d/><d id='foo'/></c></a>};
 $path = q{//*[@id = 'foo'][@log(@uid)]};
 trap { $f->path($path)->select($p) };
 is $trap->stderr, "/1/1\n", '@uid works as expected';
-
-$path = q{/.[@log('a')]};
-trap { $f->path($path)->select($p) };
-is $trap->stderr, "a\n", "expected log output received from $p with $path";
 
 dies_ok { $f->path(q{a[@quux]}) } 'unknown attribute throws exception';
 

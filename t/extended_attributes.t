@@ -31,13 +31,13 @@ my $i     = natatime 2, grep /^.*[^#\s]/, <<'END' =~ /.*/mg;
 //*[@s:matches(@tag, '^foo.*')] 
 1
 
-/.[@s:starts-with(@tag, 'foo')]
+//*[@s:starts-with(@tag, 'foo')]
 1
 
-/.[@s:ends-with(@tag, 'bar')]
+//*[@s:ends-with(@tag, 'bar')]
 1
 
-/.[@s:contains(@tag, 'ooba')] 
+//*[@s:contains(@tag, 'ooba')] 
 1
 END
 while ( my ( $path, $count ) = $i->() ) {
@@ -156,7 +156,7 @@ trap { $f->path($path)->select($p) };
 ok $trap->stderr =~ /^\d++$/, '@u:millis gave some number of milliseconds';
 
 $p = parse q{<a><b/><b foo='bar' /></a>};
-my $path = q{//b[@u:def(@attr('foo'))]};
+$path = q{//b[@u:def(@attr('foo'))]};
 my @c    = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
 
