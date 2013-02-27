@@ -14,7 +14,7 @@ package TPath::Attributes::Extended;
   }
 
   my $f        = BetterForester->new;
-  my $path     = $f->path('//*[@s:concat("", children::*) = "blarmy"]'); # new attribute!
+  my $path     = $f->path('//*[@s:concat("", *) = "blarmy"]'); # new attribute!
   my $tree     = next_tree();
   my @blarmies = $path->select($tree);
 
@@ -56,6 +56,12 @@ Absolute value of numeric argument.
 sub extended_abs : Attr(m%3Aabs) {
     abs $_[4];
 }
+
+=method C<@m:ceil(1.5)>
+
+Returns smallest whole number greater than or equal to the numeric argument.
+
+=cut
 
 =method C<@m:ceil(1.5)>
 

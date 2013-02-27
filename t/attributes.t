@@ -8,7 +8,7 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 32;
+use Test::More tests => 33;
 use Test::Trap;
 use Test::Exception;
 use ToyXMLForester;
@@ -98,6 +98,7 @@ $p    = parse q{<a><b/><b><c/></b><b><c/><c/></b></a>};
 $path = q{//b[@pick(*, 1) = '<c/>']};
 @c    = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
+is $c[0], '<b><c/><c/></b>', 'picked node stringifies correctly';
 
 $p    = parse q{<a><b/><b><c/></b><b></b></a>};
 $path = q{//b[@leaf]};

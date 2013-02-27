@@ -92,15 +92,33 @@ sub standard_is_leaf : Attr(leaf) {
     return $i->f->is_leaf( $n, $i ) ? 1 : undef;
 }
 
+=method C<@pick(//foo,1)>
+
+Takes a collection and an index and returns the indexed member of the collection.
+
+=cut
+
 sub standard_pick : Attr(pick) {
     my ( $self, $n, $c, $i, $collection, $index ) = @_;
     return $collection->[ $index // 0 ];
 }
 
+=method C<@size(//foo)>
+
+Takes a collection and returns its size.
+
+=cut
+
 sub standard_size : Attr(size) {
     my ( $self, $n, $c, $i, $collection ) = @_;
     return scalar @$collection;
 }
+
+=method C<@size>
+
+Returns the size of the tree rooted at the context node.
+
+=cut
 
 sub standard_tsize : Attr(tsize) {
     my ( $self, $n, undef, $i ) = @_;
@@ -111,6 +129,12 @@ sub standard_tsize : Attr(tsize) {
     return $size;
 }
 
+=method C<@width>
+
+Returns the number of leave under the context node.
+
+=cut
+
 sub standard_width : Attr(width) {
     my ( $self, $n, $c, $i ) = @_;
     return 1 if $self->is_leaf( $n, $c, $i );
@@ -120,6 +144,12 @@ sub standard_width : Attr(width) {
     }
     return $width;
 }
+
+=method C<@depth>
+
+Returns the number of ancestors of the context node.
+
+=cut
 
 sub standard_depth : Attr(depth) {
     my ( $self, $n, $c, $i ) = @_;
@@ -132,6 +162,13 @@ sub standard_depth : Attr(depth) {
     return $depth;
 }
 
+=method C<@depth>
+
+Returns the greatest number of generations, inclusive, separating this
+node from a leaf. Leaf nodes have a height of 1, their parents, 2, etc.
+
+=cut
+
 sub standard_height : Attr(height) {
     my ( $self, $n, $c, $i ) = @_;
     return 1 if $self->standard_is_leaf( $n, $c, $i );
@@ -142,6 +179,12 @@ sub standard_height : Attr(height) {
     }
     return $max + 1;
 }
+
+=method C<@root>
+
+Returns whether the context node is the tree root.
+
+=cut
 
 sub standard_is_root : Attr(root) {
     my ( $self, $n, $c, $i ) = @_;
