@@ -32,7 +32,7 @@ Returns a value, 1, evaluating to true.
 
 =cut
 
-sub true : Attr {
+sub standard_true : Attr(true) {
     return 1;
 }
 
@@ -42,7 +42,7 @@ Returns a value, C<undef>, evaluating to false.
 
 =cut
 
-sub false : Attr {
+sub standard_false : Attr(false) {
     return undef;
 }
 
@@ -52,12 +52,12 @@ Returns the node itself.
 
 =cut
 
-sub this : Attr {
+sub standard_this : Attr(this) {
     my ( $self, $n ) = @_;
     return $n;
 }
 
-sub uid : Attr {
+sub standard_uid : Attr(uid) {
     my ( $self, $n, $c, $i ) = @_;
     my @list;
     my $node = $n;
@@ -76,54 +76,54 @@ sub uid : Attr {
     return '/' . join( '/', @list );
 }
 
-sub echo : Attr {
+sub standard_echo : Attr(echo) {
     my ( $self, $n, $c, $i, $o ) = @_;
     return $o;
 }
 
-=method isLeaf => C<@leaf>
+=method C<@leaf>
 
 Returns whether the node is without children.
 
 =cut
 
-sub isLeaf : Attr(leaf) {
+sub standard_is_leaf : Attr(leaf) {
     my ( $self, $n, $c, $i ) = @_;
     return $i->f->is_leaf( $n, $i ) ? 1 : undef;
 }
 
-sub pick : Attr {
+sub standard_pick : Attr(pick) {
     my ( $self, $n, $c, $i, $collection, $index ) = @_;
     return $collection->[ $index // 0 ];
 }
 
-sub size : Attr {
+sub standard_size : Attr(size) {
     my ( $self, $n, $c, $i, $collection ) = @_;
     return scalar @$collection;
 }
 
-sub tsize : Attr {
+sub standard_tsize : Attr(tsize) {
     my ( $self, $n, undef, $i ) = @_;
     my $size = 1;
     for my $kid ( $self->children( $n, $i ) ) {
-        $size += $self->tsize( $kid, undef, $i );
+        $size += $self->standard_tsize( $kid, undef, $i );
     }
     return $size;
 }
 
-sub width : Attr {
+sub standard_width : Attr(width) {
     my ( $self, $n, $c, $i ) = @_;
     return 1 if $self->is_leaf( $n, $c, $i );
     my $width = 0;
     for my $kid ( $self->children( $n, $i ) ) {
-        $width += $self->width( $kid, $c, $i );
+        $width += $self->standard_width( $kid, $c, $i );
     }
     return $width;
 }
 
-sub depth : Attr {
+sub standard_depth : Attr(depth) {
     my ( $self, $n, $c, $i ) = @_;
-    return 0 if $self->isRoot( $n, $c, $i );
+    return 0 if $self->standard_is_root( $n, $c, $i );
     my $depth = -1;
     do {
         $depth++;
@@ -132,18 +132,18 @@ sub depth : Attr {
     return $depth;
 }
 
-sub height : Attr {
+sub standard_height : Attr(height) {
     my ( $self, $n, $c, $i ) = @_;
-    return 1 if $self->isLeaf( $n, $c, $i );
+    return 1 if $self->standard_is_leaf( $n, $c, $i );
     my $max = 0;
     for my $kid ( $self->children( $n, $i ) ) {
-        my $m = $self->height( $kid, $c, $i );
+        my $m = $self->standard_height( $kid, $c, $i );
         $max = $m if $m > $max;
     }
     return $max + 1;
 }
 
-sub isRoot : Attr(root) {
+sub standard_is_root : Attr(root) {
     my ( $self, $n, $c, $i ) = @_;
     return $i->is_root($n) ? 1 : undef;
 }
@@ -155,18 +155,18 @@ always evaluate as false if used as a predicate.
 
 =cut
 
-sub null : Attr {
+sub standard_null : Attr(null) {
     return undef;
 }
 
-=method idx => C<@index>
+=method C<@index>
 
 Returns the index of this node among its parent's children, or -1 if it is the root
 node.
 
 =cut
 
-sub idx : Attr(index) {
+sub standard_index : Attr(index) {
     my ( $self, $n, $c, $i ) = @_;
     return -1 if $i->is_root($n);
     my @siblings = $self->_kids( $self->parent( $n, $i ), $i );
@@ -183,7 +183,7 @@ See attribute C<log_stream> in L<TPath::Forester>.
 
 =cut
 
-sub log : Attr {
+sub standard_log : Attr(log) {
     my ( $self, $n, $c, $i, @messages ) = @_;
     for my $m (@messages) {
         $self->log_stream->put($m);
@@ -191,13 +191,13 @@ sub log : Attr {
     return 1;
 }
 
-=method nid => C<@id>
+=method C<@id>
 
 Returns the id of the current node, if any.
 
 =cut
 
-sub nid : Attr(id) {
+sub standard_id : Attr(id) {
     my ( $self, $n, $c, $i ) = @_;
     $self->id($n);
 }
