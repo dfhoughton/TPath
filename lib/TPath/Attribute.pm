@@ -78,6 +78,7 @@ sub apply {
     $self->code->( $i->f, @args );
 }
 
+# required by TPath::Test
 sub test {
     my ( $self, $n, $c, $i ) = @_;
     defined $self->apply( $n, $c, $i );

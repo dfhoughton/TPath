@@ -21,12 +21,7 @@ sub BUILD {
     $self->_node_test( TPath::Test::Node::Match->new( rx => $self->rx ) );
 }
 
-=method candidates
-
-Expects node and index. Returns node.
-
-=cut
-
+# implements method required by TPath::Selector::Test
 sub candidates {
     my ( $self, $n, $i ) = @_;
     return $i->f->closest( $n, $self->node_test, $i );

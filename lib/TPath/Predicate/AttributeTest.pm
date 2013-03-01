@@ -1,6 +1,6 @@
 package TPath::Predicate::AttributeTest;
 
-# ABSTRACT: implements the [@foo = 1] in //a/b[@foo = 1]
+# ABSTRACT: implements the C<[@foo = 1]> in C<//a/b[@foo = 1]>
 
 =head1 DESCRIPTION
 

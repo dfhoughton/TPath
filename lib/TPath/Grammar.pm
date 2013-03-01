@@ -26,6 +26,9 @@ the expression.
 C<TPath::Grammar> is really intended for use by C<TPath> modules, but if you want 
 a parse tree, here's how to get it.
 
+Also exportable from C<TPath::Grammar> is C<%AXES>, the set of axes understood by TPath
+expressions. See L<TPath> for the list and explanation.
+
 =cut
 
 our %AXES = map { $_ => 1 } qw(

@@ -2,7 +2,12 @@ package TPath::Attributes::Standard;
 
 # ABSTRACT: the standard collection of attributes available to any forester by default
 
-# TODO document methods
+=head1 DESCRIPTION
+
+C<TPath::Attributes::Standard> provides the attributes available to all foresters.
+C<TPath::Attributes::Standard> is a role which is composed into L<TPath::Forester>.
+
+=cut
 
 use Moose::Role;
 use MooseX::MethodAttributes::Role;
@@ -57,6 +62,16 @@ sub standard_this : Attr(this) {
     return $n;
 }
 
+=method C<@uid>
+
+Returns a string representing the unique path in the tree leading to this node.
+This consists of the index of the node among its parent's children concatenated
+to the uid of its parent with C</> as a separator. The uid of the root node is
+always C</>. That of its second child is C</1>. That of the first child of this
+child is C</1/0>. And so on.
+
+=cut
+
 sub standard_uid : Attr(uid) {
     my ( $self, $n, $c, $i ) = @_;
     my @list;
@@ -75,6 +90,20 @@ sub standard_uid : Attr(uid) {
     }
     return '/' . join( '/', @list );
 }
+
+=method C<@echo(//a)>
+
+Returns is parameter. C<@echo> is useful because it can in effect turn anything
+into an attribute. You want a predicate that passes when a path returns a node
+set of a particular cardinality?
+
+  //foo[@echo(bar) = 3]
+
+Attribute test expressions like this require that the left and right operands be either
+attributes or constants, but this is no restriction because C<@echo> turns everything
+into an attribute.
+
+=cut
 
 sub standard_echo : Attr(echo) {
     my ( $self, $n, $c, $i, $o ) = @_;

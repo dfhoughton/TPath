@@ -21,12 +21,7 @@ Tag or value to match.
 
 has tag => ( is => 'ro', isa => 'Str', required => 1 );
 
-=method passes
-
-Nodes having the right tag pass.
-
-=cut
-
+# required by TPath::Test::Node
 sub passes {
     my ( $self, $n, $i ) = @_;
     return $i->f->has_tag( $n, $self->tag );

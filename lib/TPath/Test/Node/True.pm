@@ -13,12 +13,7 @@ L<TPath::Test::Node>
 
 with 'TPath::Test::Node';
 
-=method passes
-
-Every node passes this test.
-
-=cut
-
+# required by TPath::Test::Node
 sub passes { 1 }
 
 __PACKAGE__->meta->make_immutable;

@@ -13,12 +13,7 @@ L<TPath::Selector>
 
 with 'TPath::Selector';
 
-=method select
-
-Expects a node and an index. Returns the node's parent, if any.
-
-=cut
-
+# required by TPath::Selector
 sub select {
     my ( $self, $n, $i ) = @_;
     return $n == $i->root ? () : $i->f->parent( $n, $i );

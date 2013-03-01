@@ -28,12 +28,7 @@ The single test the negation of which will provide the value of this L<TPath::Te
 
 has t => ( is => 'ro', isa => 'CondArg', required => 1 );
 
-=method test
-
-Returns the negation of whether the C<test> attribute is true.
-
-=cut
-
+# required by TPath::Test
 sub test {
     my ( $self, $n, $c, $i ) = @_;
     return $self->t->test( $n, $c, $i ) ? 0 : 1;

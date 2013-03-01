@@ -12,4 +12,14 @@ __END__
 
 TODO put the general documentation of TPath here.
 
+=head1 SYNTAX
+
+=head2 Steps
+
+=head2 Predicates
+
+=head2 Axes
+
+=head2 Attributes
+
 =cut

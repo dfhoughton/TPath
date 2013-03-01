@@ -1,6 +1,6 @@
 package TPath::Predicate::Attribute;
 
-# ABSTRACT: implements the [@foo] in //a/b[@foo]
+# ABSTRACT: implements the C<[@foo]> in C<//a/b[@foo]>
 
 =head1 DESCRIPTION
 
@@ -19,9 +19,9 @@ L<TPath::Predicate>
 
 with 'TPath::Predicate';
 
-=attr idx
+=attr a
 
-The index of the item selected.
+The attribute evaluated.
 
 =cut
 

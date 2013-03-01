@@ -43,7 +43,7 @@ has _selectors =>
 =method first
 
 Convenience method that returns the first node selected by this expression from
-the given tree. This method just delegates to C<select>.
+the given tree. This method just delegates to C<select> and expects the same arguments.
 
 =cut
 
@@ -74,13 +74,7 @@ sub select {
     return @sel;
 }
 
-=method test
-
-Takes a node, a collection, and an index and returns whether this expression selects
-any nodes given this context. This is basically C<select> given a boolean interpretation.
-
-=cut
-
+# required by TPath::Test
 sub test {
     my ( $self, $n, $c, $i ) = @_;
     !!$self->select( $n, $i );

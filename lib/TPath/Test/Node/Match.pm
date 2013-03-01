@@ -21,12 +21,7 @@ Pattern to match.
 
 has rx => ( is => 'ro', isa => 'RegexpRef', required => 1 );
 
-=method passes
-
-Nodes bearing a value that matches the pattern pass.
-
-=cut
-
+# required by TPath::Test::Node
 sub passes {
     my ( $self, $n, $i ) = @_;
     return $i->f->matches_tag( $n, $self->rx );

@@ -18,12 +18,7 @@ L<TPath::Test::Compound>
 
 with 'TPath::Test::Compound';
 
-=method test
-
-Returns true if any subsidiary test is true.
-
-=cut
-
+# required by TPath::Test
 sub test {
     my ( $self, $n, $c, $i ) = @_;
     for my $t ( @{ $self->tests } ) {

@@ -7,9 +7,6 @@ package TPath::AttributeTest;
 Implements predicates such as C<//foo[@a < @b]> or C<ancestor::*[@bar = 1]>. That is, predicates
 where an attribute is tested against some value.
 
-All attributes are read-only as they should not change after construction. The C<func> attribute
-is 
-
 This class if for internal consumption only.
 
 =cut

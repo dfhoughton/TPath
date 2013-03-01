@@ -4,7 +4,7 @@ package TPath::Predicate::Boolean;
 
 =head1 DESCRIPTION
 
-The object that selects the correct members of collection based whether a boolean expression evaluated with
+The object that selects the correct members of collection based on whether a boolean expression evaluated with
 them as the context returns a true value.
 
 =cut

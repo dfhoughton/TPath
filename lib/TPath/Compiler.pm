@@ -5,7 +5,7 @@ package TPath::Compiler;
 =head1 DESCRIPTION
 
 This module is a ghetto for the code that converts an AST produced by L<TPath::Grammar>
-into L<TPath::Expression> objects. It's really not something you should be messing
+into a L<TPath::Expression> object. It's really not something you should be messing
 around with unless you're working on TPath itself.
 
 =cut
@@ -49,8 +49,6 @@ use aliased 'TPath::Test::And';
 use aliased 'TPath::Test::Not';
 use aliased 'TPath::Test::Or';
 use aliased 'TPath::Test::XOr';
-
-# use aliased 'TPath::Selector::Test::Child';
 
 our @EXPORT_OK = qw(compile);
 

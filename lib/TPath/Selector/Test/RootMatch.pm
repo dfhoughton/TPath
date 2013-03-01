@@ -21,12 +21,7 @@ sub BUILD {
     $self->_node_test( TPath::Test::Node::Match->new( rx => $self->rx ) );
 }
 
-=method candidates
-
-Expects node and index. Returns root node if it matches the specified pattern.
-
-=cut
-
+# required by TPath::Selector::Test
 sub candidates {
     my ( $self, $n, $i ) = @_;
     my $r = $i->root;

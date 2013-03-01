@@ -1,6 +1,6 @@
 package TPath::Predicate::Index;
 
-# ABSTRACT: implements the [0] in //a/b[0]
+# ABSTRACT: implements the C<[0]> in C<//a/b[0]>
 
 =head1 DESCRIPTION
 

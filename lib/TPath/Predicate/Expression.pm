@@ -1,6 +1,6 @@
 package TPath::Predicate::Expression;
 
-# ABSTRACT: implements the [c] in //a/b[c]
+# ABSTRACT: implements the C<[c]> in C<//a/b[c]>
 
 =head1 DESCRIPTION
 

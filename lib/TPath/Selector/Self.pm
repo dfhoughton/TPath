@@ -13,12 +13,7 @@ L<TPath::Selector>
 
 with 'TPath::Selector';
 
-=method select
-
-Expects a node and an index. Returns the node.
-
-=cut
-
+# required by TPath::Selector
 sub select {
     my ( $self, $n, $idx ) = @_;
     $n;

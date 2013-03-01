@@ -15,12 +15,7 @@ with 'TPath::Selector';
 
 has id => ( isa => 'Str', is => 'ro', required => 1 );
 
-=method select
-
-Expects a node and an index. Returns the node, if any, bearing this selector's id.
-
-=cut
-
+# required by TPath::Selector
 sub select {
     my ( $self, undef, $idx ) = @_;
     my $n = $idx->indexed->{ $self->id };

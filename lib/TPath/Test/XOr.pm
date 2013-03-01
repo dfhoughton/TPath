@@ -19,12 +19,7 @@ use Moose;
 
 with 'TPath::Test::Compound';
 
-=method test
-
-Returns true if one and only one of its subsidiary tests is true.
-
-=cut
-
+# required by TPath::Test
 sub test {
     my ( $self, $n, $c, $i ) = @_;
     my $count = 0;

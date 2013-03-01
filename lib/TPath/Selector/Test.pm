@@ -33,9 +33,16 @@ has predicates => (
     auto_deref => 1
 );
 
+=attr axis
+
+The axis on which nodes are sought; C<child> by default.
+
+=cut
+
 has axis =>
   ( is => 'ro', isa => 'Axis', writer => '_axis', default => sub { 'child' } );
 
+# axis translated into a forester method name
 has faxis => (
     is   => 'ro',
     isa  => 'Str',
@@ -43,6 +50,12 @@ has faxis => (
     default =>
       sub { my $self = shift; ( my $v = $self->axis ) =~ tr/-/_/; "axis_$v" }
 );
+
+=attr node_test
+
+The test that is applied to select candidates on an axis.
+
+=cut
 
 has node_test =>
   ( is => 'ro', isa => 'TPath::Test::Node', writer => '_node_test' );
@@ -59,6 +72,7 @@ sub candidates {
     $i->f->$axis( $n, $self->node_test, $i );
 }
 
+# implements method required by TPath::Selector
 sub select {
     my ( $self, $n, $i ) = @_;
     my @candidates = $self->candidates( $n, $i );

@@ -69,12 +69,13 @@ use Moose::Role;
 
 use TPath::Compiler qw(compile);
 use TPath::Grammar qw(parse);
+use TPath::Index;
 use TPath::StderrLog;
 use TPath::Test::Node::True;
 
 =head1 ROLES
 
-L<TPath::Attributes::Standard>
+L<TPath::Attributes::Standard>, L<TPath::TypeCheck>
 
 =cut
 
@@ -102,7 +103,8 @@ requires qw(children has_tag matches_tag parent id);
 
 =attr log_stream
 
-A L<TPath::LogStream> required by the C<@log> attribute. By default it is L<TPath::StderrLog>.
+A L<TPath::LogStream> required by the C<@log> attribute. By default it is L<TPath::StderrLog>. This attribute
+is required by the C<@log> attribute from L<TPath::Attributes::Standard>.
 
 =cut
 
@@ -126,7 +128,7 @@ Example test:
       return $forester->has_tag('foo');
   });
 
-Every test will receive the forester itself, the node, and the index as arguments. This test
+Every test will receive the forester itself, the node, and the index as arguments. This example test
 will cause the forester C<$f> to ignore C<foo> nodes.
 
 This method has the companion methods C<has_tests> and C<clear_tests>. The former says
@@ -147,6 +149,7 @@ has _tests => (
     auto_deref => 1
 );
 
+# map from attribute names to their implementations
 has _attributes => (
     is      => 'ro',
     isa     => 'HashRef[CodeRef]',
@@ -173,7 +176,7 @@ sub _collect_attributes {
                     $attributes{$alias} = $method->body;
                 }
                 else {
-                    confess "malformed annotation $annotation in method "
+                    confess "malformed annotation $annotation on method "
                       . $method->name;
                 }
             }
@@ -258,8 +261,7 @@ the tree rooted at the given node.
 
 sub index {
     my ( $self, $node ) = @_;
-    require TPath::Index;
-    return TPath::Index->new(
+    TPath::Index->new(
         f         => $self,
         root      => $node,
         node_type => $self->node_type
@@ -361,22 +363,20 @@ sub closest {
 sub _siblings_or_self {
     my ( $self, $n, $t, $i ) = @_;
     return $n if $i->is_root($n) && $t->passes( $n, $i );
-    return
-      grep { $t->passes( $_, $i ) } $self->_kids( $self->parent( $n, $i ), $i );
+    grep { $t->passes( $_, $i ) } $self->_kids( $self->parent( $n, $i ), $i );
 }
 
 sub _siblings {
     my ( $self, $n, $t, $i ) = @_;
     my @siblings = $self->_untested_siblings( $self->parent( $n, $i ), $i );
-    return grep { $t->passes( $_, $i ) } $self->_untested_siblings( $n, $i );
+    grep { $t->passes( $_, $i ) } $self->_untested_siblings( $n, $i );
 }
 
 sub _untested_siblings {
     my ( $self, $n, $i ) = @_;
     return () if $self->is_root( $n, undef, $i );
     my $ra = refaddr $n;
-    return
-      grep { refaddr $_ ne $ra } $self->_kids( $self->parent( $n, $i ), $i );
+    grep { refaddr $_ ne $ra } $self->_kids( $self->parent( $n, $i ), $i );
 }
 
 sub _preceding {

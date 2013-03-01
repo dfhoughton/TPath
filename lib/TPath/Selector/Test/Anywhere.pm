@@ -15,6 +15,7 @@ L<TPath::Selector::Test>
 
 with 'TPath::Selector::Test';
 
+# whether it is the first step in a path
 has first => ( is => 'ro', isa => 'Bool', required => 1 );
 
 sub BUILD {

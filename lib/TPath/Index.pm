@@ -15,7 +15,6 @@ A cache of information about a particular tree. Reuse indices to save effort.
 =cut
 
 use Moose;
-use MooseX::Privacy;
 use Scalar::Util qw(refaddr weaken);
 use namespace::autoclean;
 
@@ -31,6 +30,12 @@ The L<TPath::Forester> that generated this index.
 
 has f => ( is => 'ro', does => 'TPath::Forester', required => 1 );
 
+=attr indexed
+
+The map from ids to nodes.
+
+=cut
+
 has indexed => (
     is      => 'ro',
     isa     => 'HashRef',
@@ -39,13 +44,14 @@ has indexed => (
 
 has _is_indexed => ( is => 'rw', isa => 'Bool', default => 0 );
 
-=attribute cp_index
+# Map from children to their parents. 
+has cp_index => ( is => 'ro', isa => 'HashRef', default => sub { {} } );
 
-Map from children to their parents. This should be regarded as private.
+=attr root
+
+The root of the indexed tree.
 
 =cut
-
-has cp_index => ( is => 'ro', isa => 'HashRef', default => sub { {} } );
 
 has root => ( is => 'ro', required => 1 );
 
@@ -92,7 +98,7 @@ sub index {
     $self->_is_indexed(1);
 }
 
-protected_method walk => sub {
+sub walk {
     my ( $self, $n ) = @_;
     my @children = $self->f->_kids( $n, $self );
     $self->n_index($n);
@@ -100,7 +106,7 @@ protected_method walk => sub {
         $self->pc_index( $n, $c );
         $self->walk($c);
     }
-};
+}
 
 =method parent
 
@@ -113,24 +119,24 @@ sub parent {
     return $self->cp_index->{ refaddr $n};
 }
 
-protected_method n_index => sub {
+sub n_index {
     my ( $self, $n ) = @_;
     my $id = $self->id($n);
     if ( defined $id ) {
         $self->indexed->{$id} = $n;
     }
-};
+}
 
 =method pc_index
 
 Record the link from child to parent. If this index is unnecessary for a
 particular variety of tree -- nodes know their parents -- then you should
-override this method to be a no-op. It is protected. It assumes all nodes
+override this method to be a no-op. It assumes all nodes
 are references and will throw an error if this is not the case.
 
 =cut
 
-protected_method pc_index => sub {
+sub pc_index {
     my ( $self, $n, $c ) = @_;
     confess "$c must be a reference" unless ref $c;
     my $ref = $n;
@@ -141,8 +147,7 @@ protected_method pc_index => sub {
 =method id
 
 Returns the unique identifier, if any, that identifies this node. This method
-should be overridden in indexes that have some defined id convention. By default
-it returns C<undef>.
+delegates to the forester's C<id> method.
 
 =cut
 
