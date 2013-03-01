@@ -8,7 +8,7 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 56;
+use Test::More tests => 72;
 use Test::Exception;
 use ToyXMLForester;
 use ToyXML qw(parse);
@@ -21,19 +21,46 @@ my @elements = $f->path('//b')->select($p);
 is( scalar @elements, 4, "found the right number of elements with //b on $p" );
 is( $_, '<b/>', 'correct element' ) for @elements;
 
+my $path = q{//@te("b")};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 4,
+    "found the right number of elements with $path on $p" );
+is( $_, '<b/>', 'correct element' ) for @elements;
+
 $p        = parse('<a><b><b/></b><b/></a>');
-@elements = $f->path('//b//b')->select($p);
+$path     = q{//b//b};
+@elements = $f->path($path)->select($p);
 is( scalar @elements,
-    1, "found the correct number of elements with //b//b on $p" );
+    1, "found the correct number of elements with $path on $p" );
+is( $_, '<b/>', 'correct element' ) for @elements;
+
+$path     = q{//@te('b')//@te('b')};
+@elements = $f->path($path)->select($p);
+is( scalar @elements,
+    1, "found the correct number of elements with $path on $p" );
 is( $_, '<b/>', 'correct element' ) for @elements;
 
 $p        = parse('<a><a/></a>');
-@elements = $f->path('//a')->select($p);
-is( scalar @elements, 2, "found the right number of elements with //a on $p" );
+$path     = q{//a};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 2,
+    "found the right number of elements with $path on $p" );
+
+$path     = q{//@te('a')};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 2,
+    "found the right number of elements with $path on $p" );
 
 $p        = parse('<a><b/><c><b/><d><b/><b/></d></c></a>');
-@elements = $f->path('/b')->select($p);
-is( scalar @elements, 0, "found the right number of elements with /b on $p" );
+$path     = q{/b};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 0,
+    "found the right number of elements with $path on $p" );
+
+$path     = q{/@te('b')};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 0,
+    "found the right number of elements with $path on $p" );
 
 $p        = parse('<a><b/></a>');
 @elements = $f->path('/.')->select($p);
@@ -41,31 +68,59 @@ is( scalar @elements, 1, "found the right number of elements with /. on $p" );
 is( $elements[0]->tag, 'a', 'correct tag on element selected' );
 
 $p        = parse('<a><b/><c><b><d><b/></d></b></c></a>');
-@elements = $f->path('/>b')->select($p);
-is( scalar @elements, 2, "found the right number of elements with />b on $p" );
+$path     = q{/>b};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 2,
+    "found the right number of elements with $path on $p" );
+
+$path     = q{/>@te('b')};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 2,
+    "found the right number of elements with $path on $p" );
 
 $p        = parse('<a><c><d><b/></d></c><b/></a>');
-@elements = $f->path('//c//b')->select($p);
-is( scalar @elements,
-    1, "found the right number of elements with //c//b on $p" );
+$path     = q{//c//b};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 1,
+    "found the right number of elements with $path on $p" );
+
+$path     = q{//@te('c')//@te('b')};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 1,
+    "found the right number of elements with $path on $p" );
 
 $p        = parse(q{<a><b foo="1"/><b foo="2"/><b foo="3"/></a>});
-@elements = $f->path('//b[1]')->select($p);
-is( scalar @elements,
-    1, "found the right number of elements with //b[1] on $p" );
+$path     = q{//b[1]};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 1,
+    "found the right number of elements with $path on $p" );
+is( $elements[0]->attribute('foo'), '2', 'found expected attribute' );
+
+$path     = q{//@te('b')[1]};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 1,
+    "found the right number of elements with $path on $p" );
 is( $elements[0]->attribute('foo'), '2', 'found expected attribute' );
 
 $p = parse(
 '<root><a><b foo="1"/><b foo="2"/><b foo="3"/></a><a><b foo="2"/><b foo="3"/></a></root>'
 );
-@elements = $f->path('//a/b[1]')->select($p);
-is( scalar @elements,
-    2, "found the right number of elements with //b[1] on $p" );
+$path     = q{//a/b[1]};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 2,
+    "found the right number of elements with $path on $p" );
 is( $elements[0]->attribute('foo'), '2', 'found expected attribute' );
 is( $elements[1]->attribute('foo'), '3', 'found expected attribute' );
 
-$p = parse('<a:b><b:b/><b:b fo:o="1"/><b:b fo:o="2"/></a:b>');
-my $path = '//b:b[@attr("fo:o") != "1"]';
+$path     = q{//@te('a')/@te('b')[1]};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 2,
+    "found the right number of elements with $path on $p" );
+is( $elements[0]->attribute('foo'), '2', 'found expected attribute' );
+is( $elements[1]->attribute('foo'), '3', 'found expected attribute' );
+
+$p        = parse('<a:b><b:b/><b:b fo:o="1"/><b:b fo:o="2"/></a:b>');
+$path     = '//b:b[@attr("fo:o") != "1"]';
 @elements = $f->path($path)->select($p);
 is( scalar @elements, 1,
     "found the right number of elements with $path on $p" );
@@ -136,7 +191,7 @@ $f->add_attribute(
     'foobar',
     sub {
         my ( $self, $n, $c, $i ) = @_;
-        my $v = defined $n->attribute('foo') && defined $n->attribute('bar'); 
+        my $v = defined $n->attribute('foo') && defined $n->attribute('bar');
         $v ? 1 : undef;
     }
 );
@@ -219,7 +274,7 @@ my $e3 = $f->path('/*')->first($p);
 is $e->tag,  $e2->tag, '/. selects the root element';
 is $e2->tag, $e3->tag, '/. and /* select same element';
 
-$p = parse(q{<a><b><c/></b><b/></a>});
+$p    = parse(q{<a><b><c/></b><b/></a>});
 $path = q{//b[c]};
 my @c = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";

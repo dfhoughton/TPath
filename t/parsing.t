@@ -60,6 +60,12 @@ leaf::a
 //b:b[@attr != "1"]
 //b:b[@attr(1) != "1"]
 //b:b[@attr("fo:o") != "1"]
+/@a
+//@a
+/>@a
+/@a[0]
+//@a[0]
+/>@a[0]
 END
 
 # pairs of expressions that should have the same ASTs

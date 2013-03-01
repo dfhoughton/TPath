@@ -83,7 +83,8 @@ our $path_grammar = do {
     
        <token: abbreviated> (?<!/[/>]) (?: \.{1,2}+ | <id> )
     
-       <token: forward> <wildcard> | <specific> | <pattern> | <error: Expecting tag selector>
+       <token: forward> <wildcard> | <specific> | <pattern> | <attribute> 
+          | <error: Expecting tag selector>
     
        <token: wildcard> \* | <error:>
     

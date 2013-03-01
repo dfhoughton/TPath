@@ -13,6 +13,11 @@ sub tag : Attr {
     $n->tag;
 }
 
+sub te : Attr {
+    my ( $self, $n, $c, $i, $name ) = @_;
+    $n->tag eq $name ? 1 : undef;
+}
+
 package ToyXMLForester;
 
 use Moose;

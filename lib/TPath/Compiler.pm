@@ -20,26 +20,32 @@ use parent 'Exporter';
 use aliased 'TPath::Attribute';
 use aliased 'TPath::AttributeTest';
 use aliased 'TPath::Expression';
-use aliased 'TPath::Predicate::Index';
 use aliased 'TPath::Predicate::Attribute'     => 'PA';
 use aliased 'TPath::Predicate::AttributeTest' => 'PAT';
 use aliased 'TPath::Predicate::Boolean'       => 'PB';
 use aliased 'TPath::Predicate::Expression'    => 'PE';
+use aliased 'TPath::Predicate::Index';
 use aliased 'TPath::Selector';
 use aliased 'TPath::Selector::Id';
 use aliased 'TPath::Selector::Parent';
 use aliased 'TPath::Selector::Self';
 use aliased 'TPath::Selector::Test::Anywhere';
+use aliased 'TPath::Selector::Test::AnywhereAttribute';
 use aliased 'TPath::Selector::Test::AnywhereMatch';
 use aliased 'TPath::Selector::Test::AnywhereTag';
+use aliased 'TPath::Selector::Test::AxisAttribute';
 use aliased 'TPath::Selector::Test::AxisMatch';
 use aliased 'TPath::Selector::Test::AxisTag';
 use aliased 'TPath::Selector::Test::AxisWildcard';
+use aliased 'TPath::Selector::Test::ChildAttribute';
 use aliased 'TPath::Selector::Test::ChildMatch';
 use aliased 'TPath::Selector::Test::ChildTag';
+use aliased 'TPath::Selector::Test::ClosestAttribute';
 use aliased 'TPath::Selector::Test::ClosestMatch';
 use aliased 'TPath::Selector::Test::ClosestTag';
 use aliased 'TPath::Selector::Test::Root';
+use aliased 'TPath::Selector::Test::RootAttribute';
+use aliased 'TPath::Selector::Test::RootAxisAttribute';
 use aliased 'TPath::Selector::Test::RootAxisMatch';
 use aliased 'TPath::Selector::Test::RootAxisTag';
 use aliased 'TPath::Selector::Test::RootAxisWildcard';
@@ -222,6 +228,59 @@ sub full {
                     ) if $axis;
                     return ChildMatch->new(
                         rx         => $rx,
+                        predicates => \@predicates
+                    );
+                }
+            }
+        }
+        when ('attribute') {
+            my $a = attribute( $step->{step}{full}{forward}{attribute}, $forester );
+            for ($sep) {
+                when ('/') {
+                    if ($first) {
+                        return RootAxisAttribute->new(
+                            axis       => $axis,
+                            a          => $a,
+                            predicates => \@predicates
+                        ) if $axis;
+                        return RootAttribute->new(
+                            a          => $a,
+                            predicates => \@predicates
+                        );
+                    }
+                    return AxisAttribute->new(
+                        axis       => $axis,
+                        a          => $a,
+                        predicates => \@predicates
+                    ) if $axis;
+                    return ChildAttribute->new(
+                        a          => $a,
+                        predicates => \@predicates
+                    );
+                }
+                when ('//') {
+                    croak 'axes disallowed with // separator' if defined $axis;
+                    return AnywhereAttribute->new(
+                        a          => $a,
+                        first      => $first,
+                        predicates => \@predicates
+                    );
+                }
+                when ('/>') {
+                    croak 'axes disallowed with /> separator' if defined $axis;
+                    return ClosestAttribute->new(
+                        a          => $a,
+                        predicates => \@predicates
+                    );
+                }
+                default {
+                    return AxisAttribute->new(
+                        axis       => $axis,
+                        a          => $a,
+                        predicates => \@predicates
+                    ) if $axis;
+                    return ChildAttribute->new(
+                        a          => $a,
                         predicates => \@predicates
                     );
                 }
