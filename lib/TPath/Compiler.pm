@@ -234,7 +234,8 @@ sub full {
             }
         }
         when ('attribute') {
-            my $a = attribute( $step->{step}{full}{forward}{attribute}, $forester );
+            my $a =
+              attribute( $step->{step}{full}{forward}{attribute}, $forester );
             for ($sep) {
                 when ('/') {
                     if ($first) {

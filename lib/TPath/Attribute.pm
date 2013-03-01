@@ -57,7 +57,7 @@ sub apply {
     # invoke all code to reify arguments
     for my $a ( @{ $self->args } ) {
         my $value = $a;
-        my $type = ref $a;
+        my $type  = ref $a;
         if ( $type && $type !~ /ARRAY|HASH/ ) {
             if ( $a->isa('TPath::Attribute') ) {
                 $value = $a->apply( $n, $c, $i );

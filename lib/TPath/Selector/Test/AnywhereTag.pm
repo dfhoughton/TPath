@@ -21,7 +21,7 @@ has tag => ( is => 'ro', isa => 'Str', required => 1 );
 sub BUILD {
     my $self = shift;
     my $nt = TPath::Test::Node::Tag->new( tag => $self->tag );
-    $self->_node_test( $nt );
+    $self->_node_test($nt);
     my $axis = $self->first ? 'descendant-or-self' : 'descendant';
     $self->_axis($axis);
 }
