@@ -166,7 +166,7 @@ Returns the number of leave under the context node.
 
 sub standard_width : Attr(width) {
     my ( $self, $n, $c, $i ) = @_;
-    return 1 if $self->is_leaf( $n, $c, $i );
+    return 1 if $self->standard_is_leaf( $n, $c, $i );
     my $width = 0;
     for my $kid ( $self->children( $n, $i ) ) {
         $width += $self->standard_width( $kid, $c, $i );
