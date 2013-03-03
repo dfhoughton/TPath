@@ -18,6 +18,7 @@ An object that will get us the nodes identified by our path expression.
 
 use TPath::TypeCheck;
 use TPath::TypeConstraints;
+use Scalar::Util qw(refaddr);
 use Moose;
 use namespace::autoclean -also => qr/^_/;
 
@@ -70,6 +71,14 @@ sub select {
     my @sel;
     for my $fork ( @{ $self->_selectors } ) {
         push @sel, _sel( $n, $i, $fork, 0 );
+    }
+    if ( @{ $self->_selectors } > 1 ) {
+        my %uniques;
+        @sel = map {
+            my $ra = refaddr $_;
+            if   ( $uniques{$ra} ) { () }
+            else                   { $uniques{$ra} = 1; $_ }
+        } @sel;
     }
     return @sel;
 }
