@@ -113,7 +113,7 @@ sub _e_func {
                                 default        { return 0 }
                             }
                         }
-                        $lv == 0 + $v;
+                        $lv == $v;
                     };
                 }
                 when ('t') {

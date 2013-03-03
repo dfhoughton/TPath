@@ -8,6 +8,16 @@ __END__
 
 =head1 SYNOPSIS
 
+   package MyNode;
+   
+   sub new {
+   	my ($class, %opts) = @_;
+   	die 'tag required' unless $opts{tag};
+   	bless { 
+   		tag => $opts{tag},
+   		 }, $class;
+   }
+
 =head1 DESCRIPTION
 
 

@@ -60,12 +60,18 @@ leaf::a
 //b:b[@attr != "1"]
 //b:b[@attr(1) != "1"]
 //b:b[@attr("fo:o") != "1"]
-/@a
-//@a
-/>@a
-/@a[0]
-//@a[0]
-/>@a[0]
+END
+
+# a bunch of expressions not licensed by the spec
+my @unparsable = make_paths(<<'END');
+@a
+/a(1)
+//a(1)
+/>a(1)
+/*(1)
+//*(1)
+/>*(1)
+/child::a(1)
 END
 
 # pairs of expressions that should have the same ASTs
@@ -147,10 +153,14 @@ v
 1
 END
 
-plan tests => @parsable + @equivalent / 2 + @leaves / 3;
+plan tests => @parsable + @unparsable + @equivalent / 2 + @leaves / 3;
 
 for my $e (@parsable) {
     lives_ok { parse($e) } "can parse $e";
+}
+
+for my $e (@unparsable) {
+    dies_ok { parse($e) } "cannot parse $e";
 }
 
 my $i = natatime 2, @equivalent;
