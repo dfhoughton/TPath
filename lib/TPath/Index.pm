@@ -44,7 +44,7 @@ has indexed => (
 
 has _is_indexed => ( is => 'rw', isa => 'Bool', default => 0 );
 
-# Map from children to their parents. 
+# Map from children to their parents.
 has cp_index => ( is => 'ro', isa => 'HashRef', default => sub { {} } );
 
 =attr root
@@ -81,7 +81,7 @@ sub BUILD {
       . $self->f->node_type
       . ' while index node type is '
       . $self->node_type
-      unless $self->f->node_type eq $self->node_type;
+      unless ( $self->f->node_type // '' ) eq ( $self->node_type // '' );
     $self->walk( $self->root );
 }
 
@@ -142,7 +142,7 @@ sub pc_index {
     my $ref = $n;
     weaken $ref;
     $self->cp_index->{ refaddr $c} = $ref;
-};
+}
 
 =method id
 
