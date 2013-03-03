@@ -99,7 +99,7 @@ to this sort of node, has a tag that matches the regex.
 
 =cut
 
-requires qw(children has_tag matches_tag parent id);
+requires qw(children has_tag matches_tag);
 
 =attr log_stream
 
