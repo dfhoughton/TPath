@@ -52,6 +52,14 @@ A tpath expression has one or more sub-paths.
 
 =head2 Selectors
 
+=head3 literal
+
+=head3 ~a~ regex
+
+=head3 @a attribute
+
+=head3 * wildcard
+
 =head2 Axes
 
 =head2 Predicates
