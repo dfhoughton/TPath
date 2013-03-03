@@ -55,25 +55,25 @@ sub BUILD {
     my $func;
 
     # some coderefs to turn operators into functions
-    state $ge_n = sub { $_[0] >= $_[1] };
-    state $ge_s = sub { ( $_[0] cmp $_[1] ) >= 0 };
-    state $le_n = sub { $_[0] <= $_[1] };
-    state $le_s = sub { ( $_[0] cmp $_[1] ) <= 0 };
-    state $g_n  = sub { $_[0] > $_[1] };
-    state $g_s  = sub { ( $_[0] cmp $_[1] ) > 0 };
-    state $l_n  = sub { $_[0] < $_[1] };
-    state $l_s  = sub { ( $_[0] cmp $_[1] ) < 0 };
-    state $ne_n = sub { $_[0] != $_[1] };
-    state $ne_s = sub { $_[0] ne $_[1] };
+    state $ge_n = sub { $_[0] >= $_[1]           or undef };
+    state $ge_s = sub { ( $_[0] cmp $_[1] ) >= 0 or undef };
+    state $le_n = sub { $_[0] <= $_[1]           or undef };
+    state $le_s = sub { ( $_[0] cmp $_[1] ) <= 0 or undef };
+    state $g_n  = sub { $_[0] > $_[1]            or undef };
+    state $g_s  = sub { ( $_[0] cmp $_[1] ) > 0  or undef };
+    state $l_n  = sub { $_[0] < $_[1]            or undef };
+    state $l_s  = sub { ( $_[0] cmp $_[1] ) < 0  or undef };
+    state $ne_n = sub { $_[0] != $_[1]           or undef };
+    state $ne_s = sub { $_[0] ne $_[1]           or undef };
 
     # construct the appropriate function
     for ( $self->op ) {
         when ('=')  { $func = $self->_e_func( $l, $r, $lr, \&_se ) }
         when ('==') { $func = $self->_e_func( $l, $r, $lr, \&_de ) }
         when ('<=') { $func = $self->_c_func( $l, $r, $lr, $le_s, $le_n ) }
-        when ('<') { $func = $self->_c_func( $l, $r, $lr, $l_s, $l_n ) }
+        when ('<')  { $func = $self->_c_func( $l, $r, $lr, $l_s,  $l_n ) }
         when ('>=') { $func = $self->_c_func( $l, $r, $lr, $ge_s, $ge_n ) }
-        when ('>') { $func = $self->_c_func( $l, $r, $lr, $g_s, $g_n ) }
+        when ('>')  { $func = $self->_c_func( $l, $r, $lr, $g_s,  $g_n ) }
         when ('!=') { $func = $self->_c_func( $l, $r, $lr, $ne_s, $ne_n ) }
     }
 
@@ -93,9 +93,9 @@ sub _e_func {
     my $rv = $self->right;
 
     # constant functions
-    return 0 + $lv == 0 + $rv ? sub { 1 } : sub { 0 }
+    return 0 + $lv == 0 + $rv ? sub { 1 } : sub { undef }
       if $lr =~ /n[ns]|sn/;
-    return "" . $lv eq "" . $rv ? sub { 1 } : sub { 0 }
+    return "" . $lv eq "" . $rv ? sub { 1 } : sub { undef }
       if $lr eq 'ss';
 
     # non-silly functions
@@ -109,25 +109,25 @@ sub _e_func {
                         return 0 unless defined $v;
                         if ( my $type = ref $v ) {
                             for ($type) {
-                                when ('ARRAY') { return $rv == @$v }
-                                default        { return 0 }
+                                when ('ARRAY') { return $rv == @$v or undef }
+                                default { return }
                             }
                         }
-                        $lv == $v;
+                        $lv == $v or undef;
                     };
                 }
                 when ('t') {
                     return sub {
                         my ( $self, $n, $c, $i ) = @_;
                         my $v = $rv->test( $n, $c, $i );
-                        $lv == $v;
+                        $lv == $v or undef;
                       }
                 }
                 when ('e') {
                     return sub {
                         my ( $self, $n, $c, $i ) = @_;
                         my @c = $rv->select( $n, $i );
-                        $lv == @c;
+                        $lv == @c or undef;
                       }
                 }
                 default {
@@ -141,21 +141,21 @@ sub _e_func {
                     return sub {
                         my ( $self, $n, $c, $i ) = @_;
                         my $v = $rv->apply( $n, $c, $i );
-                        return 0 unless defined $v;
-                        return $lv eq $v;
+                        return unless defined $v;
+                        return $lv eq $v or undef;
                     };
                 }
                 when ('t') {
                     return sub {
                         my ( $self, $n, $c, $i ) = @_;
                         my $v = $rv->test( $n, $c, $i );
-                        $lv eq $v;
+                        $lv eq $v or undef;
                       }
                 }
                 when ('e') {
                     my ( $self, $n, $c, $i ) = @_;
                     my @c = $rv->select( $n, $i );
-                    $lv eq join '', @c;
+                    $lv eq join( '', @c ) or undef;
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -168,22 +168,22 @@ sub _e_func {
                     return sub {
                         my ( $self, $n, $c, $i ) = @_;
                         my $v = $lv->apply( $n, $c, $i );
-                        return 0 unless defined $v;
+                        return unless defined $v;
                         if ( my $type = ref $v ) {
                             for ($type) {
-                                when ('ARRAY') { return $rv == @$v }
-                                default        { return 0 }
+                                when ('ARRAY') { return $rv == @$v or undef }
+                                default { return }
                             }
                         }
-                        $rv == 0 + $v;
+                        $rv == $v or undef;
                     };
                 }
                 when ('s') {
                     return sub {
                         my ( $self, $n, $c, $i ) = @_;
                         my $v = $lv->apply( $n, $c, $i );
-                        return 0 unless defined $v;
-                        return $rv eq $v;
+                        return unless defined $v;
+                        return $rv eq $v or undef;
                     };
                 }
                 when ('a') {
@@ -191,7 +191,7 @@ sub _e_func {
                         my ( $self, $n, $c, $i ) = @_;
                         my $v1 = $lv->apply( $n, $c, $i );
                         my $v2 = $rv->apply( $n, $c, $i );
-                        return $ef->( $v1, $v2 );
+                        return $ef->( $v1, $v2 ) or undef;
                     };
                 }
                 when ('t') {
@@ -199,14 +199,14 @@ sub _e_func {
                         my ( $self, $n, $c, $i ) = @_;
                         my $v1 = $lv->apply( $n, $c, $i );
                         my $v2 = $rv->test( $n, $c, $i );
-                        return $ef->( $v1, $v2 );
+                        return $ef->( $v1, $v2 ) or undef;
                       }
                 }
                 when ('e') {
                     my ( $self, $n, $c, $i ) = @_;
                     my $v1 = $lv->apply( $n, $c, $i );
                     my @c = $rv->select( $n, $i );
-                    return $ef->( $v1, \@c );
+                    return $ef->( $v1, \@c ) or undef;
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -219,14 +219,14 @@ sub _e_func {
                     return sub {
                         my ( $self, $n, $c, $i ) = @_;
                         my $v1 = $lv->test( $n, $c, $i );
-                        return $v1 == $rv;
+                        return $v1 == $rv or undef;
                     };
                 }
                 when ('s') {
                     return sub {
                         my ( $self, $n, $c, $i ) = @_;
                         my $v1 = $lv->test( $n, $c, $i );
-                        return $v1 eq $rv;
+                        return $v1 eq $rv or undef;
                     };
                 }
                 when ('a') {
@@ -234,7 +234,7 @@ sub _e_func {
                         my ( $self, $n, $c, $i ) = @_;
                         my $v1 = $lv->test( $n, $c, $i );
                         my $v2 = $rv->apply( $n, $c, $i );
-                        return $ef->( $v1, $v2 );
+                        return $ef->( $v1, $v2 ) or undef;
                     };
                 }
                 when ('t') {
@@ -242,14 +242,14 @@ sub _e_func {
                         my ( $self, $n, $c, $i ) = @_;
                         my $v1 = $lv->test( $n, $c, $i );
                         my $v2 = $rv->test( $n, $c, $i );
-                        return $v1 == $v2;
+                        return $v1 == $v2 or undef;
                       }
                 }
                 when ('e') {
                     my ( $self, $n, $c, $i ) = @_;
                     my $v1 = $lv->test( $n, $c, $i );
                     my @c = $lv->select( $n, $i );
-                    return $v1 == @c;
+                    return $v1 == @c or undef;
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -262,14 +262,14 @@ sub _e_func {
                     return sub {
                         my ( $self, $n, $c, $i ) = @_;
                         my @c = $lv->select( $n, $i );
-                        return @c == $rv;
+                        return @c == $rv or undef;
                     };
                 }
                 when ('s') {
                     return sub {
                         my ( $self, $n, $c, $i ) = @_;
                         my @c = $lv->select( $n, $i );
-                        return $rv eq join '', @c;
+                        return $rv eq join( '', @c ) or undef;
                     };
                 }
                 when ('a') {
@@ -277,7 +277,7 @@ sub _e_func {
                         my ( $self, $n, $c, $i ) = @_;
                         my @c = $lv->select( $n, $i );
                         my $v2 = $rv->apply( $n, $c, $i );
-                        return $ef->( \@c, $v2 );
+                        return $ef->( \@c, $v2 ) or undef;
                     };
                 }
                 when ('t') {
@@ -285,14 +285,14 @@ sub _e_func {
                         my ( $self, $n, $c, $i ) = @_;
                         my @c = $lv->select( $n, $i );
                         my $v2 = $rv->test( $n, $c, $i );
-                        return @c == $v2;
+                        return @c == $v2 or undef;
                       }
                 }
                 when ('e') {
                     my ( $self, $n, $c, $i ) = @_;
                     my @c1 = $lv->select( $n, $i );
                     my @c2 = $rv->select( $n, $i );
-                    return @c1 == @c2;
+                    return @c1 == @c2 or undef;
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -312,9 +312,9 @@ sub _c_func {
     my $rv = $self->right;
 
     # constant functions
-    return $nf->( $lv, $rv ) ? sub { 1 } : sub { 0 }
+    return $nf->( $lv, $rv ) ? sub { 1 } : sub { undef }
       if $lr =~ /n[ns]|sn/;
-    return $sf->( $lv, $rv ) ? sub { 1 } : sub { 0 }
+    return $sf->( $lv, $rv ) ? sub { 1 } : sub { undef }
       if $lr eq 'ss';
 
     # non-silly functions
@@ -325,13 +325,13 @@ sub _c_func {
                     return sub {
                         my ( $self, $n, $c, $i ) = @_;
                         my $v = $rv->apply( $n, $c, $i );
-                        return 0 unless defined $v;
+                        return unless defined $v;
                         if ( my $type = ref $v ) {
                             for ($type) {
                                 when ('ARRAY') {
-                                    return $nf->( $rv, scalar @$v )
+                                    return $nf->( $rv, scalar @$v );
                                 }
-                                default { return 0 }
+                                default { return }
                             }
                         }
                         $nf->( $lv, $v );
@@ -362,7 +362,7 @@ sub _c_func {
                     return sub {
                         my ( $self, $n, $c, $i ) = @_;
                         my $v = $rv->apply( $n, $c, $i );
-                        return 0 unless defined $v;
+                        return unless defined $v;
                         return $sf->( $lv, $v );
                     };
                 }
@@ -389,13 +389,13 @@ sub _c_func {
                     return sub {
                         my ( $self, $n, $c, $i ) = @_;
                         my $v = $lv->apply( $n, $c, $i );
-                        return 0 unless defined $v;
+                        return unless defined $v;
                         if ( my $type = ref $v ) {
                             for ($type) {
                                 when ('ARRAY') {
-                                    return $nf->( scalar @$v, $rv )
+                                    return $nf->( scalar @$v, $rv );
                                 }
-                                default { return 0 }
+                                default { return }
                             }
                         }
                         $nf->( $v, $rv );
@@ -405,7 +405,7 @@ sub _c_func {
                     return sub {
                         my ( $self, $n, $c, $i ) = @_;
                         my $v = $lv->apply( $n, $c, $i );
-                        return 0 unless defined $v;
+                        return unless defined $v;
                         return $sf->( $v, $rv );
                     };
                 }
