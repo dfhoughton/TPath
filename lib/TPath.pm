@@ -181,6 +181,9 @@ descendants will be listed first.
   //aB</b[0]>/E<gt>c[@d]
   //a/b[0]B</E<gt>c[@d]>
 
+Each step consists of a separator (optional on the first step), a tag selector, and optionally some
+number of predicates.
+
 =head2 Separators
 
   a/b/c/E<gt>d
@@ -191,28 +194,95 @@ descendants will be listed first.
 =head3 null separator
 
   a/b/c/E<gt>d
+  
+The null separator is simply the absence of a separator. It means "relative to the
+context node". Thus is it essentially the same as the file path formalism, where C</a> means
+the file C<a> in the root directory and C<a> means the file C<a> in the current directory.
 
 =head3 /
 
   B</>aB</>b//c/E<gt>d
 
+The single slash separator means "search among the context node's children", or if it precedes
+the first step it means that the context node is the root node.
+
 =head3 // select among descendants
 
   B<//>a/bB<//>c/E<gt>d
+  
+The double slash separator means "search among the descendants of the context node" or, if the
+context node is the root, "search among the root node and its descendants".
 
 =head3 /> select closest
 
   B</E<gt>>a/b//cB</E<gt>>d
 
+The C</E<gt>> separator means "search among the descendants of the context node (or the context node
+and its descendants if the context node is root), but omit from consideration any node dominated by
+a node matching the selector". Written out like this this may be confusing, but it is a surprisingly
+useful separator. Consider the following tree
+
+         a
+        / \
+       b   a
+       |   | \
+       a   b  a
+       |      |
+       b      b
+
+The expression C</E<gt>b> when applied to the root node will select all the C<b> nodes B<except> the
+lefmost leaf C<b>, which is screened from the root by its grandparent C<b> node. That is, going down
+any path from the context node C</E<gt>b> will match the first node it finds matching the selector --
+the matching node closest to the context node.
+
 =head2 Selectors
+
+Selectors select a candidate set for later filtering by predicates.
 
 =head3 literal
 
+  B<a>
+
+A literal selector selects the nodes whose tag matches, in a tree-appropriate sense of "match",
+a literal expression.
+
+Any string may be used to represent a literal selector, but certain characters may have to be
+escaped with a backslash. The expectation is that the literal with begin with a word character, _,
+or C<$> and any subsequent character is either one of these characters, a number character or 
+a hyphen or colon followed by one of these or number character. The escape character, as usual, is a
+backslash. Any unexpected character must be escaped. So
+
+   a\\b
+
+represents the literal C<a\b>.
+
 =head3 ~a~ regex
+
+  ~a~
+
+A regex selector selects the nodes whose tag matches a regular expression delimited by tildes. Within
+the regular expression a tilde must be escaped, of course. A tilde within a regular expression is
+represented as a pair of tildes. The backslash, on the other hand, behaves as it normally does within
+a regular expression.
 
 =head3 @a attribute
 
-In addition to 
+Any attribute may be used as a selector so long as it is preceded by some separator other than
+the null separator. This is because attributes may take arguments and among other things these
+arguments can be both expressions and other attributes. If C<@foo> were a legitimate path
+expression it would be ambiguous how to compile C<@bar(@foo)>. Is the argument an attribute or
+a path with an attribute selector. You can produce the effect of an attribute selector with the
+null separator, however, by using the child axis (see below). If you want the argument to be
+a path, you write
+
+  child::@bar(child::@foo)
+
+If you want it to be an ordinary attribute, you write
+
+  child::@bar(@foo)
+  
+If the first instance the C<@bar> attribute receives a list of nodes as its arguments. In the second,
+it receives whatever C<@foo> evaluates to at the candidate node in question.
 
 =head3 * wildcard
 
