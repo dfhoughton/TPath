@@ -48,8 +48,6 @@ our %AXES = map { $_ => 1 } qw(
   sibling-or-self
 );
 
-our ($buffer1, $buffer2);
-
 our $path_grammar = do {
     use Regexp::Grammars;
     qr{
@@ -62,14 +60,9 @@ our $path_grammar = do {
     
        <rule: treepath> <[path]> (?: \| <[path]> )*
     
-       <token: path> <[segment=first_step]> <[segment=subsequent_step]>* | <error:>
+       <token: path> (?!@) <[segment=first_step]> <[segment=subsequent_step]>* | <error:>
     
-       <token: first_step> 
-          (?{ local ( $buffer1, $buffer2 ) })
-          (<separator>?) (?{ $buffer1 = $^N })
-          (<step>)       (?{ $buffer2 = $^N })
-          (?(?{ '@' eq substr( $buffer2, 0, 1 ) && !$buffer1 })(?!))
-          | <error: Expected path step>
+       <token: first_step> <separator>? <step> | <error: Expected path step>
     
        <token: id>
           id\( ( (?>[^\)\\]|\\.)++ ) \)
