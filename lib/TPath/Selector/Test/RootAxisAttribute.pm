@@ -9,7 +9,7 @@ use namespace::autoclean;
 extends 'TPath::Selector::Test::AxisAttribute';
 
 sub candidates {
-    my ( $self, $n, $c, $i ) = @_;
+    my ( $self, undef, $c, $i ) = @_;
     $self->SUPER::candidates( $i->root, $c, $i );
 }
 

@@ -104,7 +104,7 @@ sub _e_func {
             for ($r) {
                 when ('a') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v = $rv->apply( $n, $c, $i );
                         return 0 unless defined $v;
                         if ( my $type = ref $v ) {
@@ -118,14 +118,14 @@ sub _e_func {
                 }
                 when ('t') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v = $rv->test( $n, $c, $i );
                         $lv == $v or undef;
                       }
                 }
                 when ('e') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, undef, $i ) = @_;
                         my @c = $rv->select( $n, $i );
                         $lv == @c or undef;
                       }
@@ -139,7 +139,7 @@ sub _e_func {
             for ($r) {
                 when ('a') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v = $rv->apply( $n, $c, $i );
                         return unless defined $v;
                         return $lv eq $v or undef;
@@ -147,13 +147,13 @@ sub _e_func {
                 }
                 when ('t') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v = $rv->test( $n, $c, $i );
                         $lv eq $v or undef;
                       }
                 }
                 when ('e') {
-                    my ( $self, $n, $c, $i ) = @_;
+                    my ( undef, $n, undef, $i ) = @_;
                     my @c = $rv->select( $n, $i );
                     $lv eq join( '', @c ) or undef;
                 }
@@ -166,7 +166,7 @@ sub _e_func {
             for ($r) {
                 when ('n') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v = $lv->apply( $n, $c, $i );
                         return unless defined $v;
                         if ( my $type = ref $v ) {
@@ -180,7 +180,7 @@ sub _e_func {
                 }
                 when ('s') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v = $lv->apply( $n, $c, $i );
                         return unless defined $v;
                         return $rv eq $v or undef;
@@ -188,7 +188,7 @@ sub _e_func {
                 }
                 when ('a') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v1 = $lv->apply( $n, $c, $i );
                         my $v2 = $rv->apply( $n, $c, $i );
                         return $ef->( $v1, $v2 ) or undef;
@@ -196,17 +196,19 @@ sub _e_func {
                 }
                 when ('t') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v1 = $lv->apply( $n, $c, $i );
                         my $v2 = $rv->test( $n, $c, $i );
                         return $ef->( $v1, $v2 ) or undef;
                       }
                 }
                 when ('e') {
-                    my ( $self, $n, $c, $i ) = @_;
-                    my $v1 = $lv->apply( $n, $c, $i );
-                    my @c = $rv->select( $n, $i );
-                    return $ef->( $v1, \@c ) or undef;
+                    return sub {
+                        my ( undef, $n, $c, $i ) = @_;
+                        my $v1 = $lv->apply( $n, $c, $i );
+                        my @c = $rv->select( $n, $i );
+                        return $ef->( $v1, \@c ) or undef;
+                    };
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -217,21 +219,21 @@ sub _e_func {
             for ($r) {
                 when ('n') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v1 = $lv->test( $n, $c, $i );
                         return $v1 == $rv or undef;
                     };
                 }
                 when ('s') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v1 = $lv->test( $n, $c, $i );
                         return $v1 eq $rv or undef;
                     };
                 }
                 when ('a') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v1 = $lv->test( $n, $c, $i );
                         my $v2 = $rv->apply( $n, $c, $i );
                         return $ef->( $v1, $v2 ) or undef;
@@ -246,7 +248,7 @@ sub _e_func {
                       }
                 }
                 when ('e') {
-                    my ( $self, $n, $c, $i ) = @_;
+                    my ( undef, $n, $c, $i ) = @_;
                     my $v1 = $lv->test( $n, $c, $i );
                     my @c = $lv->select( $n, $i );
                     return $v1 == @c or undef;
@@ -260,21 +262,21 @@ sub _e_func {
             for ($r) {
                 when ('n') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, undef, $i ) = @_;
                         my @c = $lv->select( $n, $i );
                         return @c == $rv or undef;
                     };
                 }
                 when ('s') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, undef, $i ) = @_;
                         my @c = $lv->select( $n, $i );
                         return $rv eq join( '', @c ) or undef;
                     };
                 }
                 when ('a') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my @c = $lv->select( $n, $i );
                         my $v2 = $rv->apply( $n, $c, $i );
                         return $ef->( \@c, $v2 ) or undef;
@@ -282,14 +284,14 @@ sub _e_func {
                 }
                 when ('t') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my @c = $lv->select( $n, $i );
                         my $v2 = $rv->test( $n, $c, $i );
                         return @c == $v2 or undef;
                       }
                 }
                 when ('e') {
-                    my ( $self, $n, $c, $i ) = @_;
+                    my ( undef, $n, undef, $i ) = @_;
                     my @c1 = $lv->select( $n, $i );
                     my @c2 = $rv->select( $n, $i );
                     return @c1 == @c2 or undef;
@@ -346,7 +348,7 @@ sub _c_func {
                 }
                 when ('e') {
                     return sub {
-                        my ( undef, $n, $c, $i ) = @_;
+                        my ( undef, $n, undef, $i ) = @_;
                         my @c = $rv->select( $n, $i );
                         $nf->( $lv, scalar @c );
                       }
@@ -360,7 +362,7 @@ sub _c_func {
             for ($r) {
                 when ('a') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v = $rv->apply( $n, $c, $i );
                         return unless defined $v;
                         return $sf->( $lv, $v );
@@ -368,13 +370,13 @@ sub _c_func {
                 }
                 when ('t') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v = $rv->test( $n, $c, $i );
                         $sf->( $lv, $v );
                       }
                 }
                 when ('e') {
-                    my ( $self, $n, $c, $i ) = @_;
+                    my ( undef, $n, undef, $i ) = @_;
                     my @c = $rv->select( $n, $i );
                     $sf->( $lv, join '', @c );
                 }
@@ -387,7 +389,7 @@ sub _c_func {
             for ($r) {
                 when ('n') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v = $lv->apply( $n, $c, $i );
                         return unless defined $v;
                         if ( my $type = ref $v ) {
@@ -403,7 +405,7 @@ sub _c_func {
                 }
                 when ('s') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v = $lv->apply( $n, $c, $i );
                         return unless defined $v;
                         return $sf->( $v, $rv );
@@ -411,7 +413,7 @@ sub _c_func {
                 }
                 when ('a') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v1 = $lv->apply( $n, $c, $i );
                         my $v2 = $rv->apply( $n, $c, $i );
                         return _reduce( $v1, $v2, $sf, $nf, $n, $c, $i );
@@ -419,14 +421,14 @@ sub _c_func {
                 }
                 when ('t') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v1 = $lv->apply( $n, $c, $i );
                         my $v2 = $rv->test( $n, $c, $i );
                         return _reduce( $v1, $v2, $sf, $nf, $n, $c, $i );
                       }
                 }
                 when ('e') {
-                    my ( $self, $n, $c, $i ) = @_;
+                    my ( undef, $n, $c, $i ) = @_;
                     my $v1 = $lv->apply( $n, $c, $i );
                     my @c = $rv->select( $n, $i );
                     return _reduce( $v1, \@c, $sf, $nf, $n, $c, $i );
@@ -440,21 +442,21 @@ sub _c_func {
             for ($r) {
                 when ('n') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v1 = $lv->test( $n, $c, $i );
                         return $nf->( $v1, $rv );
                     };
                 }
                 when ('s') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v1 = $lv->test( $n, $c, $i );
                         return $sf->( $v1, $rv );
                     };
                 }
                 when ('a') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v1 = $lv->test( $n, $c, $i );
                         my $v2 = $rv->apply( $n, $c, $i );
                         return _reduce( $v1, $v2, $sf, $nf, $n, $c, $i );
@@ -469,10 +471,12 @@ sub _c_func {
                       }
                 }
                 when ('e') {
-                    my ( $self, $n, $c, $i ) = @_;
-                    my $v1 = $lv->test( $n, $c, $i );
-                    my @c = $rv->select( $n, $i );
-                    return $nf->( $v1, scalar @c );
+                    return sub {
+                        my ( undef, $n, $c, $i ) = @_;
+                        my $v1 = $lv->test( $n, $c, $i );
+                        my @c = $rv->select( $n, $i );
+                        return $nf->( $v1, scalar @c );
+                    };
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -483,21 +487,21 @@ sub _c_func {
             for ($r) {
                 when ('n') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, undef, $i ) = @_;
                         my @c = $lv->select( $n, $i );
                         return $nf->( scalar @c, $rv );
                     };
                 }
                 when ('s') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, undef, $i ) = @_;
                         my @c = $lv->select( $n, $i );
                         return $sf->( join( '', @c ), $rv );
                     };
                 }
                 when ('a') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my @c = $lv->select( $n, $i );
                         my $v2 = $rv->apply( $n, $c, $i );
                         return _reduce( \@c, $v2, $sf, $nf, $n, $c, $i );
@@ -505,17 +509,19 @@ sub _c_func {
                 }
                 when ('t') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my @c = $lv->select( $n, $i );
                         my $v2 = $rv->test( $n, $c, $i );
                         return $nf->( scalar @c, $v2 );
                       }
                 }
                 when ('e') {
-                    my ( $self, $n, $c, $i ) = @_;
-                    my @c1 = $lv->select( $n, $i );
-                    my @c2 = $rv->select( $n, $i );
-                    return $nf->( scalar @c1, scalar @c2 );
+                    return sub {
+                        my ( undef, $n, undef, $i ) = @_;
+                        my @c1 = $lv->select( $n, $i );
+                        my @c2 = $rv->select( $n, $i );
+                        return $nf->( scalar @c1, scalar @c2 );
+                    };
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"

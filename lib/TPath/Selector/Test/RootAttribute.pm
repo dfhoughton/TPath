@@ -24,7 +24,7 @@ sub BUILD {
 
 # required by TPath::Selector::Test
 sub candidates {
-    my ( $self, $n, $i ) = @_;
+    my ( $self, undef, $i ) = @_;
     my $r = $i->root;
     return $self->node_test->passes( $r, $i ) ? $r : ();
 }

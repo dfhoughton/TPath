@@ -380,7 +380,7 @@ sub id {
 }
 
 sub self {
-    my ( $first, $step, $forester ) = @_;
+    my ( $first, $step ) = @_;
     return Root->new if $first && $step->{separator};
     return Self->new;
 }

@@ -20,7 +20,7 @@ Expects node and index. Returns root node.
 =cut
 
 sub candidates {
-    my ( $self, $n, $i ) = @_;
+    my ( $self, undef, $i ) = @_;
     return $i->root;
 }
 

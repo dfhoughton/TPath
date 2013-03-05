@@ -9,7 +9,7 @@ use namespace::autoclean;
 extends 'TPath::Selector::Test::AxisWildcard';
 
 sub candidates {
-    my ( $self, $n, $i ) = @_;
+    my ( $self, undef, $i ) = @_;
     $self->SUPER::candidates( $i->root, $i );
 }
 

@@ -15,7 +15,7 @@ with 'TPath::Selector';
 
 # required by TPath::Selector
 sub select {
-    my ( $self, $n, $idx ) = @_;
+    my ( undef, $n ) = @_;
     $n;
 }
 

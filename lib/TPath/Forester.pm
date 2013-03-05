@@ -369,7 +369,7 @@ sub _siblings_or_self {
 sub _siblings {
     my ( $self, $n, $t, $i ) = @_;
     my @siblings = $self->_untested_siblings( $self->parent( $n, $i ), $i );
-    grep { $t->passes( $_, $i ) } $self->_untested_siblings( $n, $i );
+    grep { $t->passes( $_, $i ) } @siblings;
 }
 
 sub _untested_siblings {
@@ -481,7 +481,7 @@ efficient where available. E.g., where the node provides an C<is_leaf> method,
 =cut
 
 sub is_leaf {
-    my ( $self, $n, $c, $i ) = @_;
+    my ( $self, $n, undef, $i ) = @_;
     my @children = $self->_kids( $n, $i );
     return !@children;
 }
@@ -500,7 +500,7 @@ node provides an C<is_root> method,
 =cut
 
 sub is_root {
-    my ( $self, $n, $c, $i ) = @_;
+    my ( $self, $n, undef, $i ) = @_;
     $i->is_root($n);
 }
 

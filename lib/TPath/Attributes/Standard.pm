@@ -106,7 +106,7 @@ into an attribute.
 =cut
 
 sub standard_echo : Attr(echo) {
-    my ( $self, $n, $c, $i, $o ) = @_;
+    my ( undef, undef, undef, undef, $o ) = @_;
     return $o;
 }
 
@@ -117,7 +117,7 @@ Returns whether the node is without children.
 =cut
 
 sub standard_is_leaf : Attr(leaf) {
-    my ( $self, $n, undef, $i ) = @_;
+    my ( undef, $n, undef, $i ) = @_;
     return $i->f->is_leaf( $n, $i ) ? 1 : undef;
 }
 
@@ -128,7 +128,7 @@ Takes a collection and an index and returns the indexed member of the collection
 =cut
 
 sub standard_pick : Attr(pick) {
-    my ( $self, $n, $c, $i, $collection, $index ) = @_;
+    my ( undef, undef, undef, undef, $collection, $index ) = @_;
     return $collection->[ $index // 0 ];
 }
 
@@ -199,11 +199,11 @@ node from a leaf. Leaf nodes have a height of 1, their parents, 2, etc.
 =cut
 
 sub standard_height : Attr(height) {
-    my ( $self, $n, $c, $i ) = @_;
-    return 1 if $self->standard_is_leaf( $n, $c, $i );
+    my ( $self, $n, undef, $i ) = @_;
+    return 1 if $self->standard_is_leaf( $n, undef, $i );
     my $max = 0;
     for my $kid ( $self->children( $n, $i ) ) {
-        my $m = $self->standard_height( $kid, $c, $i );
+        my $m = $self->standard_height( $kid, undef, $i );
         $max = $m if $m > $max;
     }
     return $max + 1;
@@ -216,7 +216,7 @@ Returns whether the context node is the tree root.
 =cut
 
 sub standard_is_root : Attr(root) {
-    my ( $self, $n, $c, $i ) = @_;
+    my ( $self, $n, undef, $i ) = @_;
     return $i->is_root($n) ? 1 : undef;
 }
 
@@ -239,7 +239,7 @@ node.
 =cut
 
 sub standard_index : Attr(index) {
-    my ( $self, $n, $c, $i ) = @_;
+    my ( $self, $n, undef, $i ) = @_;
     return -1 if $i->is_root($n);
     my @siblings = $self->_kids( $self->parent( $n, $i ), $i );
     for my $index ( 0 .. $#siblings ) {
@@ -256,7 +256,7 @@ See attribute C<log_stream> in L<TPath::Forester>.
 =cut
 
 sub standard_log : Attr(log) {
-    my ( $self, $n, $c, $i, @messages ) = @_;
+    my ( $self, undef, undef, undef, @messages ) = @_;
     for my $m (@messages) {
         $self->log_stream->put($m);
     }
@@ -270,7 +270,7 @@ Returns the id of the current node, if any.
 =cut
 
 sub standard_id : Attr(id) {
-    my ( $self, $n, $c, $i ) = @_;
+    my ( $self, $n ) = @_;
     $self->id($n);
 }
 

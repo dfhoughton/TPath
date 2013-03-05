@@ -156,7 +156,7 @@ if the regex is C<$re>, the regex tested against is C<^$re$>.
 
 sub extended_matches : Attr(s%3Amatches) {
     my ( $str, $re ) = @_[ 4, 5 ];
-    $str =~ /^$re$/ ? 1 : undef;
+    ( $str // '' ) =~ /^$re$/ ? 1 : undef;
 }
 
 =method C<@s:looking-at('str','re')>
