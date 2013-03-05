@@ -58,7 +58,7 @@ Returns the node itself.
 =cut
 
 sub standard_this : Attr(this) {
-    my ( $self, $n ) = @_;
+    my ( undef, $n ) = @_;
     return $n;
 }
 
@@ -73,7 +73,7 @@ child is C</1/0>. And so on.
 =cut
 
 sub standard_uid : Attr(uid) {
-    my ( $self, $n, $c, $i ) = @_;
+    my ( $self, $n, undef, $i ) = @_;
     my @list;
     my $node = $n;
     while ( !$i->is_root($node) ) {
@@ -117,7 +117,7 @@ Returns whether the node is without children.
 =cut
 
 sub standard_is_leaf : Attr(leaf) {
-    my ( $self, $n, $c, $i ) = @_;
+    my ( $self, $n, undef, $i ) = @_;
     return $i->f->is_leaf( $n, $i ) ? 1 : undef;
 }
 
@@ -139,7 +139,7 @@ Takes a collection and returns its size.
 =cut
 
 sub standard_size : Attr(size) {
-    my ( $self, $n, $c, $i, $collection ) = @_;
+    my ( undef, undef, undef, undef, $collection ) = @_;
     return scalar @$collection;
 }
 

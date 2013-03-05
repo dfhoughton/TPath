@@ -280,8 +280,8 @@ my @c = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
 
 $p = parse('<a><b><c/><c/></b><b><c/><c/><c/></b></a>');
-my $path     = q{//b/c[0]};
-my @elements = $f->path($path)->select($p);
+$path     = q{//b/c[0]};
+@elements = $f->path($path)->select($p);
 is( scalar @elements, 2,
     "found the right number of elements with $path on $p" );
 

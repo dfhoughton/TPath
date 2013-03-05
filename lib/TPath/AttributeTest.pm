@@ -239,7 +239,7 @@ sub _e_func {
                 }
                 when ('t') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v1 = $lv->test( $n, $c, $i );
                         my $v2 = $rv->test( $n, $c, $i );
                         return $v1 == $v2 or undef;
@@ -323,7 +323,7 @@ sub _c_func {
             for ($r) {
                 when ('a') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v = $rv->apply( $n, $c, $i );
                         return unless defined $v;
                         if ( my $type = ref $v ) {
@@ -339,14 +339,14 @@ sub _c_func {
                 }
                 when ('t') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v = $rv->test( $n, $c, $i );
                         $nf->( $lv, $v );
                       }
                 }
                 when ('e') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my @c = $rv->select( $n, $i );
                         $nf->( $lv, scalar @c );
                       }
@@ -462,7 +462,7 @@ sub _c_func {
                 }
                 when ('t') {
                     return sub {
-                        my ( $self, $n, $c, $i ) = @_;
+                        my ( undef, $n, $c, $i ) = @_;
                         my $v1 = $lv->test( $n, $c, $i );
                         my $v2 = $rv->test( $n, $c, $i );
                         return $nf->( $v1, $v2 );
