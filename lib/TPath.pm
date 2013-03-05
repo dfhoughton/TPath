@@ -176,6 +176,8 @@ C<//a/b|B<preceding::d/*>>
 
 =back
 
+Sub-paths are separated by the pipe symbol C<|> and optional space.
+
 The nodes selected by a path is the union of the nodes selected by each sub-path in the order of
 their discovery. The search is left-to-right and depth first. If a node and its descendants are both selected, the
 descendants will be listed first.
@@ -217,9 +219,9 @@ C<a/b/c/E<gt>d>
 
 =back
   
-The null separator is simply the absence of a separator. It means "relative to the
-context node". Thus is it essentially the same as the file path formalism, where C</a> means
-the file C<a> in the root directory and C<a> means the file C<a> in the current directory.
+The null separator is simply the absence of a separator and can only occur before the first step. 
+It means "relative to the context node". Thus is it essentially the same as the file path formalism,
+where C</a> means the file C<a> in the root directory and C<a> means the file C<a> in the current directory.
 
 =head3 /
 
@@ -265,7 +267,7 @@ useful separator. Consider the following tree
        b      b
 
 The expression C</E<gt>b> when applied to the root node will select all the C<b> nodes B<except> the
-lefmost leaf C<b>, which is screened from the root by its grandparent C<b> node. That is, going down
+leftmost leaf C<b>, which is screened from the root by its grandparent C<b> node. That is, going down
 any path from the context node C</E<gt>b> will match the first node it finds matching the selector --
 the matching node closest to the context node.
 
@@ -323,7 +325,7 @@ a path, you write
 
 =over 2
 
-C<child::@bar(child::@foo)>
+C<//@bar(child::@foo)>
 
 =back
 
@@ -331,7 +333,7 @@ If you want it to be an ordinary attribute, you write
 
 =over 2
 
-C<child::@bar(@foo)>
+C<//@bar(@foo)>
 
 =back
   
@@ -620,16 +622,20 @@ are selected from the tree relative the the C<c> node. Selected nodes will be in
 
 =over 2
 
-C<//a/bB<[0]>/E<gt>c[@d][@e E<lt> 'string']>
+C<//a/bB<[0]>/E<gt>c[@d][@e E<lt> 'string'][@f or @g]>
 
-C<//a/b[0]/E<gt>B<c[@d]>[@e E<lt> 'string']>
+C<//a/b[0]/E<gt>B<c[@d]>[@e E<lt> 'string'][@f or @g]>
 
-C<//a/b[0]/E<gt>c[@d]B<[@e E<lt> 'string']>>
+C<//a/b[0]/E<gt>c[@d]B<[@e E<lt> 'string']>[@f or @g]>
+
+C<//a/b[0]/E<gt>c[@d][@e E<lt> 'string']B<[@f or @g]>>
 
 =back
 
 Predicates are the sub-expressions in square brackets after selectors. They represents
-tests that filter the candidate nodes selected by the selectors.
+tests that filter the candidate nodes selected by the selectors. 
+
+There may be space inside the square brackets.
 
 =head2 Index Predicates
 
@@ -637,6 +643,9 @@ tests that filter the candidate nodes selected by the selectors.
 
 An index predicate simply selects the indexed item out of a list of candidates. The first
 index is 0, unlike in XML, so the expression above selects the first bar under every foo.
+
+The index rules are the same as those for Perl arrays: 0 is the first item; negative indices
+count from the end, so -1 retrieves the last item.
 
 =head2 Attributes
 
@@ -652,11 +661,72 @@ may be numbers, strings, paths, other attributes, or attribute tests (see below)
 evaluated relative to the candidate node being tested, as are attributes and attribute tests.
 A path arguments represents the nodes selected by this path relative to the candidate node.
 
-TODO: explain how to define new attributes.
+Attribute parameters are enclosed within parentheses. Within these parentheses, they are
+delimited by commas. Space is optional around parameters.
+
+For the standard attribute set available to all expressions, see L<TPath::Attributes::Standard>.
+For the extended set that can be composed in, see L<TPath::Attributes::Extended>. There are
+various ways one can add bespoke attributes but the easiest is to add them to an individual
+forester via the C<add_attribute> method:
+
+  my $forester = MyForester->new;
+  $forester->add_attribute( 'foo' => sub {
+     my ( $self, $node, $collection, $index, @params) = @_;
+     ...
+  });
+
+TODO: explain other means to define new attributes.
 
 =head2 Attribute Tests
 
+Attribute tests compare attributes to literals, numbers, or other attributes
+
 TODO: complete this section.
+
+=head2 Boolean Predicates
+
+Boolean predicates combine various terms -- attributes, attribute tests, or tpath expressions --
+via boolean operators:
+
+=over 8
+
+=item C<!> or C<not>
+
+True iff the attribute is undefined, the attribute test returns false, the expression returns
+no nodes, or the boolean expression is false.
+
+=item C<&> or C<and>
+
+True iff all conjoined operands are true.
+
+=item C<||> or c<or>
+
+True iff any of the conjoined operands is true.
+
+Note that boolean or is two pipe characters. This is to disambiguate the path expression
+C<a|b> from the boolean expression C<a||b>.
+
+=item C<^> or c<xor>
+
+True B<if one and only one of the conjoined operands is true>. The expression
+
+  @a ^ @b
+
+Behaves like ordinary exclusive or. But if more than two operands are conjoined
+this way, the entire expression is a uniqueness test.
+
+=item C<( ... )>
+
+Groups the contained boolean operations. True iff they evaluate to true.
+
+=back
+
+The normal precedence rules of logical operators applies to these:
+
+  () < ! < & < ^ < ||
+
+Space is required around operators only where necessary to prevent their being
+interpreted as part of a path or attribute.
 
 =head2 Special Selectors
 
@@ -675,10 +745,26 @@ This is an abbreviation for C<parent::*>.
 This selector selects the node, if any, with the given id. This same node can also be selected
 by C<//*[@id = 'foo']> but this is much less efficient.
 
+=head2 Hiding Nodes
+
+In some cases there may be nodes -- spaces, comments, hidden directories and files -- that you
+want your expressions to treat as invisible. To do this you add invisibility tests to the forester
+object that generates expressions.
+
+  my $forester = MyForester->new;
+  $forester->add_test( sub {
+     my ($forester, $node, $index) = @_;
+     ... # return true if the node should be invisible
+  });
+
+One can put this in the forester's C<BUILD> method to make them invisible to all instances of the
+class.
+
 =head1 HISTORY
 
-I wrote TPath initially in Java because I wanted a more convenient way to select nodes from
-parse trees. I've re-written it in Perl because I figured it might be handy and why not?
+I wrote TPath initially in Java (L<http://dfhoughton.org/treepath/>) because I wanted a more 
+convenient way to select nodes from parse trees. I've re-written it in Perl because I figured
+it might be handy and why not?
 
 =head1 ACKNOWLEDGEMENTS
 
