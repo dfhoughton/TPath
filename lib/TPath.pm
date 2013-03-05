@@ -168,8 +168,13 @@ for the next step.
 
 A tpath expression has one or more sub-paths.
 
-  B<//a/b>|preceding::d/*
-  //a/b|B<preceding::d/*>
+=over 2
+
+C<B<//a/b>|preceding::d/*>
+
+C<//a/b|B<preceding::d/*>>
+
+=back
 
 The nodes selected by a path is the union of the nodes selected by each sub-path in the order of
 their discovery. The search is left-to-right and depth first. If a node and its descendants are both selected, the
@@ -177,23 +182,40 @@ descendants will be listed first.
 
 =head2 Steps
 
-  B<//a>/b[0]/E<gt>c[@d]
-  //aB</b[0]>/E<gt>c[@d]
-  //a/b[0]B</E<gt>c[@d]>
+=over2
+
+C<B<//a>/b[0]/E<gt>c[@d]>
+
+C<//aB</b[0]>/E<gt>c[@d]>
+
+C<//a/b[0]B</E<gt>c[@d]>>
+
+=back
 
 Each step consists of a separator (optional on the first step), a tag selector, and optionally some
 number of predicates.
 
 =head2 Separators
 
-  a/b/c/E<gt>d
-  B</>aB</>b//c/E<gt>d
-  B<//>a/bB<//>c/E<gt>d
-  B</E<gt>>a/b//cB</E<gt>>d
+=over2
+
+C<a/b/c/E<gt>d>
+
+C<B</>aB</>b//c/E<gt>d>
+
+C<B<//>a/bB<//>c/E<gt>d>
+
+C<B</E<gt>>a/b//cB</E<gt>>d>
+
+=back
 
 =head3 null separator
 
-  a/b/c/E<gt>d
+=over2
+
+C<a/b/c/E<gt>d>
+
+=back
   
 The null separator is simply the absence of a separator. It means "relative to the
 context node". Thus is it essentially the same as the file path formalism, where C</a> means
@@ -201,21 +223,33 @@ the file C<a> in the root directory and C<a> means the file C<a> in the current 
 
 =head3 /
 
-  B</>aB</>b//c/E<gt>d
+=over2
+
+C<B</>aB</>b//c/E<gt>d>
+
+=back
 
 The single slash separator means "search among the context node's children", or if it precedes
 the first step it means that the context node is the root node.
 
 =head3 // select among descendants
 
-  B<//>a/bB<//>c/E<gt>d
+=over2
+
+C<B<//>a/bB<//>c/E<gt>d>
+
+=back
   
 The double slash separator means "search among the descendants of the context node" or, if the
 context node is the root, "search among the root node and its descendants".
 
 =head3 /> select closest
 
-  B</E<gt>>a/b//cB</E<gt>>d
+=over2
+
+C<B</E<gt>>a/b//cB</E<gt>>d>
+
+=back
 
 The C</E<gt>> separator means "search among the descendants of the context node (or the context node
 and its descendants if the context node is root), but omit from consideration any node dominated by
@@ -241,7 +275,11 @@ Selectors select a candidate set for later filtering by predicates.
 
 =head3 literal
 
-  B<a>
+=over 2
+
+C<B<a>>
+
+=back
 
 A literal selector selects the nodes whose tag matches, in a tree-appropriate sense of "match",
 a literal expression.
@@ -252,13 +290,21 @@ or C<$> and any subsequent character is either one of these characters, a number
 a hyphen or colon followed by one of these or number character. The escape character, as usual, is a
 backslash. Any unexpected character must be escaped. So
 
-   a\\b
+=over 2
+
+C<a\\b>
+
+=back
 
 represents the literal C<a\b>.
 
 =head3 ~a~ regex
 
-  ~a~
+=over 2
+
+C<~a~>
+
+=back
 
 A regex selector selects the nodes whose tag matches a regular expression delimited by tildes. Within
 the regular expression a tilde must be escaped, of course. A tilde within a regular expression is
@@ -275,30 +321,342 @@ a path with an attribute selector. You can produce the effect of an attribute se
 null separator, however, by using the child axis (see below). If you want the argument to be
 a path, you write
 
-  child::@bar(child::@foo)
+=over 2
+
+C<child::@bar(child::@foo)>
+
+=back
 
 If you want it to be an ordinary attribute, you write
 
-  child::@bar(@foo)
+=over 2
+
+C<child::@bar(@foo)>
+
+=back
   
 If the first instance the C<@bar> attribute receives a list of nodes as its arguments. In the second,
 it receives whatever C<@foo> evaluates to at the candidate node in question.
 
 =head3 * wildcard
 
+The wildcard selector selects all the nodes an the relevant axis. The default axis is C<child>, so
+C<//b/*> will select all the children of C<b> nodes.
+
 =head2 Axes
+
+To illustrate the nodes on various axes I will using the following tree, showing which nodes
+are selected from the tree relative the the C<c> node. Selected nodes will be in capital letters.
+
+         root
+          |
+          a
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    b     c     d
+   /|\   /|\   /|\
+  e f g h i j l m n
+    |     |     |
+    o     p     q
+
+=over 8
+
+=item ancestor
+
+  //c/ancestor::*
+
+         ROOT
+          |
+          A
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    b     c     d
+   /|\   /|\   /|\
+  e f g h i j l m n
+    |     |     |
+    o     p     q
+
+=item ancestor-or-self
+
+         ROOT
+          |
+          A
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    b     C     d
+   /|\   /|\   /|\
+  e f g h i j l m n
+    |     |     |
+    o     p     q
+
+=item child
+
+  //c/child::*
+
+         root
+          |
+          a
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    b     c     d
+   /|\   /|\   /|\
+  e f g H I J l m n
+    |     |     |
+    o     p     q
+
+=item descendant
+
+  //c/descendant::*
+
+         root
+          |
+          a
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    b     c     d
+   /|\   /|\   /|\
+  e f g H I J l m n
+    |     |     |
+    o     P     q
+
+=item descendant-or-self
+
+  //c/descendant-or-self::*
+
+         root
+          |
+          a
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    b     C     d
+   /|\   /|\   /|\
+  e f g H I J l m n
+    |     |     |
+    o     P     q
+
+=item following
+
+  //c/following::*
+
+         root
+          |
+          a
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    b     c     D
+   /|\   /|\   /|\
+  e f g h i j L M N
+    |     |     |
+    o     p     Q
+
+=item following-sibling
+
+  //c/following-sibling::*
+
+         root
+          |
+          a
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    b     c     D
+   /|\   /|\   /|\
+  e f g h i j l m n
+    |     |     |
+    o     p     q
+
+=item leaf
+
+  //c/leaf::*
+
+         root
+          |
+          a
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    b     c     d
+   /|\   /|\   /|\
+  e f g H i J l m n
+    |     |     |
+    o     P     q
+
+=item parent
+
+  //c/parent::*
+
+         root
+          |
+          A
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    b     c     d
+   /|\   /|\   /|\
+  e f g h i j l m n
+    |     |     |
+    o     p     q
+
+=item preceding
+
+  //c/preceding::*
+
+         root
+          |
+          a
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    B     c     d
+   /|\   /|\   /|\
+  E F G h i j l m n
+    |     |     |
+    O     p     q
+
+=item preceding-sibling
+
+  //c/preceding-sibling::*
+
+         root
+          |
+          a
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    B     c     d
+   /|\   /|\   /|\
+  e f g h i j l m n
+    |     |     |
+    o     p     q
+
+=item self
+
+  //c/self::*
+
+         root
+          |
+          a
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    b     C     d
+   /|\   /|\   /|\
+  e f g h i j l m n
+    |     |     |
+    o     p     q
+
+=item sibling
+
+  //c/sibling::*
+
+         root
+          |
+          a
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    B     c     D
+   /|\   /|\   /|\
+  e f g h i j l m n
+    |     |     |
+    o     p     q
+
+=item sibling-or-self
+
+  //c/sibling-or-self::*
+
+         root
+          |
+          a
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    B     C     D
+   /|\   /|\   /|\
+  e f g h i j l m n
+    |     |     |
+    o     p     q
+
+=back
 
 =head2 Predicates
 
-  //a/bB<[0]>/E<gt>c[@d][@e < 'string']
-  //a/b[0]/E<gt>B<c[@d]>[@e < 'string']
-  //a/b[0]/E<gt>c[@d]B<[@e < 'string']>
+=over 2
+
+C<//a/bB<[0]>/E<gt>c[@d][@e E<lt> 'string']>
+
+C<//a/b[0]/E<gt>B<c[@d]>[@e E<lt> 'string']>
+
+C<//a/b[0]/E<gt>c[@d]B<[@e E<lt> 'string']>>
+
+=back
+
+Predicates are the sub-expressions in square brackets after selectors. They represents
+tests that filter the candidate nodes selected by the selectors.
 
 =head2 Index Predicates
 
+  //foo/bar[0]
+
+An index predicate simply selects the indexed item out of a list of candidates. The first
+index is 0, unlike in XML, so the expression above selects the first bar under every foo.
+
 =head2 Attributes
 
+  //foo[@bar]
+  //foo[@bar(1, 'string', path, @attribute, @attribute = 'test')]
+
+Attributes identify callbacks that evaluate the context node to see whether the respective
+attribute is defined for it. If the callback returns a defined value, the predicate is true
+and the candidate is accepted; otherwise, it is rejected.
+
+As the second example above demonstrates, attributes may take arguments and these arguments
+may be numbers, strings, paths, other attributes, or attribute tests (see below). Paths are
+evaluated relative to the candidate node being tested, as are attributes and attribute tests.
+A path arguments represents the nodes selected by this path relative to the candidate node.
+
+TODO: explain how to define new attributes.
+
 =head2 Attribute Tests
+
+TODO: complete this section.
 
 =head2 Special Selectors
 
@@ -321,5 +679,11 @@ by C<//*[@id = 'foo']> but this is much less efficient.
 
 I wrote TPath initially in Java because I wanted a more convenient way to select nodes from
 parse trees. I've re-written it in Perl because I figured it might be handy and why not?
+
+=head1 ACKNOWLEDGEMENTS
+
+Thanks to Damian Conway for L<Regexp::Grammars>, which makes it pleasant to write complicated
+parsers, and the Moose Cabal, who make it pleasant to write elaborate object oriented Perl.
+Without the use of roles I don't think I would have tried this.
 
 =cut

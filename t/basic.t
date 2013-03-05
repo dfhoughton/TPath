@@ -8,7 +8,7 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 72;
+use Test::More tests => 73;
 use Test::Exception;
 use ToyXMLForester;
 use ToyXML qw(parse);
@@ -278,5 +278,11 @@ $p    = parse(q{<a><b><c/></b><b/></a>});
 $path = q{//b[c]};
 my @c = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
+
+$p = parse('<a><b><c/><c/></b><b><c/><c/><c/></b></a>');
+my $path     = q{//b/c[0]};
+my @elements = $f->path($path)->select($p);
+is( scalar @elements, 2,
+    "found the right number of elements with $path on $p" );
 
 done_testing();
