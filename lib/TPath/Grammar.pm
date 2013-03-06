@@ -19,7 +19,7 @@ our @EXPORT_OK = qw(parse %AXES);
 
 =head1 DESCRIPTION
 
-c<TPath::Grammar> exposes a single function: C<parse>. Parsing is a preliminary step to
+C<TPath::Grammar> exposes a single function: C<parse>. Parsing is a preliminary step to
 compiling the expression into an object that will select the tree nodes matching
 the expression.
 

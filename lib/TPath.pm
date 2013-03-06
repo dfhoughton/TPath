@@ -699,14 +699,14 @@ no nodes, or the boolean expression is false.
 
 True iff all conjoined operands are true.
 
-=item C<||> or c<or>
+=item C<||> or C<or>
 
 True iff any of the conjoined operands is true.
 
 Note that boolean or is two pipe characters. This is to disambiguate the path expression
 C<a|b> from the boolean expression C<a||b>.
 
-=item C<^> or c<xor>
+=item C<^> or C<xor>
 
 True B<if one and only one of the conjoined operands is true>. The expression
 
