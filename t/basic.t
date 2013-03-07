@@ -8,7 +8,7 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 73;
+use Test::More tests => 77;
 use Test::Exception;
 use ToyXMLForester;
 use ToyXML qw(parse);
@@ -35,6 +35,18 @@ is( scalar @elements,
 is( $_, '<b/>', 'correct element' ) for @elements;
 
 $path     = q{//@te('b')//@te('b')};
+@elements = $f->path($path)->select($p);
+is( scalar @elements,
+    1, "found the correct number of elements with $path on $p" );
+is( $_, '<b/>', 'correct element' ) for @elements;
+
+$path     = q{/./@te('b')//@te('b')};
+@elements = $f->path($path)->select($p);
+is( scalar @elements,
+    1, "found the correct number of elements with $path on $p" );
+is( $_, '<b/>', 'correct element' ) for @elements;
+
+$path     = q{child::@te('b')//@te('b')};
 @elements = $f->path($path)->select($p);
 is( scalar @elements,
     1, "found the correct number of elements with $path on $p" );
