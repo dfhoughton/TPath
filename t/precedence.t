@@ -58,12 +58,12 @@ sub construct {
     my $xml  = parse($text);
     my $p1   = construct_path( $opts{ops}, 0 );
     my $p2   = construct_path( $opts{ops}, $opts{group} );
-    my $e    = $f->path($p1)->first($xml);
+    my $e    = $f->path($p1)->select($xml);
     ok(
         ( $opts{expected}[0] ? defined $e : !defined $e ),
         "received expected with $p1 from $text"
     );
-    $e = $f->path($p2)->first($xml);
+    $e = $f->path($p2)->select($xml);
     ok(
         ( $opts{expected}[1] ? defined $e : !defined $e ),
         "received expected with $p2 from $text"

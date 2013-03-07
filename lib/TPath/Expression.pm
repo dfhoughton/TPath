@@ -41,24 +41,14 @@ has f => ( is => 'ro', does => 'TPath::Forester', required => 1 );
 has _selectors =>
   ( is => 'ro', isa => 'ArrayRef[ArrayRef[TPath::Selector]]', required => 1 );
 
-=method first
-
-Convenience method that returns the first node selected by this expression from
-the given tree. This method just delegates to C<select> and expects the same arguments.
-
-=cut
-
-sub first {
-    my ( $self, $n, $i ) = @_;
-    my @c = $self->select( $n, $i );
-    return shift @c;
-}
-
 =method select
 
 Takes a tree and, optionally, an index and returns the nodes selected from this
-tree by the path. If you are doing many selections on a particular tree, you may
-save some work by using a common index for all selections.
+tree by the path if you want a list or the first node selected if you want a
+scalar. 
+
+If you are doing many selections on a particular tree, you may save some work by 
+using a common index for all selections.
 
 =cut
 
@@ -80,7 +70,7 @@ sub select {
             else                   { $uniques{$ra} = 1; $_ }
         } @sel;
     }
-    return @sel;
+    return wantarray ? @sel : $sel[0];
 }
 
 # required by TPath::Test

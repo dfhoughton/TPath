@@ -249,28 +249,28 @@ is scalar @elements, 4, "correct number of elements from $p by $path";
 
 $p    = parse(q{<a><b/><c/><d/></a>});
 $path = '*';
-my $e = $f->path($path)->first($p);
-is $e->tag, 'b', 'first() picked correct element';
+my $e = $f->path($path)->select($p);
+is $e->tag, 'b', 'select() picked correct element';
 
 $p    = parse(q{<a><$b/><c/><d/></a>});
 $path = '//$b';
-$e    = $f->path($path)->first($p);
+$e    = $f->path($path)->select($p);
 ok defined $e, 'can use dollar sign in path';
 
 $p    = parse(q{<a><~b/><c/><d/></a>});
 $path = '//~~~~';
-$e    = $f->path($path)->first($p);
+$e    = $f->path($path)->select($p);
 ok defined $e, 'can escape tildes in patterns';
 
 $p    = parse(q{<a><~b/><c/><d/></a>});
 $path = '//~\bb~';
-$e    = $f->path($path)->first($p);
+$e    = $f->path($path)->select($p);
 ok defined $e, 'can use regular regex escapes such as \b in patterns';
 
 $p = parse('<a><b/><c/><d/></a>');
-$e = $f->path('/a')->first($p);
-my $e2 = $f->path('/.')->first($p);
-my $e3 = $f->path('/*')->first($p);
+$e = $f->path('/a')->select($p);
+my $e2 = $f->path('/.')->select($p);
+my $e3 = $f->path('/*')->select($p);
 is $e->tag,  $e2->tag, '/. selects the root element';
 is $e2->tag, $e3->tag, '/. and /* select same element';
 
