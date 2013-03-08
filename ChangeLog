@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+
+0.002     2013-03-08 05:43:32 EST5EDT
   * documentation improvements
   * removed TPath::Expression::first, using wantarray in select instead
   * added optimization step to parsing
