@@ -194,10 +194,68 @@ sub parse {
             merge_conditions($ref);
             fix_predicates($ref);
         }
-        return $ref;
+        return optimize($ref);
     }
     else {
-        confess "could not parse '$expr' as a TPath expression:\n" . join "\n", @!;
+        confess "could not parse '$expr' as a TPath expression:\n" . join "\n",
+          @!;
+    }
+}
+
+# remove no-op steps etc.
+sub optimize {
+    my $ref = shift;
+    clean_no_op($ref);
+    return $ref;
+}
+
+# remove . and /. steps
+sub clean_no_op {
+    my $ref = shift;
+    for ( ref $ref ) {
+        when ('HASH') {
+            my $paths = $ref->{path};
+            for my $path ( @{ $paths // [] } ) {
+                my @segments = @{ $path->{segment} };
+                my @cleaned;
+                for my $i ( 1 .. $#segments ) {
+                    my $step = $segments[$i];
+                    push @cleaned, $step
+                      unless ( $step->{step}{abbreviated} // '' ) eq '.';
+                }
+                if (@cleaned) {
+                    my $step = $segments[0];
+                    if ( ( $step->{step}{abbreviated} // '' ) eq '.' ) {
+                        my $sep  = $step->{separator};
+                        my $next = $cleaned[0];
+                        my $nsep = $next->{separator};
+                        if ($sep) {
+                            unshift @cleaned, $step
+                              unless $nsep eq '/' && $next->{step}{full}{axis};
+                        }
+                        else {
+                            if ( $nsep eq '/' ) {
+                                delete $next->{separator};
+                            }
+                            else {
+                                unshift @cleaned, $step;
+                            }
+                        }
+                    }
+                    else {
+                        unshift @cleaned, $step;
+                    }
+                }
+                else {
+                    @cleaned = @segments;
+                }
+                $path->{segment} = \@cleaned;
+            }
+            clean_no_op($_) for values %$ref;
+        }
+        when ('ARRAY') {
+            clean_no_op($_) for @$ref;
+        }
     }
 }
 
