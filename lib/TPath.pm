@@ -184,7 +184,7 @@ descendants will be listed first.
 
 =head2 Steps
 
-=over2
+=over 2
 
 C<B<//a>/b[0]/E<gt>c[@d]>
 
@@ -199,7 +199,7 @@ number of predicates.
 
 =head2 Separators
 
-=over2
+=over 2
 
 C<a/b/c/E<gt>d>
 
@@ -213,7 +213,7 @@ C<B</E<gt>>a/b//cB</E<gt>>d>
 
 =head3 null separator
 
-=over2
+=over 2
 
 C<a/b/c/E<gt>d>
 
@@ -225,7 +225,7 @@ where C</a> means the file C<a> in the root directory and C<a> means the file C<
 
 =head3 /
 
-=over2
+=over 2
 
 C<B</>aB</>b//c/E<gt>d>
 
@@ -236,7 +236,7 @@ the first step it means that the context node is the root node.
 
 =head3 // select among descendants
 
-=over2
+=over 2
 
 C<B<//>a/bB<//>c/E<gt>d>
 
@@ -247,7 +247,7 @@ context node is the root, "search among the root node and its descendants".
 
 =head3 /> select closest
 
-=over2
+=over 2
 
 C<B</E<gt>>a/b//cB</E<gt>>d>
 
