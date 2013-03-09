@@ -333,6 +333,7 @@ sub axis_leaf { my $self = shift; $self->_leaves(@_) }
 sub axis_parent {
     my ( $self, $n, $t, $i ) = @_;
     my $parent = $self->parent( $n, $i );
+    return () unless $parent;
     return $t->passes( $parent, $i ) ? $parent : ();
 }
 

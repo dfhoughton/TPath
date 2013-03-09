@@ -47,11 +47,6 @@ sub has_tag {
 
 sub matches_tag {
     my ( $self, $n, $rx ) = @_;
-unless ($n->{tag}) {
-use Data::Dumper;
-print "undefined tag for ", Dumper $n, "\n";
-confess;
-}
     $n->{tag} =~ $rx;
 }
 

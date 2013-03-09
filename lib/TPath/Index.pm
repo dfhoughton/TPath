@@ -116,7 +116,7 @@ Expects a node and returns the parent of this node.
 
 sub parent {
     my ( $self, $n ) = @_;
-    return $self->cp_index->{ refaddr $n};
+    return $self->cp_index->{ refaddr $n };
 }
 
 sub n_index {
