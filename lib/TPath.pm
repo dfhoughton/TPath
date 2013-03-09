@@ -651,7 +651,7 @@ forester via the C<add_attribute> method:
 
   my $forester = MyForester->new;
   $forester->add_attribute( 'foo' => sub {
-     my ( $self, $node, $collection, $index, @params) = @_;
+     my ( $self, $node, $index, $collection, @params) = @_;
      ...
   });
 

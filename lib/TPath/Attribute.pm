@@ -46,7 +46,7 @@ has code => ( is => 'ro', isa => 'CodeRef', required => 1 );
 
 =method apply
 
-Expects a node, a collection, and an index. Returns some value.
+Expects a node, and index, and a collection. Returns some value.
 
 =cut
 

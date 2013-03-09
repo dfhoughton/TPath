@@ -22,7 +22,7 @@ use namespace::autoclean;
 The test function applied to the values. This method is constructed in C<BUILD> and
 assigned to the attribute test as a singleton method.
 
-Expects a node, a collection, and an index.
+Expects a node, an index, and a collection.
 
 =attr op
 

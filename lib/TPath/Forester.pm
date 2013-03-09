@@ -29,7 +29,7 @@ package TPath::Forester;
     # define an attribute
     sub baz :Attr   {   
       # the canonical order of arguments, none of which we need
-      # my ($self, $node, $collection, $index, @args) = @_;
+      # my ($self, $node, $index, $collection, @args) = @_;
       'baz';
     }
   }
@@ -198,7 +198,7 @@ If you specify the attribute as overriding and the name is *not* already in use,
 will carp. You can use the C<-force> option to skip all this checking and just add the
 attribute.
 
-Note that the code reference will receive the forester, a node, a collection of nodes, an index, and
+Note that the code reference will receive the forester, a node, an index, a collection of nodes, and
 optionally any additional arguments. B<If you want the attribute to evaluate as undefined for
 a particular node, it must return C<undef> for this node.>
 
@@ -225,7 +225,7 @@ sub add_attribute {
 
 =method attribute
 
-Expects a node, an attribute name, a collection, an index, and a parameter list. Returns
+Expects a node, an attribute name, an index, a collection, and a parameter list. Returns
 the value of the attribute in that context. If C<undef> is provided for the collection and
 index, default values are created -- a single element collection containing the node and a
 new index.
@@ -375,14 +375,14 @@ sub _siblings {
 
 sub _untested_siblings {
     my ( $self, $n, $i ) = @_;
-    return () if $self->is_root( $n, undef, $i );
+    return () if $self->is_root( $n, $i );
     my $ra = refaddr $n;
     grep { refaddr $_ ne $ra } $self->_kids( $self->parent( $n, $i ), $i );
 }
 
 sub _preceding {
     my ( $self, $n, $t, $i ) = @_;
-    return () if $self->is_root( $n, undef, $i );
+    return () if $self->is_root( $n, $i );
     my @preceding;
     state $tt = TPath::Test::Node::True->new;
     my @ancestors = $self->_ancestors( $n, $tt, $i );
@@ -401,7 +401,7 @@ sub _preceding {
 
 sub _preceding_siblings {
     my ( $self, $n, $t, $i ) = @_;
-    return () if $self->is_root( $n, undef, $i );
+    return () if $self->is_root( $n, $i );
     my @siblings = $self->_kids( $self->parent( $n, $i ), $i );
     return () if @siblings == 1;
     my @preceding_siblings;
@@ -423,7 +423,7 @@ sub _leaves {
 
 sub _following {
     my ( $self, $n, $t, $i ) = @_;
-    return () if $self->is_root( $n, undef, $i );
+    return () if $self->is_root( $n, $i );
     my @following;
     state $tt = TPath::Test::Node::True->new;
     my @ancestors = $self->_ancestors( $n, $tt, $i );
@@ -442,7 +442,7 @@ sub _following {
 
 sub _following_siblings {
     my ( $self, $n, $t, $i ) = @_;
-    return () if $self->is_root( $n, undef, $i );
+    return () if $self->is_root( $n, $i );
     my @siblings = $self->_kids( $self->parent( $n, $i ), $i );
     return () if @siblings == 1;
     my ( @following_siblings, $add );
@@ -472,7 +472,7 @@ sub _descendants {
 
 =method is_leaf
 
-Expects a node, a collection, and an index.
+Expects a node, and an index.
 
 Returns whether the context node is a leaf. Override this with something more
 efficient where available. E.g., where the node provides an C<is_leaf> method,
@@ -482,14 +482,14 @@ efficient where available. E.g., where the node provides an C<is_leaf> method,
 =cut
 
 sub is_leaf {
-    my ( $self, $n, undef, $i ) = @_;
+    my ( $self, $n, $i ) = @_;
     my @children = $self->_kids( $n, $i );
     return !@children;
 }
 
 =method is_root
 
-Expects a node, a collection, and an index.
+Expects a node and an index.
 
 Returns whether the context node is the root. Delegates to index.
 
@@ -501,14 +501,14 @@ node provides an C<is_root> method,
 =cut
 
 sub is_root {
-    my ( $self, $n, undef, $i ) = @_;
+    my ( $self, $n, $i ) = @_;
     $i->is_root($n);
 }
 
 sub _ancestors {
     my ( $self, $n, $t, $i ) = @_;
     my @nodes;
-    while ( !$self->is_root( $n, undef, $i ) ) {
+    while ( !$self->is_root( $n, $i ) ) {
         my $parent = $self->parent( $n, $i );
         unshift @nodes, $parent if $t->passes( $parent, $i );
         $n = $parent;
