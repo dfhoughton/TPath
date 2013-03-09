@@ -27,7 +27,7 @@ The index of the item selected.
 has idx => ( is => 'ro', isa => 'Int', required => 1 );
 
 sub filter {
-    my ( $self, $c ) = @_;
+    my ( $self, undef, $c ) = @_;
     return $c->[ $self->idx ];
 }
 

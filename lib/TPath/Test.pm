@@ -16,7 +16,7 @@ use Moose::Role;
 
 =head2 test
 
-Takes a node, a collection of nodes, and an index and returns whether the node
+Takes a node, an index, and a collection of nodes and returns whether the node
 passes the predicate.
 
 =cut

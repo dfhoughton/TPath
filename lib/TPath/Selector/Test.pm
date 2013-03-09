@@ -78,7 +78,7 @@ sub select {
     my @candidates = $self->candidates( $n, $i );
     for my $p ( $self->predicates ) {
         last unless @candidates;
-        @candidates = $p->filter( \@candidates, $i );
+        @candidates = $p->filter( $i, \@candidates );
     }
     return @candidates;
 }

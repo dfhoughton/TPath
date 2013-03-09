@@ -29,8 +29,8 @@ The L<TPath::Test> evaluated by the predicate.
 has t => ( is => 'ro', does => 'TPath::Test', required => 1 );
 
 sub filter {
-    my ( $self, $c, $i ) = @_;
-    return grep { $self->t->test($_, $c, $i) } @$c;
+    my ( $self, $i, $c ) = @_;
+    return grep { $self->t->test($_, $i, $c) } @$c;
 }
 
 __PACKAGE__->meta->make_immutable;

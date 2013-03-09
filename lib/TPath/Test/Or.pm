@@ -20,9 +20,9 @@ with 'TPath::Test::Compound';
 
 # required by TPath::Test
 sub test {
-    my ( $self, $n, $c, $i ) = @_;
+    my ( $self, $n, $i, $c ) = @_;
     for my $t ( @{ $self->tests } ) {
-        return 1 if $t->test( $n, $c, $i );
+        return 1 if $t->test( $n, $i, $c );
     }
     return 0;
 }

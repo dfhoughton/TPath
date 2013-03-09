@@ -75,7 +75,7 @@ sub select {
 
 # required by TPath::Test
 sub test {
-    my ( $self, $n, undef, $i ) = @_;
+    my ( $self, $n, $i ) = @_;
     !!$self->select( $n, $i );
 }
 

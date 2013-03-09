@@ -51,8 +51,8 @@ Expects a node, a collection, and an index. Returns some value.
 =cut
 
 sub apply {
-    my ( $self, $n, $c, $i ) = @_;
-    my @args = ( $n, $c, $i );
+    my ( $self, $n, $i, $c ) = @_;
+    my @args = ( $n, $i, $c );
 
     # invoke all code to reify arguments
     for my $a ( @{ $self->args } ) {
@@ -60,16 +60,16 @@ sub apply {
         my $type  = ref $a;
         if ( $type && $type !~ /ARRAY|HASH/ ) {
             if ( $a->isa('TPath::Attribute') ) {
-                $value = $a->apply( $n, $c, $i );
+                $value = $a->apply( $n, $i, $c );
             }
             elsif ( $a->isa('TPath::AttributeTest') ) {
-                $value = $a->test( $n, $c, $i );
+                $value = $a->test( $n, $i, $c );
             }
             elsif ( $a->isa('TPath::Expression') ) {
                 $value = [ $a->select( $n, $i ) ];
             }
             elsif ( $a->does('TPath::Test') ) {
-                $value = $a->test( $n, $c, $i );
+                $value = $a->test( $n, $i, $c );
             }
             else { confess 'unknown argument type: ' . ( ref $a ) }
         }
@@ -80,8 +80,8 @@ sub apply {
 
 # required by TPath::Test
 sub test {
-    my ( $self, $n, $c, $i ) = @_;
-    defined $self->apply( $n, $c, $i );
+    my ( $self, $n, $i, $c ) = @_;
+    defined $self->apply( $n, $i, $c );
 }
 
 __PACKAGE__->meta->make_immutable;

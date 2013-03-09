@@ -4,17 +4,17 @@ use Moose::Role;
 use MooseX::MethodAttributes::Role;
 
 sub attr : Attr {
-    my ( $self, $n, $c, $i, $name ) = @_;
+    my ( $self, $n, $i, $c, $name ) = @_;
     $n->attribute($name);
 }
 
 sub tag : Attr {
-    my ( $self, $n, $c, $i, $name ) = @_;
+    my ( $self, $n, $i, $c, $name ) = @_;
     $n->tag;
 }
 
 sub te : Attr {
-    my ( $self, $n, $c, $i, $name ) = @_;
+    my ( $self, $n, $i, $c, $name ) = @_;
     $n->tag eq $name ? 1 : undef;
 }
 

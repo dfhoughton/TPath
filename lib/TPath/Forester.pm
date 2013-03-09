@@ -233,10 +233,10 @@ new index.
 =cut
 
 sub attribute {
-    my ( $self, $n, $aname, $c, $i, @params ) = @_;
+    my ( $self, $n, $aname, $i, $c, @params ) = @_;
     $c //= [$n];
     $i //= $self->index($n);
-    $self->_attributes->{$aname}->( $self, $n, $c, $i, @params );
+    $self->_attributes->{$aname}->( $self, $n, $i, $c, @params );
 }
 
 =method path

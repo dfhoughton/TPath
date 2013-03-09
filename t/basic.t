@@ -208,7 +208,7 @@ END
 $f->add_attribute(
     'foobar',
     sub {
-        my ( $self, $n, $c, $i ) = @_;
+        my ( $self, $n, $i, $c ) = @_;
         my $v = defined $n->attribute('foo') && defined $n->attribute('bar');
         $v ? 1 : undef;
     }

@@ -53,7 +53,7 @@ sub matches_tag {
 # implement a useful attribute -- @tag
 
 sub tag : Attr {
-    my ( $self, $n, $c, $i ) = @_;
+    my ( $self, $n, $i, $c ) = @_;
     $n->{tag};
 }
 

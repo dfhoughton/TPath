@@ -28,8 +28,8 @@ The attribute evaluated.
 has a => ( is => 'ro', isa => 'TPath::Attribute', required => 1 );
 
 sub filter {
-    my ( $self, $c, $i ) = @_;
-    return grep { $self->a->test( $_, $c, $i ) } @$c;
+    my ( $self, $i, $c ) = @_;
+    return grep { $self->a->test( $_, $i, $c ) } @$c;
 }
 
 __PACKAGE__->meta->make_immutable;

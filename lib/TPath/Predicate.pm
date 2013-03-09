@@ -6,7 +6,7 @@ use Moose::Role;
 
 =method filter
 
-Takes a collection of nodes and an index and returns the collection of nodes
+Takes an index and  a collection of nodes and returns the collection of nodes
 for which the predicate is true.
 
 =cut
