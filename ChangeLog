@@ -3,6 +3,8 @@ Revision history for TPath
 {{$NEXT}}
   * added . as a non-terminal character not requiring an escape
   * refactored grammar a little to reduce repetition
+  * refactored methods to reverse order of TPath::Index and collections in
+    parameters so as to reduce use of undef
 
 0.003     2013-03-09 06:15:32 EST5EDT
 
