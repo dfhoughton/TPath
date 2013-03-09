@@ -89,7 +89,7 @@ our $path_grammar = do {
        <token: wildcard> \* | <error:>
     
        <token: specific>
-          ((?>\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-:](?=[\p{L}_\$\p{N}])|\\.)*+)
+          ( <.name> )
           (?{ $MATCH = clean_escapes($^N) })
           | <error: Expected specific tag name>
     
@@ -99,9 +99,12 @@ our $path_grammar = do {
           | <error:>
     
        <token: aname>
-          @ ( (?>[\p{L}_\$]|\\.)(?>[\p{L}_\$\p{N}]|[-:](?=[\p{L}_\p{N}])|\\.)*+ )
+          @ ( <.name> )
           (?{ $MATCH = clean_escapes($^N ) })
           | <error: expected attribute name>
+       
+       <token: name>
+          (?>\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+
     
        <rule: attribute> <aname> <args>? | <error:>
     
