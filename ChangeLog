@@ -6,6 +6,7 @@ Revision history for TPath
   * documentation improvements
   * removed TPath::Expression::first, using wantarray in select instead
   * added optimization step to parsing
+  * fixed parent axis bug
 
 0.001     2013-03-05 05:52:24 EST5EDT
   * first release

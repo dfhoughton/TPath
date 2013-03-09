@@ -36,7 +36,6 @@ __END__
   use Moose;
   use MooseX::MethodAttributes;    # needed for @tag attribute below
   with 'TPath::Forester';
-  with 'TPath::Attributes::Extended';
   
   # implement required methods
   
@@ -105,35 +104,23 @@ __END__
   my $index = $rhood->index($root);
   
   # try out some paths
-  
-  # find all nodes with the tag r
   my @nodes = $rhood->path('//r')->select( $root, $index );
   print scalar @nodes, "\n";    # 1
   print $nodes[0], "\n";        # <r><x/><y><z/></y></r>
-  
-  # find all leaves whose tag alphabetically follows o
   print $_
     for $rhood->path('leaf::*[@tag > "o"]')->select( $root, $index )
     ;                           # <s/><t/><u/><v/><w/><q/><x/><z/>
   print "\n";
-  
-  # find the nodes dominating a sub-tree of size 3
   print $_->{tag}
-    for $rhood->path('//@echo(@tsize = 3)')->select( $root, $index );    # bm
+    for $rhood->path('//*[@tsize = 3]')->select( $root, $index );    # bm
+  print "\n";
+  @nodes = $rhood->path('/>~[bh-z]~')->select( $root, $index );
+  print $_->{tag} for @nodes;                                        # bhijk
   print "\n";
   
-  # find the closest (see below) nodes whose tag matches /[bh-z]/
-  @nodes = $rhood->path('/>@s:matches(@tag,"[bh-z]")')->select( $root, $index );
-  print $_->{tag} for @nodes;                                            # bhijk
-  print "\n";
-  
-  # we can map nodes back to their parents even though the nodes themselves
-  # do not retain this information
-  
-  # find the nodes whose parent's tag is a, d, or r
-  @nodes = $rhood->path('//*[parent::*[@s:matches(@tag, "[adr]")]]')
-    ->select( $root, $index );
-  print $_->{tag} for @nodes;    # bcijxykd
+  # we can map nodes back to their parents
+  @nodes = $rhood->path('//*[parent::~[adr]~]')->select( $root, $index );
+  print $_->{tag} for @nodes;                                        # bcijxykd
   print "\n";
 
 =head1 DESCRIPTION
