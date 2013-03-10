@@ -82,7 +82,6 @@ sub BUILD {
       . ' while index node type is '
       . $self->node_type
       unless ( $self->f->node_type // '' ) eq ( $self->node_type // '' );
-    $self->walk( $self->root );
 }
 
 =method index

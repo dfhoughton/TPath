@@ -297,7 +297,7 @@ $path = q{//b[c]};
 my @c = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
 
-$p = parse('<a><b><c/><c/></b><b><c/><c/><c/></b></a>');
+$p        = parse('<a><b><c/><c/></b><b><c/><c/><c/></b></a>');
 $path     = q{//b/c[0]};
 @elements = $f->path($path)->select($p);
 is( scalar @elements, 2,
