@@ -5,6 +5,7 @@ Revision history for TPath
   * refactored grammar a little to reduce repetition
   * refactored methods to reverse order of TPath::Index and collections in
     parameters so as to reduce use of undef
+  * removed some redundant steps
 
 0.003     2013-03-09 06:15:32 EST5EDT
 
