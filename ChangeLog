@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+
+0.004     2013-03-10 20:42:16 EST5EDT
   * added . as a non-terminal character not requiring an escape
   * refactored grammar a little to reduce repetition
   * refactored methods to reverse order of TPath::Index and collections in
