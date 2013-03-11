@@ -44,20 +44,8 @@ __END__
       @{ $n->{children} };
   }
   
-  sub has_tag {
-      my ( $self, $n, $str ) = @_;
-      $str eq $n->{tag};
-  }
-  
-  sub matches_tag {
-      my ( $self, $n, $rx ) = @_;
-      $n->{tag} =~ $rx;
-  }
-  
-  # implement a useful attribute -- @tag
-  
-  sub tag : Attr {
-      my ( $self, $n, $i, $c ) = @_;
+  sub tag : Attr {                 # also an attribute!
+      my ( $self, $n ) = @_;
       $n->{tag};
   }
   
@@ -139,7 +127,8 @@ Forester objects make use of an index (L<TPath::Index>), which caches informatio
 not cheaply from, the nodes themselves. If no index is explicitly provided it is created, but one
 can gain some efficiency by reusing an index when select paths from a tree.
 
-The paths themselves are compiled into reusable objects that can be applied to multiple trees.
+The paths themselves are compiled into reusable L<TPath::Expression> objects that can be applied 
+to multiple trees.
 
 =head1 ALGORITHM
 
