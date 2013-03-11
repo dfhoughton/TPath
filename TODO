@@ -9,4 +9,4 @@ Key
 * allow attribute selectors as well as predicates
 * figure out odd warning being emitted by demo code
 . add wrap method to forester for use in coercion
-. add tag method to forester to reduce coding burden for most adaptations
+* add tag method to forester to reduce coding burden for most adaptations

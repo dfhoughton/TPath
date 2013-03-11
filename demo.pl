@@ -40,20 +40,8 @@ sub children {
     @{ $n->{children} };
 }
 
-sub has_tag {
-    my ( $self, $n, $str ) = @_;
-    $str eq $n->{tag};
-}
-
-sub matches_tag {
-    my ( $self, $n, $rx ) = @_;
-    $n->{tag} =~ $rx;
-}
-
-# implement a useful attribute -- @tag
-
-sub tag : Attr {
-    my ( $self, $n, $i, $c ) = @_;
+sub tag : Attr {                 # also an attribute!
+    my ( $self, $n ) = @_;
     $n->{tag};
 }
 
