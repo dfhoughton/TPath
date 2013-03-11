@@ -41,11 +41,14 @@ has f => ( is => 'ro', does => 'TPath::Forester', required => 1 );
 has _selectors =>
   ( is => 'ro', isa => 'ArrayRef[ArrayRef[TPath::Selector]]', required => 1 );
 
-=method select
+=method select( $n, [$i], [%opts])
 
-Takes a tree and, optionally, an index and returns the nodes selected from this
-tree by the path if you want a list or the first node selected if you want a
+Takes a tree and, optionally, an index and options. Returns the nodes selected 
+from this tree by the path if you want a list or the first node selected if you want a
 scalar. 
+
+The options, if any, will be passed through to the forester's C<wrap> method to
+define any coercion necessary.
 
 If you are doing many selections on a particular tree, you may save some work by 
 using a common index for all selections.
@@ -53,8 +56,9 @@ using a common index for all selections.
 =cut
 
 sub select {
-    my ( $self, $n, $i ) = @_;
+    my ( $self, $n, $i, %opts ) = @_;
     confess 'select called on a null node' unless defined $n;
+	$n = $self->f->wrap($n, %opts);
     $self->f->_typecheck($n);
     $i //= $self->f->index($n);
     $i->index;

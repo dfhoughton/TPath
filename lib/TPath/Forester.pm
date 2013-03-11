@@ -553,12 +553,10 @@ sub matches_tag {
 Expects a node and possibly an options hash. Returns a node of the type understood by the forester.
 
 If your forester must coerce things into a tree of the right type, override this method, which otherwise
-just passes through its parameters.
+just passes through its second argument.
 
 =cut
 
-sub wrap {
-    return @_;
-}
+sub wrap { return $_[1] }
 
 1;
