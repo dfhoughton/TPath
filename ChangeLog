@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+
+0.006     2013-03-12 00:39:55 EST5EDT
   * removed unnecessary URI escaping of attributes
 
 0.005     2013-03-11 19:35:08 EST5EDT

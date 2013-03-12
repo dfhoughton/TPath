@@ -553,6 +553,27 @@ Expects a node and possibly an options hash. Returns a node of the type understo
 If your forester must coerce things into a tree of the right type, override this method, which otherwise
 just passes through its second argument.
 
+Note, if you do need to override the default wrap, you'll have to jump through a few Moose hoops. The
+basic pattern is
+
+  ...
+  use Moose;
+  ...
+  with 'TPath::Forester' => { -excludes => 'wrap' };
+  ...
+
+  {
+      no warnings 'redefine';
+      sub wrap {
+          my ($self, $node, %opts) = @_;
+          return $node if blessed $node and $node->isa('MyNode');
+          # coerce
+          ...
+      }
+  }
+
+See L<TPath::Forester::Ref> for an example.
+
 =cut
 
 sub wrap { return $_[1] }
