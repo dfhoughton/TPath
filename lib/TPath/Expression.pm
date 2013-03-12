@@ -41,7 +41,7 @@ has f => ( is => 'ro', does => 'TPath::Forester', required => 1 );
 has _selectors =>
   ( is => 'ro', isa => 'ArrayRef[ArrayRef[TPath::Selector]]', required => 1 );
 
-=method select( $n, [$i], [%opts])
+=method select( $n, [$i], [%opts] )
 
 Takes a tree and, optionally, an index and options. Returns the nodes selected 
 from this tree by the path if you want a list or the first node selected if you want a
