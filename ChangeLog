@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * removed inner regexes from parsing to prevent segfaults on versions less
+    than v5.14
 
 0.006     2013-03-12 00:39:55 EST5EDT
   * removed unnecessary URI escaping of attributes
