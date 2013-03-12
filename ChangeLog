@@ -1,8 +1,12 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * removed unnecessary URI escaping of attributes
 
 0.005     2013-03-11 19:35:08 EST5EDT
+  * added required tag method
+  * provided default implementations of has_tag and matches_tag methods
+  * added wrap method to handle coercion
 
 0.004     2013-03-10 20:42:16 EST5EDT
   * added . as a non-terminal character not requiring an escape
@@ -10,9 +14,6 @@ Revision history for TPath
   * refactored methods to reverse order of TPath::Index and collections in
     parameters so as to reduce use of undef
   * removed some redundant steps
-  * added required tag method
-  * provided default implementations of has_tag and matches_tag methods
-  * added wrap method to handle coercion
 
 0.003     2013-03-09 06:15:32 EST5EDT
 

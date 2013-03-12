@@ -168,10 +168,8 @@ sub _collect_attributes {
                 $attributes{ $method->name } = $method->body;
             }
             else {
-                require URI::Escape;
-                if ( $annotation =~ /^Attr\(([^():]++)\)$/ ) {
-                    my $alias = URI::Escape::uri_unescape($1);
-                    $attributes{$alias} = $method->body;
+                if ( $annotation =~ /^Attr\((.*)\)$/ ) {
+                    $attributes{$1} = $method->body;
                 }
                 else {
                     confess "malformed annotation $annotation on method "
