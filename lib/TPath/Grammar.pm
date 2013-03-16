@@ -191,6 +191,7 @@ sub parse {
     my ($expr) = @_;
     if ( $expr =~ $path_grammar ) {
         my $ref = \%/;
+        complement_to_boolean($ref);
         if ( contains_condition($ref) ) {
             normalize_parens($ref);
             operator_precedence($ref);
@@ -202,6 +203,20 @@ sub parse {
     else {
         confess "could not parse '$expr' as a TPath expression:\n" . join "\n",
           @!;
+    }
+}
+
+# converts complement => '^' to complement => 1 simply to make AST function clearer
+sub complement_to_boolean {
+    my $ref = shift;
+    for ( ref $ref ) {
+        when ('HASH') {
+            for my $k ( keys %$ref ) {
+                if ( $k eq 'complement' ) { $ref->{$k} &&= 1 }
+                else { complement_to_boolean( $ref->{$k} ) }
+            }
+        }
+        when ('ARRAY') { complement_to_boolean($_) for @$ref }
     }
 }
 

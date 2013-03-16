@@ -8,7 +8,7 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 79;
+use Test::More tests => 88;
 use Test::Exception;
 use ToyXMLForester;
 use ToyXML qw(parse);
@@ -302,5 +302,26 @@ $path     = q{//b/c[0]};
 @elements = $f->path($path)->select($p);
 is( scalar @elements, 2,
     "found the right number of elements with $path on $p" );
+
+$p        = parse('<a><b/><c/><d/></a>');
+$path     = q{leaf::^b};
+@elements = $f->path($path)->select($p);
+is @elements, 2, "foundthe right number of elements with $path on $p";
+is "$elements[0]", '<c/>', 'first element is correct';
+is "$elements[1]", '<d/>', 'second element is correct';
+
+$p        = parse('<a><b/><c/><d/></a>');
+$path     = q{leaf::^~b~};
+@elements = $f->path($path)->select($p);
+is @elements, 2, "foundthe right number of elements with $path on $p";
+is "$elements[0]", '<c/>', 'first element is correct';
+is "$elements[1]", '<d/>', 'second element is correct';
+
+$p        = parse('<a><b/><c/><d/></a>');
+$path     = q{leaf::^@te('b')};
+@elements = $f->path($path)->select($p);
+is @elements, 2, "foundthe right number of elements with $path on $p";
+is "$elements[0]", '<c/>', 'first element is correct';
+is "$elements[1]", '<d/>', 'second element is correct';
 
 done_testing();

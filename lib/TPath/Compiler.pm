@@ -95,36 +95,45 @@ sub full {
     my @predicates = predicates( $step->{step}{predicate}, $forester );
     my $sep        = $step->{separator};
     my $type       = $step->{step}{full}{forward};
+    my $complement = $step->{step}{full}{forward}{complement};
     my $axis       = $step->{step}{full}{axis};
     my ( $key, $val ) = each %$type;
+    my $rv;    # return value
     for ($key) {
         when ('wildcard') {
             for ($sep) {
                 when ('/') {
                     if ($first) {
-                        return RootAxisWildcard->new( axis => $axis ) if $axis;
-                        return Root->new( predicates => \@predicates );
+                        $rv =
+                          $axis
+                          ? RootAxisWildcard->new( axis => $axis )
+                          : Root->new( predicates => \@predicates );
                     }
-                    return AxisWildcard->new(
-                        axis       => $axis,
-                        predicates => \@predicates
-                    ) if $axis;
-                    return AxisWildcard->new( predicates => \@predicates );
+                    elsif ($axis) {
+                        $rv = AxisWildcard->new(
+                            axis       => $axis,
+                            predicates => \@predicates
+                        );
+                    }
+                    else {
+                        $rv = AxisWildcard->new( predicates => \@predicates );
+                    }
                 }
                 when ('//') {
                     croak 'axes disallowed with // separator' if defined $axis;
-                    return Anywhere->new(
+                    $rv = Anywhere->new(
                         first      => $first,
                         predicates => \@predicates
                     );
                 }
                 when ('/>') { croak '/>* disallowed' }
                 default {
-                    return AxisWildcard->new(
+                    $rv = $axis
+                      ? AxisWildcard->new(
                         axis       => $axis,
                         predicates => \@predicates
-                    ) if $axis;
-                    return AxisWildcard->new( predicates => \@predicates );
+                      )
+                      : AxisWildcard->new( predicates => \@predicates );
                 }
             }
         }
@@ -132,29 +141,34 @@ sub full {
             for ($sep) {
                 when ('/') {
                     if ($first) {
-                        return RootAxisTag->new(
+                        $rv = $axis
+                          ? RootAxisTag->new(
                             axis       => $axis,
                             tag        => $val,
                             predicates => \@predicates
-                        ) if $axis;
-                        return RootTag->new(
+                          )
+                          : RootTag->new(
+                            tag        => $val,
+                            predicates => \@predicates
+                          );
+                    }
+                    elsif ($axis) {
+                        $rv = AxisTag->new(
+                            axis       => $axis,
                             tag        => $val,
                             predicates => \@predicates
                         );
                     }
-                    return AxisTag->new(
-                        axis       => $axis,
-                        tag        => $val,
-                        predicates => \@predicates
-                    ) if $axis;
-                    return ChildTag->new(
-                        tag        => $val,
-                        predicates => \@predicates
-                    );
+                    else {
+                        $rv = ChildTag->new(
+                            tag        => $val,
+                            predicates => \@predicates
+                        );
+                    }
                 }
                 when ('//') {
                     croak 'axes disallowed with // separator' if defined $axis;
-                    return AnywhereTag->new(
+                    $rv = AnywhereTag->new(
                         tag        => $val,
                         first      => $first,
                         predicates => \@predicates
@@ -162,21 +176,22 @@ sub full {
                 }
                 when ('/>') {
                     croak 'axes disallowed with /> separator' if defined $axis;
-                    return ClosestTag->new(
+                    $rv = ClosestTag->new(
                         tag        => $val,
                         predicates => \@predicates
                     );
                 }
                 default {
-                    return AxisTag->new(
+                    $rv = $axis
+                      ? AxisTag->new(
                         axis       => $axis,
                         tag        => $val,
                         predicates => \@predicates
-                    ) if $axis;
-                    return ChildTag->new(
+                      )
+                      : ChildTag->new(
                         tag        => $val,
                         predicates => \@predicates
-                    );
+                      );
                 }
             }
         }
@@ -185,29 +200,34 @@ sub full {
             for ($sep) {
                 when ('/') {
                     if ($first) {
-                        return RootAxisMatch->new(
+                        $rv = $axis
+                          ? RootAxisMatch->new(
                             axis       => $axis,
                             rx         => $rx,
                             predicates => \@predicates
-                        ) if $axis;
-                        return RootMatch->new(
+                          )
+                          : RootMatch->new(
+                            rx         => $rx,
+                            predicates => \@predicates
+                          );
+                    }
+                    elsif ($axis) {
+                        $rv = AxisMatch->new(
+                            axis       => $axis,
                             rx         => $rx,
                             predicates => \@predicates
                         );
                     }
-                    return AxisMatch->new(
-                        axis       => $axis,
-                        rx         => $rx,
-                        predicates => \@predicates
-                    ) if $axis;
-                    return ChildMatch->new(
-                        rx         => $rx,
-                        predicates => \@predicates
-                    );
+                    else {
+                        $rv = ChildMatch->new(
+                            rx         => $rx,
+                            predicates => \@predicates
+                        );
+                    }
                 }
                 when ('//') {
                     croak 'axes disallowed with // separator' if defined $axis;
-                    return TPath::Selector::Test::AnywhereMatch->new(
+                    $rv = TPath::Selector::Test::AnywhereMatch->new(
                         rx         => $rx,
                         first      => $first,
                         predicates => \@predicates
@@ -215,21 +235,22 @@ sub full {
                 }
                 when ('/>') {
                     croak 'axes disallowed with /> separator' if defined $axis;
-                    return ClosestMatch->new(
+                    $rv = ClosestMatch->new(
                         rx         => $rx,
                         predicates => \@predicates
                     );
                 }
                 default {
-                    return AxisMatch->new(
+                    $rv = $axis
+                      ? AxisMatch->new(
                         axis       => $axis,
                         rx         => $rx,
                         predicates => \@predicates
-                    ) if $axis;
-                    return ChildMatch->new(
+                      )
+                      : ChildMatch->new(
                         rx         => $rx,
                         predicates => \@predicates
-                    );
+                      );
                 }
             }
         }
@@ -239,29 +260,33 @@ sub full {
             for ($sep) {
                 when ('/') {
                     if ($first) {
-                        return RootAxisAttribute->new(
+                        $rv = $axis
+                          ? RootAxisAttribute->new(
                             axis       => $axis,
                             a          => $a,
                             predicates => \@predicates
-                        ) if $axis;
-                        return RootAttribute->new(
+                          )
+                          : RootAttribute->new(
                             a          => $a,
                             predicates => \@predicates
-                        );
+                          );
                     }
-                    return AxisAttribute->new(
-                        axis       => $axis,
-                        a          => $a,
-                        predicates => \@predicates
-                    ) if $axis;
-                    return ChildAttribute->new(
-                        a          => $a,
-                        predicates => \@predicates
-                    );
+                    else {
+                        $rv = $axis
+                          ? AxisAttribute->new(
+                            axis       => $axis,
+                            a          => $a,
+                            predicates => \@predicates
+                          )
+                          : ChildAttribute->new(
+                            a          => $a,
+                            predicates => \@predicates
+                          );
+                    }
                 }
                 when ('//') {
                     croak 'axes disallowed with // separator' if defined $axis;
-                    return AnywhereAttribute->new(
+                    $rv = AnywhereAttribute->new(
                         a          => $a,
                         first      => $first,
                         predicates => \@predicates
@@ -269,25 +294,28 @@ sub full {
                 }
                 when ('/>') {
                     croak 'axes disallowed with /> separator' if defined $axis;
-                    return ClosestAttribute->new(
+                    $rv = ClosestAttribute->new(
                         a          => $a,
                         predicates => \@predicates
                     );
                 }
                 default {
-                    return AxisAttribute->new(
+                    $rv = $axis
+                      ? AxisAttribute->new(
                         axis       => $axis,
                         a          => $a,
                         predicates => \@predicates
-                    ) if $axis;
-                    return ChildAttribute->new(
+                      )
+                      : ChildAttribute->new(
                         a          => $a,
                         predicates => \@predicates
-                    );
+                      );
                 }
             }
         }
     }
+    $rv->_invert if $complement;
+    return $rv;
 }
 
 sub predicates {

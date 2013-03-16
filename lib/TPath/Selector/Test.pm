@@ -10,6 +10,7 @@ A L<TPath::Selector> that holds a list of L<TPath::Predicate>s.
 
 use Moose::Role;
 use TPath::TypeConstraints;
+use TPath::Test::Node::Complement;
 
 =head1 ROLES
 
@@ -59,6 +60,12 @@ The test that is applied to select candidates on an axis.
 
 has node_test =>
   ( is => 'ro', isa => 'TPath::Test::Node', writer => '_node_test' );
+
+sub _invert {
+    my $self = shift;
+    $self->_node_test(
+        TPath::Test::Node::Complement->new( nt => $self->node_test ) );
+}
 
 =method candidates
 
