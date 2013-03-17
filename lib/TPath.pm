@@ -113,22 +113,24 @@ __END__
 
 =head1 DESCRIPTION
 
-TPath provides an XPath-like language for arbitrary trees. You implement a minimum of three
-methods -- C<children>, C<has_tag>, and C<matches_tag> -- and you can explore your trees via
+TPath provides an XPath-like language for arbitrary trees. You implement a minimum of two
+methods -- C<children> and C<tag> -- and then you can explore your trees via
 concise, declarative paths.
 
 In TPath, "attributes" are node attributes of any sort and are implemented as methods that 
 return these attributes, or C<undef> if the attribute is undefined for the node.
 
-The object in which the three required methods are implemented is a "forester" (L<TPath::Forester>),
-something that understands your trees.
+The object in which the two required methods are implemented is a "forester" (L<TPath::Forester>),
+something that understands your trees. In general to use C<TPath> you instantiate a forester and
+then call the forester's methods.
 
 Forester objects make use of an index (L<TPath::Index>), which caches information not present in, or
 not cheaply from, the nodes themselves. If no index is explicitly provided it is created, but one
-can gain some efficiency by reusing an index when select paths from a tree.
+can gain some efficiency by reusing an index when select paths from a tree. One can use a forester's
+C<index> method to produce a C<TPath::Index>.
 
 The paths themselves are compiled into reusable L<TPath::Expression> objects that can be applied 
-to multiple trees.
+to multiple trees. One use's a forester's C<path> method to produce a C<TPath::Expression>.
 
 =head1 ALGORITHM
 
@@ -136,7 +138,9 @@ TPath works by representing an expression as a pipeline of selectors and filters
 selector and some set of filters is called a "step". At each step one has a set of context nodes.
 One applies the selectors to each context node, returning a candidate node set, and then one passes
 these candidates through the filtering predicates. The remainder becomes the context node set
-for the next step.
+for the next step. If this is the last step, the surviving candidates are the nodes selected by the
+expression. A node will only occur once among those returned and the order of their return will be
+the order of their discovery. Search is depth-first post-ordered -- children returned before parents.
 
 =head1 SYNTAX
 
@@ -308,6 +312,23 @@ C<./@foo>
 
 the second of these will be normalized in parsing to precisely what one would expect with a C<@foo>
 path.
+
+=head3 complement selectors
+
+The C<^> character before a literal, regex, or attribute selector will convert it into an attribute selector.
+
+=over2
+
+C<//B<^>foo>
+
+C<//B<^>~foo~>
+
+C<//B<^>@foo>
+
+=back
+
+Complement selectors select nodes not selected by the unmodified selector; C<//^foo> will select any node
+without the C<foo> tag, and so forth.
 
 =head3 * wildcard
 

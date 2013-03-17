@@ -1,6 +1,7 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * added complement selectors -- ^a, ^~a~, and ^@a
 
 0.007     2013-03-12 19:05:01 EST5EDT
   * removed inner regexes from parsing to prevent segfaults on versions less
