@@ -150,9 +150,9 @@ A tpath expression has one or more sub-paths.
 
 =over 2
 
-C<B<//a/b>|preceding::d/*>
+=item C<B<//a/b>|preceding::d/*>
 
-C<//a/b|B<preceding::d/*>>
+=item C<//a/b|B<preceding::d/*>>
 
 =back
 
@@ -166,11 +166,11 @@ descendants will be listed first.
 
 =over 2
 
-C<B<//a>/b[0]/E<gt>c[@d]>
+=item C<B<//a>/b[0]/E<gt>c[@d]>
 
-C<//aB</b[0]>/E<gt>c[@d]>
+=item C<//aB</b[0]>/E<gt>c[@d]>
 
-C<//a/b[0]B</E<gt>c[@d]>>
+=item C<//a/b[0]B</E<gt>c[@d]>>
 
 =back
 
@@ -181,13 +181,13 @@ number of predicates.
 
 =over 2
 
-C<a/b/c/E<gt>d>
+=item C<a/b/c/E<gt>d>
 
-C<B</>aB</>b//c/E<gt>d>
+=item C<B</>aB</>b//c/E<gt>d>
 
-C<B<//>a/bB<//>c/E<gt>d>
+=item C<B<//>a/bB<//>c/E<gt>d>
 
-C<B</E<gt>>a/b//cB</E<gt>>d>
+=item C<B</E<gt>>a/b//cB</E<gt>>d>
 
 =back
 
@@ -195,7 +195,7 @@ C<B</E<gt>>a/b//cB</E<gt>>d>
 
 =over 2
 
-C<a/b/c/E<gt>d>
+=item C<a/b/c/E<gt>d>
 
 =back
   
@@ -207,7 +207,7 @@ where C</a> means the file C<a> in the root directory and C<a> means the file C<
 
 =over 2
 
-C<B</>aB</>b//c/E<gt>d>
+=item C<B</>aB</>b//c/E<gt>d>
 
 =back
 
@@ -218,7 +218,7 @@ the first step it means that the context node is the root node.
 
 =over 2
 
-C<B<//>a/bB<//>c/E<gt>d>
+=item C<B<//>a/bB<//>c/E<gt>d>
 
 =back
   
@@ -229,7 +229,7 @@ context node is the root, "search among the root node and its descendants".
 
 =over 2
 
-C<B</E<gt>>a/b//cB</E<gt>>d>
+=item C<B</E<gt>>a/b//cB</E<gt>>d>
 
 =back
 
@@ -259,7 +259,7 @@ Selectors select a candidate set for later filtering by predicates.
 
 =over 2
 
-C<B<a>>
+=item C<B<a>>
 
 =back
 
@@ -274,7 +274,7 @@ backslash. Any unexpected character must be escaped. So
 
 =over 2
 
-C<a\\b>
+=item C<a\\b>
 
 =back
 
@@ -284,7 +284,7 @@ represents the literal C<a\b>.
 
 =over 2
 
-C<~a~>
+=item C<~a~>
 
 =back
 
@@ -304,9 +304,9 @@ the effect of an attribute selector with the null separator, however, in two way
 
 =over 2
 
-C<child::@foo>
+=item C<child::@foo>
 
-C<./@foo>
+=item C<./@foo>
 
 =back
 
@@ -317,13 +317,13 @@ path.
 
 The C<^> character before a literal, regex, or attribute selector will convert it into an attribute selector.
 
-=over2
+=over 2
 
-C<//B<^>foo>
+=item C<//B<^>foo>
 
-C<//B<^>~foo~>
+=item C<//B<^>~foo~>
 
-C<//B<^>@foo>
+=item C<//B<^>@foo>
 
 =back
 
@@ -612,13 +612,13 @@ are selected from the tree relative the the C<c> node. Selected nodes will be in
 
 =over 2
 
-C<//a/bB<[0]>/E<gt>c[@d][@e E<lt> 'string'][@f or @g]>
+=item C<//a/bB<[0]>/E<gt>c[@d][@e E<lt> 'string'][@f or @g]>
 
-C<//a/b[0]/E<gt>B<c[@d]>[@e E<lt> 'string'][@f or @g]>
+=item C<//a/b[0]/E<gt>B<c[@d]>[@e E<lt> 'string'][@f or @g]>
 
-C<//a/b[0]/E<gt>c[@d]B<[@e E<lt> 'string']>[@f or @g]>
+=item C<//a/b[0]/E<gt>c[@d]B<[@e E<lt> 'string']>[@f or @g]>
 
-C<//a/b[0]/E<gt>c[@d][@e E<lt> 'string']B<[@f or @g]>>
+=item C<//a/b[0]/E<gt>c[@d][@e E<lt> 'string']B<[@f or @g]>>
 
 =back
 

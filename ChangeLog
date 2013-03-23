@@ -1,6 +1,7 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * some documentation fixes
 
 0.008     2013-03-17 13:08:25 EST5EDT
   * added complement selectors -- ^a, ^~a~, and ^@a
