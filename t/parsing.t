@@ -16,12 +16,15 @@ a
 ~a~~b~
 //foo
 id(bar)
+root()
 /..
 /.
 />a
 child::a
 ancestor-or-self::a
 leaf::a
+root()/a
+root()//a
 /b/leaf::a
 /a/b
 /a[@test]
