@@ -17,8 +17,8 @@ with 'TPath::Selector::Test';
 has rx => ( is => 'ro', isa => 'RegexpRef', required => 1 );
 
 sub BUILD {
-    my $self = shift;
-    $self->_node_test( TPath::Test::Node::Match->new( rx => $self->rx ) );
+	my $self = shift;
+	$self->_node_test( TPath::Test::Node::Match->new( rx => $self->rx ) );
 }
 
 __PACKAGE__->meta->make_immutable;

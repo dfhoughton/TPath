@@ -1,6 +1,6 @@
 package TPath::Selector::Test::Root;
 
-# ABSTRACT: handles C</.>
+# ABSTRACT: handles C<root()>
 
 use Moose;
 use namespace::autoclean;

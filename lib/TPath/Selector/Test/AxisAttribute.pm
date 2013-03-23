@@ -18,9 +18,9 @@ with 'TPath::Selector::Test';
 has a => ( is => 'ro', isa => 'TPath::Attribute', required => 1 );
 
 sub BUILD {
-    my $self = shift;
-    my $nt = TPath::Test::Node::Attribute->new( a => $self->a );
-    $self->_node_test($nt);
+	my $self = shift;
+	my $nt = TPath::Test::Node::Attribute->new( a => $self->a );
+	$self->_node_test($nt);
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -16,9 +16,9 @@ L<TPath::Selector::Test>
 with 'TPath::Selector::Test';
 
 sub BUILD {
-    my $self = shift;
-    state $nt = TPath::Test::Node::True->new;
-    $self->_node_test( $nt );
+	my $self = shift;
+	state $nt = TPath::Test::Node::True->new;
+	$self->_node_test($nt);
 }
 
 __PACKAGE__->meta->make_immutable;

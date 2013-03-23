@@ -17,8 +17,8 @@ with 'TPath::Selector::Test';
 has tag => ( is => 'ro', isa => 'Str', required => 1 );
 
 sub BUILD {
-    my $self = shift;
-    $self->_node_test( TPath::Test::Node::Tag->new( tag => $self->tag ) );
+	my $self = shift;
+	$self->_node_test( TPath::Test::Node::Tag->new( tag => $self->tag ) );
 }
 
 __PACKAGE__->meta->make_immutable;

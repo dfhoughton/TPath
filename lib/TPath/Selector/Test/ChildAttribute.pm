@@ -22,17 +22,6 @@ sub BUILD {
     $self->_node_test( TPath::Test::Node::Attribute->new( a => $self->a ) );
 }
 
-=method candidates
-
-Expects node and index. Returns root node if it has the specified tag.
-
-=cut
-
-sub candidates {
-    my ( $self, $n, $i ) = @_;
-    return $i->f->_children( $n, $self->node_test, $i );
-}
-
 __PACKAGE__->meta->make_immutable;
 
 1;

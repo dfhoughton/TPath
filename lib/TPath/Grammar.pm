@@ -81,7 +81,7 @@ our $path_grammar = do {
           (?{ $MATCH = $^N })
           | <error:>
     
-       <token: abbreviated> (?<!/[/>]) (?: \.{1,2}+ | <id> )
+       <token: abbreviated> (?<!/[/>]) (?: \.{1,2}+ | <id> | root\(\) )
     
        <token: forward> <wildcard> | <complement=(\^)>? (?: <specific> | <pattern> | <attribute> )
            | <error: Expecting selector>

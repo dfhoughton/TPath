@@ -23,8 +23,8 @@ sub BUILD {
 
 # required by TPath::Selector::Test
 sub candidates {
-    my ( $self, $n, $i ) = @_;
-    return $i->f->closest( $n, $self->node_test, $i );
+    my ( $self, $n, $i, $first ) = @_;
+    return $i->f->closest( $n, $self->node_test, $i, !$first );
 }
 
 __PACKAGE__->meta->make_immutable;

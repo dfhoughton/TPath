@@ -15,8 +15,8 @@ with 'TPath::Selector';
 
 # required by TPath::Selector
 sub select {
-    my ( undef, $n ) = @_;
-    $n;
+	my ( undef, $n ) = @_;
+	$n;
 }
 
 __PACKAGE__->meta->make_immutable;

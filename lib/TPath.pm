@@ -720,7 +720,8 @@ interpreted as part of a path or attribute.
 
 =head2 Special Selectors
 
-There are three special selectors B<that cannot occur with predicates>.
+There are three special selectors B<that cannot occur with predicates> and may only be 
+preceded by the C</> or null separators.
 
 =head3 . : Select Self
 
@@ -734,6 +735,11 @@ This is an abbreviation for C<parent::*>.
 
 This selector selects the node, if any, with the given id. This same node can also be selected
 by C<//*[@id = 'foo']> but this is much less efficient.
+
+=head3 root() : Select Root
+
+This expression selects the root of the tree. It doesn't make much sense except as the
+first step in an expression.
 
 =head2 Hiding Nodes
 

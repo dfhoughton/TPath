@@ -58,56 +58,58 @@ using a common index for all selections.
 =cut
 
 sub select {
-    my ( $self, $n, $i, %opts ) = @_;
-    confess 'select called on a null node' unless defined $n;
-    $n = $self->f->wrap( $n, %opts );
-    $self->f->_typecheck($n);
-    $i //= $self->f->index($n);
-    $i->index;
-    my $sel = $self->_select( $n, $i, 1 );
-    return wantarray ? @$sel : $sel->[0];
+	my ( $self, $n, $i, %opts ) = @_;
+	confess 'select called on a null node' unless defined $n;
+	$n = $self->f->wrap( $n, %opts );
+	$self->f->_typecheck($n);
+	$i //= $self->f->index($n);
+	$i->index;
+	my $sel = $self->_select( $n, $i, 1 );
+	return wantarray ? @$sel : $sel->[0];
 }
 
 # select minus the initialization steps
 sub _select {
-    my ( $self, $n, $i, $first ) = @_;
+	my ( $self, $n, $i, $first ) = @_;
 
-    my @sel;
-    for my $fork ( @{ $self->_selectors } ) {
-        push @sel, _sel( $n, $i, $fork, 0, $first );
-    }
-    @sel = uniq @sel if @{ $self->_selectors } > 1;
+	my @sel;
+	for my $fork ( @{ $self->_selectors } ) {
+		push @sel, _sel( $n, $i, $fork, 0, $first );
+	}
+	@sel = uniq @sel if @{ $self->_selectors } > 1;
 
-    return \@sel;
+	return \@sel;
 }
 
 # required by TPath::Test
 sub test {
-    my ( $self, $n, $i ) = @_;
-    !!$self->select( $n, $i );
+	my ( $self, $n, $i ) = @_;
+	!!$self->select( $n, $i );
 }
 
 # goes down steps of path
 sub _sel {
-    my ( $n, $i, $fork, $idx, $first ) = @_;
-    my @c = uniq $fork->[ $idx++ ]->select( $n, $i, $first );
-    return @c if $idx == @$fork;
+	my ( $n, $i, $fork, $idx, $first ) = @_;
+	my $selector = $fork->[ $idx++ ];
+	my @c = uniq $selector->select( $n, $i, $first );
+	return @c if $idx == @$fork;
 
-    my ( $naddr, @sel );
-    for my $context (@c) {
-        my $still_first = $first && do {
-            $naddr //= refaddr $n;
-            $naddr eq refaddr $context;
-        };
-        push @sel, _sel( $context, $i, $fork, $idx, $still_first );
-    }
-    return @sel;
+	my ( $naddr, @sel );
+	for my $context (@c) {
+		my $still_first = $first && do {
+			$naddr //= refaddr $n;
+			$naddr eq refaddr $context && !$selector->consumes_first;
+		};
+		push @sel, _sel( $context, $i, $fork, $idx, $still_first );
+	}
+	return @sel;
 }
 
 # a substitute for List::MoreUtils::uniq which uses reference address rather than stringification to establish identity
 sub uniq(@) {
-    my %seen = ();
-    grep { not $seen{ refaddr $_ }++ } @_;
+	my %seen = ();
+	return @_ if @_ == 1;
+	grep { not $seen{ refaddr $_ }++ } @_;
 }
 
 __PACKAGE__->meta->make_immutable;
