@@ -74,7 +74,7 @@ sub _select {
 
 	my @sel;
 	for my $fork ( @{ $self->_selectors } ) {
-		push @sel, _sel( $n, $i, $fork, 0, $first );
+		push @sel, @{ _sel( $n, $i, $fork, 0, $first ) };
 	}
 	@sel = uniq @sel if @{ $self->_selectors } > 1;
 
@@ -92,23 +92,17 @@ sub _sel {
 	my ( $n, $i, $fork, $idx, $first ) = @_;
 	my $selector = $fork->[ $idx++ ];
 	my @c = uniq $selector->select( $n, $i, $first );
-	return @c if $idx == @$fork;
+	return \@c if $idx == @$fork;
 
-	my ( $naddr, @sel );
-	for my $context (@c) {
-		my $still_first = $first && do {
-			$naddr //= refaddr $n;
-			$naddr eq refaddr $context && !$selector->consumes_first;
-		};
-		push @sel, _sel( $context, $i, $fork, $idx, $still_first );
-	}
-	return @sel;
+	my @sel;
+	push @sel, @{ _sel( $_, $i, $fork, $idx, 0 ) } for @c;
+	return \@sel;
 }
 
 # a substitute for List::MoreUtils::uniq which uses reference address rather than stringification to establish identity
 sub uniq(@) {
+	return @_ if @_ < 2;
 	my %seen = ();
-	return @_ if @_ == 1;
 	grep { not $seen{ refaddr $_ }++ } @_;
 }
 

@@ -4,15 +4,6 @@ package TPath::Selector;
 
 use Moose::Role;
 
-=attr
-
-Whether the selector should be regarded as consuming "firstness" even if it returns
-its context node.
-
-=cut
-
-has consumes_first => ( is => 'ro', isa => 'Bool', default => 1 );
-
 =head1 REQUIRED METHODS
 
 =head2 select
