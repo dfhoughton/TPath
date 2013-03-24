@@ -60,32 +60,32 @@ $path = q{//a/descendant-or-self::*};
 is @c, 4, "received expected from $p with $path";
 
 $p    = parse q{<a><b><c id='foo'/><d/></b><e/></a>};
-$path = q{id(foo)/following::*};
+$path = q{:id(foo)/following::*};
 @c    = $f->path($path)->select($p);
 is @c, 2, "received expected from $p with $path";
 
 $p    = parse q{<a><b><c id='foo'/><d/></b><e/></a>};
-$path = q{id(foo)/following-sibling::*};
+$path = q{:id(foo)/following-sibling::*};
 @c    = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
 
 $p    = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
-$path = q{id(foo)/preceding::*};
+$path = q{:id(foo)/preceding::*};
 @c    = $f->path($path)->select($p);
 is @c, 2, "received expected from $p with $path";
 
 $p    = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
-$path = q{id(foo)/preceding-sibling::*};
+$path = q{:id(foo)/preceding-sibling::*};
 @c    = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
 
 $p    = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
-$path = q{id(foo)/sibling::*};
+$path = q{:id(foo)/sibling::*};
 @c    = $f->path($path)->select($p);
 is @c, 2, "received expected from $p with $path";
 
 $p    = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
-$path = q{id(foo)/sibling-or-self::*};
+$path = q{:id(foo)/sibling-or-self::*};
 @c    = $f->path($path)->select($p);
 is @c, 3, "received expected from $p with $path";
 
@@ -103,7 +103,7 @@ is @c, 1, "received expected from $p with $path";
 is $c[0]->tag, 'a', 'self:: selected correct element';
 
 $p    = parse q{<a><e/><b><d/><c id='foo'/><d/></b><e/></a>};
-$path = q{id(foo)/parent::*};
+$path = q{:id(foo)/parent::*};
 @c    = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
 is $c[0]->tag, 'b', 'parent:: selected correct element';

@@ -4,6 +4,9 @@ Revision history for TPath
   * some documentation fixes
   * replaced special status of first step with general firstness concept in 
     preparation for adding optional and repeated steps
+  * added :root selector
+  * replaced id(.) selector with :id(.)
+  * changed exists-one operator from ^ to `
 
 0.008     2013-03-17 13:08:25 EST5EDT
   * added complement selectors -- ^a, ^~a~, and ^@a

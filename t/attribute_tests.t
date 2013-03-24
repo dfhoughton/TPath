@@ -93,25 +93,25 @@ $i = natatime 2, grep /\S/, <<'END' =~ /.*/mg;
 /*[@log(@false or @false)]
 0
 
-/*[@log(@true xor @true)]
+/*[@log(@true one @true)]
 0
 
-/*[@log(@true xor @false)]
+/*[@log(@true one @false)]
 1
 
-/*[@log(@false xor @true)]
+/*[@log(@false one @true)]
 1
 
-/*[@log(@false xor @false)]
+/*[@log(@false one @false)]
 0
 
-/*[@log(@false xor @false xor @true)]
+/*[@log(@false one @false one @true)]
 1
 
-/*[@log(@false^@false^@true)]
+/*[@log(@false`@false`@true)]
 1
 
-/*[@log(@false ^ @false ^ @true)]
+/*[@log(@false ` @false ` @true)]
 1
 
 /*[@log(not @true)]
@@ -123,19 +123,19 @@ $i = natatime 2, grep /\S/, <<'END' =~ /.*/mg;
 /*[@log(@true and @false or @false)]
 0
 
-/*[@log(@false or @false xor @true)]
+/*[@log(@false or @false one @true)]
 1
 
-/*[@log(@true and @false xor @true)]
+/*[@log(@true and @false one @true)]
 1
 
-/*[@log(@true and @false xor @false)]
+/*[@log(@true and @false one @false)]
 0
 
-/*[@log(@false and @true xor @true)]
+/*[@log(@false and @true one @true)]
 1
 
-/*[@log(@false and (@true xor @true))]
+/*[@log(@false and (@true one @true))]
 0
 END
 

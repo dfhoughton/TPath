@@ -15,16 +15,31 @@ a
 ~a~
 ~a~~b~
 //foo
-id(bar)
-root()
+:id(bar)
+:root
+(a)
+(/a)?
+a?
+a+
+a*
+a(/b|/c)
 /..
 /.
 />a
 child::a
 ancestor-or-self::a
 leaf::a
-root()/a
-root()//a
+:root/a
+:root//a
+^a
+/^a
+//^a
+^~a~
+/^~a~
+//^~a~
+^@a
+/^@a
+//^@a
 /b/leaf::a
 /a/b
 /a[@test]
@@ -52,8 +67,8 @@ root()//a
 /a[@test > 1]
 /a[! a]
 /a[(a)]
-/a[a^b]
-/a[a ^ b]
+/a[a`b]
+/a[a ` b]
 /a[a&b]
 /a[a||b]
 /a[0][@test]
@@ -75,6 +90,7 @@ my @unparsable = make_paths(<<'END');
 //*(1)
 />*(1)
 /child::a(1)
+a(b)
 END
 
 # pairs of expressions that should have the same ASTs
@@ -99,6 +115,15 @@ a[!!@b]
 
 a[!@b]
 a[!!!@b]
+
+a
+(a)
+
+a?
+(a)?
+
+a
+((a))
 END
 
 # some leaf values to test
@@ -123,7 +148,7 @@ a[@\'b]
 aname
 'b
 
-id(\))
+:id(\))
 id
 )
 

@@ -49,8 +49,8 @@ our %AXES = map { $_ => 1 } qw(
 );
 
 our $path_grammar = do {
-    use Regexp::Grammars;
-    qr{
+	use Regexp::Grammars;
+	qr{
        <nocontext:>
        <timeout: 100>
     
@@ -60,16 +60,22 @@ our $path_grammar = do {
     
        <rule: treepath> <[path]> (?: \| <[path]> )*
     
-       <token: path> (?!@) <[segment=first_step]> <[segment=subsequent_step]>* | <error:>
+       <token: path> (?!@) <[segment]>+ | <error:>
     
-       <token: first_step> <separator>? <step> | <error: Expected path step>
+       <token: segment> <separator>? <step> | <cs> | <error: Expected path step>
+       
+       <token: quantifier> [?+*]
+       
+       <token: grouped_step> \( \s*+ <treepath> \s*+ \) <quantifier>?
     
        <token: id>
-          id\( ( (?>[^\)\\]|\\.)++ ) \)
+          :id\( ( (?>[^\)\\]|\\.)++ ) \)
           (?{ $MATCH=clean_escapes($^N) })
           | <error: Expected id expression>
     
-       <token: subsequent_step> <separator> <step> | <error: Expected path step>
+       <token: cs>
+          <separator>? <step> <quantifier>
+          | <grouped_step>
     
        <token: separator> \/[\/>]?+ | <error:>
     
@@ -81,12 +87,25 @@ our $path_grammar = do {
           (?{ $MATCH = $^N })
           | <error:>
     
-       <token: abbreviated> (?<!/[/>]) (?: \.{1,2}+ | <id> | root\(\) )
+       <token: abbreviated> (?<!/[/>]) (?: \.{1,2}+ | <id> | :root )
     
        <token: forward> <wildcard> | <complement=(\^)>? (?: <specific> | <pattern> | <attribute> )
            | <error: Expecting selector>
     
-       <token: wildcard> \* | <error:>
+       <token: wildcard> \* <.start_of_path> | <error:>
+       
+       <token: start_of_path> # somewhat lame way to make sure * quantifier isn't misinterpreted as the wildcard character
+          (?<=[/:>].)
+          | (?<=\(.)
+          | (?<=\(\s.)
+          | (?<=\(\s{2}.)
+          | (?<=\(\s{3}.)
+          | (?<=\(\s{4}.) # if the user puts more than 4 whitespace characters between ( and *, it will be mis-parsed
+          | (?<=\A.)
+          | (?<=\A\s.)
+          | (?<=\A\s{2}.)
+          | (?<=\A\s{3}.)
+          | (?<=\A\s{4}.)
     
        <token: specific>
           ( <.name> )
@@ -153,7 +172,7 @@ our $path_grammar = do {
           | <error: Expecting binary boolean operator>
        
        <token: xor>
-          ( \^ | (?<=\s) xor (?=\s) )
+          ( ` | (?<=\s) one (?=\s) )
            
        <token: and>
           ( & | (?<=\s) and (?=\s) )
@@ -188,377 +207,480 @@ a stack trace if the expression is unparsable. Otherwise it returns a hashref.
 =cut
 
 sub parse {
-    my ($expr) = @_;
-    if ( $expr =~ $path_grammar ) {
-        my $ref = \%/;
-        complement_to_boolean($ref);
-        if ( contains_condition($ref) ) {
-            normalize_parens($ref);
-            operator_precedence($ref);
-            merge_conditions($ref);
-            fix_predicates($ref);
-        }
-        return optimize($ref);
-    }
-    else {
-        confess "could not parse '$expr' as a TPath expression:\n" . join "\n",
-          @!;
-    }
+	my ($expr) = @_;
+	if ( $expr =~ $path_grammar ) {
+		my $ref = \%/;
+		normalize_compounds($ref);
+		complement_to_boolean($ref);
+		if ( contains_condition($ref) ) {
+			normalize_parens($ref);
+			operator_precedence($ref);
+			merge_conditions($ref);
+			fix_predicates($ref);
+		}
+		optimize($ref);
+		confirm_separators( $ref, 0 );
+		return $ref;
+	}
+	else {
+		confess "could not parse '$expr' as a TPath expression:\n" . join "\n",
+		  @!;
+	}
+}
+
+# require a separator before all non-initial steps
+sub confirm_separators {
+	my ( $ref, $non_initial ) = @_;
+	for ( ref $ref ) {
+		when ('ARRAY') { confirm_separators( $_, $non_initial ) for @$ref }
+		when ('HASH') {
+			my ($path) = $ref->{path};
+			if ($path) {
+				for my $i ( 0 .. $#$path ) {
+					my @steps = @{ $path->[$i]{segment} };
+					for my $j ( 0 .. $#steps ) {
+						my $step = $steps[$j];
+						if (   ( $j || $non_initial )
+							&& $step->{step}
+							&& !$step->{separator} )
+						{
+							confess
+'every non-initial step must be preceded by one of the separators "/", "//", or "/>"';
+						}
+						confirm_separators( $step, $i ? 1 : $non_initial );
+					}
+				}
+			}
+			else {
+				my $attribute = $ref->{attribute};
+				if ($attribute) { confirm_separators( $attribute, 0 ) }
+				else {
+					my $predicate = $ref->{predicate};
+					if ($predicate) {
+						confirm_separators( $predicate, 0 );
+					}
+					else {
+						confirm_separators( $_, $non_initial ) for values %$ref;
+					}
+				}
+			}
+		}
+	}
+}
+
+# convert (/foo) to /foo and (/foo)? to /foo?
+sub normalize_compounds {
+	my $ref = shift;
+	for ( ref $ref ) {
+		when ('HASH') {
+
+			# depth first
+			normalize_compounds($_) for values %$ref;
+
+			my $cs = $ref->{cs};
+			if ($cs) {
+				my $gs = $cs->{grouped_step};
+				if (   $gs
+					&& @{ $gs->{treepath}{path} } == 1
+					&& @{ $gs->{treepath}{path}[0]{segment} } == 1 )
+				{
+					my $quantifier = $gs->{quantifier};
+					my $step       = $gs->{treepath}{path}[0]{segment}[0];
+					$step->{quantifier} = $quantifier if $quantifier;
+					$ref->{cs} = $step;
+				}
+			}
+		}
+		when ('ARRAY') {
+
+			# depth first
+			normalize_compounds($_) for @$ref;
+
+			my $among_steps;
+			for my $i ( 0 .. $#$ref ) {
+				my $v = $ref->[$i];
+				last unless $among_steps // ref $v;
+				my $cs = $v->{cs};
+				$among_steps //= $cs // 0 || $v->{step} // 0;
+				last unless $among_steps;
+				if ( $cs && $cs->{step} && !$cs->{quantifier} ) {
+					splice @$ref, $i, 1, $cs;
+				}
+			}
+		}
+	}
 }
 
 # converts complement => '^' to complement => 1 simply to make AST function clearer
 sub complement_to_boolean {
-    my $ref = shift;
-    for ( ref $ref ) {
-        when ('HASH') {
-            for my $k ( keys %$ref ) {
-                if ( $k eq 'complement' ) { $ref->{$k} &&= 1 }
-                else { complement_to_boolean( $ref->{$k} ) }
-            }
-        }
-        when ('ARRAY') { complement_to_boolean($_) for @$ref }
-    }
+	my $ref = shift;
+	for ( ref $ref ) {
+		when ('HASH') {
+			for my $k ( keys %$ref ) {
+				if ( $k eq 'complement' ) { $ref->{$k} &&= 1 }
+				else { complement_to_boolean( $ref->{$k} ) }
+			}
+		}
+		when ('ARRAY') { complement_to_boolean($_) for @$ref }
+	}
 }
 
 # remove no-op steps etc.
 sub optimize {
-    my $ref = shift;
-    clean_no_op($ref);
-    return $ref;
+	my $ref = shift;
+	clean_no_op($ref);
 }
 
 # remove . and /. steps
 sub clean_no_op {
-    my $ref = shift;
-    for ( ref $ref ) {
-        when ('HASH') {
-            my $paths = $ref->{path};
-            for my $path ( @{ $paths // [] } ) {
-                my @segments = @{ $path->{segment} };
-                my @cleaned;
-                for my $i ( 1 .. $#segments ) {
-                    my $step = $segments[$i];
-                    push @cleaned, $step
-                      unless ( $step->{step}{abbreviated} // '' ) eq '.';
-                }
-                if (@cleaned) {
-                    my $step = $segments[0];
-                    if ( ( $step->{step}{abbreviated} // '' ) eq '.' ) {
-                        my $sep  = $step->{separator};
-                        my $next = $cleaned[0];
-                        my $nsep = $next->{separator};
-                        if ($sep) {
-                            unshift @cleaned, $step
-                              unless $nsep eq '/' && $next->{step}{full}{axis};
-                        }
-                        else {
-                            if ( $nsep eq '/' ) {
-                                delete $next->{separator};
-                            }
-                            else {
-                                unshift @cleaned, $step;
-                            }
-                        }
-                    }
-                    else {
-                        unshift @cleaned, $step;
-                    }
-                }
-                else {
-                    @cleaned = @segments;
-                }
-                $path->{segment} = \@cleaned;
-            }
-            clean_no_op($_) for values %$ref;
-        }
-        when ('ARRAY') {
-            clean_no_op($_) for @$ref;
-        }
-    }
+	my $ref = shift;
+	for ( ref $ref ) {
+		when ('HASH') {
+			my $paths = $ref->{path};
+			for my $path ( @{ $paths // [] } ) {
+				my @segments = @{ $path->{segment} };
+				my @cleaned;
+				for my $i ( 1 .. $#segments ) {
+					my $step = $segments[$i];
+					push @cleaned, $step unless find_dot($step);
+				}
+				if (@cleaned) {
+					my $step = $segments[0];
+					if ( find_dot($step) ) {
+						my $sep  = $step->{separator};
+						my $next = $cleaned[0];
+						my $nsep = $next->{separator};
+						if ($sep) {
+							unshift @cleaned, $step
+							  unless $nsep eq '/' && find_axis($next);
+						}
+						else {
+							if ( $nsep eq '/' ) {
+								delete $next->{separator};
+							}
+							else {
+								unshift @cleaned, $step;
+							}
+						}
+					}
+					else {
+						unshift @cleaned, $step;
+					}
+				}
+				else {
+					@cleaned = @segments;
+				}
+				$path->{segment} = \@cleaned;
+			}
+			clean_no_op($_) for values %$ref;
+		}
+		when ('ARRAY') {
+			clean_no_op($_) for @$ref;
+		}
+	}
+}
+
+# returns the axis if any; prevents reification of hash keys
+sub find_axis {
+	my $next = shift;
+	my $step = $next->{step};
+	return unless $step;
+	my $full = $step->{step};
+	return unless $full;
+	return $full->{axis};
+}
+
+# finds dot, if any; prevents reification of hash keys
+sub find_dot {
+	my $step = shift;
+	exists $step->{step}
+	  && ( $step->{step}{abbreviated} // '' ) eq '.';
 }
 
 # remove unnecessary levels in predicate trees
 sub fix_predicates {
-    my $ref  = shift;
-    my $type = ref $ref;
-    for ($type) {
-        when ('HASH') {
-            while ( my ( $k, $v ) = each %$ref ) {
-                if ( $k eq 'predicate' ) {
-                    for my $i ( 0 .. $#$v ) {
-                        my $item = $v->[$i];
-                        next if exists $item->{idx};
-                        if ( ref $item->{condition} eq 'ARRAY' ) {
-                            $item = $item->{condition}[0];
-                            splice @$v, $i, 1, $item;
-                        }
-                        fix_predicates($item);
-                    }
-                }
-                else {
-                    fix_predicates($v);
-                }
-            }
-        }
-        when ('ARRAY') { fix_predicates($_) for @$ref }
-    }
+	my $ref  = shift;
+	my $type = ref $ref;
+	for ($type) {
+		when ('HASH') {
+			while ( my ( $k, $v ) = each %$ref ) {
+				if ( $k eq 'predicate' ) {
+					for my $i ( 0 .. $#$v ) {
+						my $item = $v->[$i];
+						next if exists $item->{idx};
+						if ( ref $item->{condition} eq 'ARRAY' ) {
+							$item = $item->{condition}[0];
+							splice @$v, $i, 1, $item;
+						}
+						fix_predicates($item);
+					}
+				}
+				else {
+					fix_predicates($v);
+				}
+			}
+		}
+		when ('ARRAY') { fix_predicates($_) for @$ref }
+	}
 }
 
 # merge nested conditions with the same operator into containing conditions
 sub merge_conditions {
-    my $ref  = shift;
-    my $type = ref $ref;
-    return $ref unless $type;
-    for ($type) {
-        when ('HASH') {
-            while ( my ( $k, $v ) = each %$ref ) {
-                if ( $k eq 'condition' ) {
-                    if ( !exists $v->{args} ) {
-                        merge_conditions($_) for values %$v;
-                        next;
-                    }
+	my $ref  = shift;
+	my $type = ref $ref;
+	return $ref unless $type;
+	for ($type) {
+		when ('HASH') {
+			while ( my ( $k, $v ) = each %$ref ) {
+				if ( $k eq 'condition' ) {
+					if ( !exists $v->{args} ) {
+						merge_conditions($_) for values %$v;
+						next;
+					}
 
-                    # depth first
-                    merge_conditions($_) for @{ $v->{args} };
-                    my $op = $v->{operator};
-                    my @args;
-                    for my $a ( @{ $v->{args} } ) {
-                        my $condition = $a->{condition};
-                        if ( defined $condition ) {
-                            my $o = $condition->{operator};
-                            if ( defined $o ) {
-                                if ( $o eq $op ) {
-                                    push @args, @{ $condition->{args} };
-                                }
-                                else {
-                                    push @args, $a;
-                                }
-                            }
-                            else {
-                                push @args, $condition;
-                            }
-                        }
-                        else {
-                            push @args, $a;
-                        }
-                    }
-                    $v->{args} = \@args;
-                }
-                else {
-                    merge_conditions($v);
-                }
-            }
-        }
-        when ('ARRAY') { merge_conditions($_) for @$ref }
-        default { confess "unexpected type $type" }
-    }
+					# depth first
+					merge_conditions($_) for @{ $v->{args} };
+					my $op = $v->{operator};
+					my @args;
+					for my $a ( @{ $v->{args} } ) {
+						my $condition = $a->{condition};
+						if ( defined $condition ) {
+							my $o = $condition->{operator};
+							if ( defined $o ) {
+								if ( $o eq $op ) {
+									push @args, @{ $condition->{args} };
+								}
+								else {
+									push @args, $a;
+								}
+							}
+							else {
+								push @args, $condition;
+							}
+						}
+						else {
+							push @args, $a;
+						}
+					}
+					$v->{args} = \@args;
+				}
+				else {
+					merge_conditions($v);
+				}
+			}
+		}
+		when ('ARRAY') { merge_conditions($_) for @$ref }
+		default { confess "unexpected type $type" }
+	}
 }
 
-# group operators and arguments according to operator precedence ! > & > ^ > ||
+# group operators and arguments according to operator precedence ! > & > ` > ||
 sub operator_precedence {
-    my $ref  = shift;
-    my $type = ref $ref;
-    return $ref unless $type;
-    for ($type) {
-        when ('HASH') {
-            while ( my ( $k, $v ) = each %$ref ) {
-                if ( $k eq 'condition' && ref $v eq 'ARRAY' ) {
-                    my @ar = @$v;
+	my $ref  = shift;
+	my $type = ref $ref;
+	return $ref unless $type;
+	for ($type) {
+		when ('HASH') {
+			while ( my ( $k, $v ) = each %$ref ) {
+				if ( $k eq 'condition' && ref $v eq 'ARRAY' ) {
+					my @ar = @$v;
 
-                    # normalize ! strings
-                    @ar = grep { $_ } map {
-                        if ( !ref $_ && /^!++$/ ) {
-                            ( my $s = $_ ) =~ s/..//g;
-                            $s;
-                        }
-                        else { $_ }
-                    } @ar;
-                    $ref->{$k} = \@ar if @$v != @ar;
+					# normalize ! strings
+					@ar = grep { $_ } map {
+						if ( !ref $_ && /^!++$/ ) {
+							( my $s = $_ ) =~ s/..//g;
+							$s;
+						}
+						else { $_ }
+					} @ar;
+					$ref->{$k} = \@ar if @$v != @ar;
 
-                    # depth first
-                    operator_precedence($_) for @ar;
-                    return $ref if @ar == 1;
+					# depth first
+					operator_precedence($_) for @ar;
+					return $ref if @ar == 1;
 
-                    # build binary logical operation tree
-                  OUTER: while ( @ar > 1 ) {
-                        for my $op (qw(! & ^ ||)) {
-                            for my $i ( 0 .. $#ar ) {
-                                my $item = $ar[$i];
-                                next if ref $item;
-                                if ( $item eq $op ) {
-                                    if ( $op eq '!' ) {
-                                        splice @ar, $i, 2,
-                                          {
-                                            condition => {
-                                                operator => '!',
-                                                args     => [ $ar[ $i + 1 ] ]
-                                            }
-                                          };
-                                    }
-                                    else {
-                                        splice @ar, $i - 1, 3,
-                                          {
-                                            condition => {
-                                                operator => $op,
-                                                args     => [
-                                                    $ar[ $i - 1 ],
-                                                    $ar[ $i + 1 ]
-                                                ]
-                                            }
-                                          };
-                                    }
-                                    next OUTER;
-                                }
-                            }
-                        }
-                    }
+					# build binary logical operation tree
+				  OUTER: while ( @ar > 1 ) {
+						for my $op (qw(! & ` ||)) {
+							for my $i ( 0 .. $#ar ) {
+								my $item = $ar[$i];
+								next if ref $item;
+								if ( $item eq $op ) {
+									if ( $op eq '!' ) {
+										splice @ar, $i, 2,
+										  {
+											condition => {
+												operator => '!',
+												args     => [ $ar[ $i + 1 ] ]
+											}
+										  };
+									}
+									else {
+										splice @ar, $i - 1, 3,
+										  {
+											condition => {
+												operator => $op eq '`'
+												? '^'
+												: $op,
+												args => [
+													$ar[ $i - 1 ],
+													$ar[ $i + 1 ]
+												]
+											}
+										  };
+									}
+									next OUTER;
+								}
+							}
+						}
+					}
 
-                    # replace condition with logical operation tree
-                    $ref->{condition} = $ar[0]{condition};
-                }
-                else {
-                    operator_precedence($v);
-                }
-            }
-        }
-        when ('ARRAY') { operator_precedence($_) for @$ref }
-        default { confess "unexpected type $type" }
-    }
-    return $ref;
+					# replace condition with logical operation tree
+					$ref->{condition} = $ar[0]{condition};
+				}
+				else {
+					operator_precedence($v);
+				}
+			}
+		}
+		when ('ARRAY') { operator_precedence($_) for @$ref }
+		default { confess "unexpected type $type" }
+	}
+	return $ref;
 }
 
 # looks for structures requiring normalization
 sub contains_condition {
-    my $ref  = shift;
-    my $type = ref $ref;
-    return 0 unless $type;
-    if ( $type eq 'HASH' ) {
-        while ( my ( $k, $v ) = each %$ref ) {
-            return 1 if $k eq 'condition' || contains_condition($v);
-        }
-        return 0;
-    }
-    for my $v (@$ref) {
-        return 1 if contains_condition($v);
-    }
-    return 0;
+	my $ref  = shift;
+	my $type = ref $ref;
+	return 0 unless $type;
+	if ( $type eq 'HASH' ) {
+		while ( my ( $k, $v ) = each %$ref ) {
+			return 1 if $k eq 'condition' || contains_condition($v);
+		}
+		return 0;
+	}
+	for my $v (@$ref) {
+		return 1 if contains_condition($v);
+	}
+	return 0;
 }
 
 # removes redundant parentheses and simplifies condition elements somewhat
 sub normalize_parens {
-    my $ref  = shift;
-    my $type = ref $ref;
-    return $ref unless $type;
-    for ($type) {
-        when ('ARRAY') {
-            normalize_parens($_) for @$ref;
-        }
-        when ('HASH') {
-            for my $name ( keys %$ref ) {
-                my $value = $ref->{$name};
-                if ( $name eq 'condition' ) {
-                    my @ar = @{ $value->{item} };
-                    for my $i ( 0 .. $#ar ) {
-                        $ar[$i] = normalize_item( $ar[$i] );
-                    }
-                    $ref->{condition} = \@ar;
-                }
-                else {
-                    normalize_parens($value);
-                }
-            }
-        }
-        default {
-            confess "unexpected type: $type";
-        }
-    }
-    return $ref;
+	my $ref  = shift;
+	my $type = ref $ref;
+	return $ref unless $type;
+	for ($type) {
+		when ('ARRAY') {
+			normalize_parens($_) for @$ref;
+		}
+		when ('HASH') {
+			for my $name ( keys %$ref ) {
+				my $value = $ref->{$name};
+				if ( $name eq 'condition' ) {
+					my @ar = @{ $value->{item} };
+					for my $i ( 0 .. $#ar ) {
+						$ar[$i] = normalize_item( $ar[$i] );
+					}
+					$ref->{condition} = \@ar;
+				}
+				else {
+					normalize_parens($value);
+				}
+			}
+		}
+		default {
+			confess "unexpected type: $type";
+		}
+	}
+	return $ref;
 }
 
 # normalizes parentheses in a condition item
 sub normalize_item {
-    my $item = shift;
-    return $item unless ref $item;
-    if ( exists $item->{term} ) {
-        return normalize_parens( $item->{term} );
-    }
-    elsif ( exists $item->{group} ) {
+	my $item = shift;
+	return $item unless ref $item;
+	if ( exists $item->{term} ) {
+		return normalize_parens( $item->{term} );
+	}
+	elsif ( exists $item->{group} ) {
 
-        # remove redundant parentheses
-        while ( exists $item->{group}
-            && @{ $item->{group}{condition}{item} } == 1 )
-        {
-            $item = $item->{group}{condition}{item}[0];
-        }
-        return normalize_parens( $item->{group} // $item->{term} );
-    }
-    else {
-        confess
-          'items in a condition are expected to be either <term> or <group>';
-    }
+		# remove redundant parentheses
+		while ( exists $item->{group}
+			&& @{ $item->{group}{condition}{item} } == 1 )
+		{
+			$item = $item->{group}{condition}{item}[0];
+		}
+		return normalize_parens( $item->{group} // $item->{term} );
+	}
+	else {
+		confess
+		  'items in a condition are expected to be either <term> or <group>';
+	}
 }
 
 # some functions to undo escaping and normalize strings
 
 sub clean_literal {
-    my $m = shift;
-    $m = substr $m, 1, -1;
-    return clean_escapes($m);
+	my $m = shift;
+	$m = substr $m, 1, -1;
+	return clean_escapes($m);
 }
 
 sub clean_pattern {
-    my $m = shift;
-    $m = substr $m, 1, -1;
-    my $r = '';
-    my $i = 0;
-    {
-        my $j = index $m, '~~', $i;
-        if ( $j > -1 ) {
-            $r .= substr $m, $i, $j - $i + 1;
-            $i = $j + 2;
-            redo;
-        }
-        else {
-            $r .= substr $m, $i;
-        }
-    }
-    return $r;
+	my $m = shift;
+	$m = substr $m, 1, -1;
+	my $r = '';
+	my $i = 0;
+	{
+		my $j = index $m, '~~', $i;
+		if ( $j > -1 ) {
+			$r .= substr $m, $i, $j - $i + 1;
+			$i = $j + 2;
+			redo;
+		}
+		else {
+			$r .= substr $m, $i;
+		}
+	}
+	return $r;
 }
 
 sub clean_not {
-    my $m = shift;
-    return '!' if $m eq 'not';
-    return $m;
+	my $m = shift;
+	return '!' if $m eq 'not';
+	return $m;
 }
 
 sub clean_operator {
-    my $m = shift;
-    for ($m) {
-        when ('and') { return '&' }
-        when ('or')  { return '||' }
-        when ('xor') { return '^' }
-    }
-    return $m;
+	my $m = shift;
+	for ($m) {
+		when ('and') { return '&' }
+		when ('or')  { return '||' }
+		when ('xor') { return '^' }
+	}
+	return $m;
 }
 
 sub clean_escapes {
-    my $m = shift;
-    return '' unless $m;
-    my $r = '';
-    {
-        my $i = index $m, '\\';
-        if ( $i > -1 ) {
-            my $prefix = substr $m, 0, $i;
-            $prefix .= substr $m, $i + 1, 1;
-            $m = substr $m, $i + 2;
-            $r .= $prefix;
-            redo;
-        }
-        else {
-            $r .= $m;
-        }
-    }
-    return $r;
+	my $m = shift;
+	return '' unless $m;
+	my $r = '';
+	{
+		my $i = index $m, '\\';
+		if ( $i > -1 ) {
+			my $prefix = substr $m, 0, $i;
+			$prefix .= substr $m, $i + 1, 1;
+			$m = substr $m, $i + 2;
+			$r .= $prefix;
+			redo;
+		}
+		else {
+			$r .= $m;
+		}
+	}
+	return $r;
 }
 
 1;

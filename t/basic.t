@@ -193,9 +193,9 @@ $p = parse(
 '<a><b id="foo"><c/><c/><c/></b><b id="bar"><c/></b><b id="(foo)"><c/><c/></b></a>'
 );
 for my $line ( <<'END' =~ /^.*$/mg ) {
-id(foo)/* 3
-id(bar)/* 1
-id(\(foo\))/* 2
+:id(foo)/* 3
+:id(bar)/* 1
+:id(\(foo\))/* 2
 END
     my ( $l, $r ) = split / /, $line;
     $path = $l;

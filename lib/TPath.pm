@@ -731,12 +731,12 @@ This is an abbreviation for C<self::*>.
 
 This is an abbreviation for C<parent::*>.
 
-=head3 id(foo) : Select By Index
+=head3 :id(foo) : Select By Index
 
 This selector selects the node, if any, with the given id. This same node can also be selected
 by C<//*[@id = 'foo']> but this is much less efficient.
 
-=head3 root() : Select Root
+=head3 :root : Select Root
 
 This expression selects the root of the tree. It doesn't make much sense except as the
 first step in an expression.
