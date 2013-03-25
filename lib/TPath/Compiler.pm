@@ -26,8 +26,10 @@ use aliased 'TPath::Predicate::Boolean'       => 'PB';
 use aliased 'TPath::Predicate::Expression'    => 'PE';
 use aliased 'TPath::Predicate::Index';
 use aliased 'TPath::Selector';
+use aliased 'TPath::Selector::Expression' => 'SE';
 use aliased 'TPath::Selector::Id';
 use aliased 'TPath::Selector::Parent';
+use aliased 'TPath::Selector::Quantified';
 use aliased 'TPath::Selector::Self';
 use aliased 'TPath::Selector::Test::Anywhere';
 use aliased 'TPath::Selector::Test::AnywhereAttribute';
@@ -79,8 +81,21 @@ sub path {
 
 sub step {
 	my ($step) = @_;
-	return full(@_) if exists $step->{step}{full};
+	return cs(@_) if exists $step->{cs};
+	return full(@_) if exists $step->{step} && exists $step->{step}{full};
 	return abbreviated(@_);
+}
+
+sub cs {
+	my ( $step, $forester ) = @_;
+	my $q = $step->{cs}{quantifier};
+	if ( exists $step->{cs}{step} ) {
+		my $s = full( $step->{cs}, $forester );
+		return Quantified->new( s => $s, quantifier => $q );
+	}
+	my $e = SE->new( e => treepath( $step->{cs}{grouped_step}, $forester ) );
+	return $e unless $q;
+	return Quantified->new( e => $e, quantifier => $q );
 }
 
 sub full {

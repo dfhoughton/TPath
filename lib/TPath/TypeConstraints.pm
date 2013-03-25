@@ -13,4 +13,6 @@ union 'ATArg', [qw( Num TPath::Attribute Str )];
 
 union 'CondArg', [qw(TPath::Attribute TPath::Expression TPath::AttributeTest TPath::Test::Boolean)];
 
+enum 'Quantifier' => qw( * + ? );
+
 enum 'Axis' => keys %AXES;

@@ -52,7 +52,7 @@ our $path_grammar = do {
 	use Regexp::Grammars;
 	qr{
        <nocontext:>
-       <timeout: 100>
+       <timeout: 10>
     
     
     ^ <treepath> $
@@ -658,7 +658,7 @@ sub clean_operator {
 	for ($m) {
 		when ('and') { return '&' }
 		when ('or')  { return '||' }
-		when ('xor') { return '^' }
+		when ('one') { return '`' }
 	}
 	return $m;
 }
