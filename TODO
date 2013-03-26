@@ -3,6 +3,14 @@ Key
  - = discarded
  * = completed
 
+. add {x,y} style quantifiers
+. add =~ as an operand in attribute tests
+
+Attic
+-----
+
+Completed TODO items kept around as curios.
+
 * get rid of MooseX::Privacy to speed things up somewhat
 * improve error message when expression is unparsable
 * clean up tests and add more thorough testing
