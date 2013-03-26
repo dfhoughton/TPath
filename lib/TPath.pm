@@ -696,13 +696,13 @@ True iff any of the conjoined operands is true.
 Note that boolean or is two pipe characters. This is to disambiguate the path expression
 C<a|b> from the boolean expression C<a||b>.
 
-=item C<^> or C<xor>
+=item C<`> or C<one>
 
 True B<if one and only one of the conjoined operands is true>. The expression
 
-  @a ^ @b
+  @a ` @b
 
-Behaves like ordinary exclusive or. But if more than two operands are conjoined
+behaves like ordinary exclusive or. But if more than two operands are conjoined
 this way, the entire expression is a uniqueness test.
 
 =item C<( ... )>
@@ -713,7 +713,7 @@ Groups the contained boolean operations. True iff they evaluate to true.
 
 The normal precedence rules of logical operators applies to these:
 
-  () < ! < & < ^ < ||
+  () < ! < & < ` < ||
 
 Space is required around operators only where necessary to prevent their being
 interpreted as part of a path or attribute.
@@ -740,6 +740,21 @@ by C<//*[@id = 'foo']> but this is much less efficient.
 
 This expression selects the root of the tree. It doesn't make much sense except as the
 first step in an expression.
+
+=head2 Grouping and Quantification
+
+TPath expressions may contain sub-paths consisting of grouped alternates and steps or sub-paths
+may be quantified as in regular expressions
+
+=over 2
+
+=item C<//aB<(/b|/c)>/d>
+
+=item C<//aB<?>/bB<*>/cB<+>>
+
+=item C<//aB<(/b/c)+>/d>
+
+=back
 
 =head2 Hiding Nodes
 
