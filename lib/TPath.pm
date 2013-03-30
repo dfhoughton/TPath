@@ -867,6 +867,36 @@ object that generates expressions.
 One can put this in the forester's C<BUILD> method to make them invisible to all instances of the
 class.
 
+=head2 Potentially Confusing Dissimilarities Between TPath and XPath
+
+For most uses, where TPath and XPath provide similar functionality they will behave
+identically. Where you may be led astray is in the semantics of separators beginning
+paths.
+
+  /foo/foo
+  //foo//foo
+
+In both TPath and XPath, when applied to the root of a tree the first expression will
+select the root itself if this root has the tag C<foo> and the second will select all
+C<foo> nodes, including the root if it bears this tag. This is notably different from the
+behavior of the second step in each path. The second C</foo> will select a C<foo>
+B<child> of the root node, not the root node itself, and the second C<//foo> will select
+C<foo> descendants of other C<foo> nodes, not the nodes themselves.
+
+Where the two formalisms may differ is in the nodes they return when these paths are applied
+to some sub-node. In XPath, C</foo> always refers to the root node, provided this is a
+C<foo> node. In TPath it always refers to the node the path is applied to, provided it is
+a C<foo> node. (TODO: confirm this for XPath.) In XPath, if you require that the first step
+refer to the root node you must use the root selector C<:root>. If you also require that
+this node bear the tag C<foo> you must combine the root selector with the C<self::> axis.
+
+  :root/self::foo
+
+This is verbose, but then this is not likely to be a common requirement.
+
+The TPath semantics facilitate the implementation of repetition, which is absent from
+XPath.
+
 =head1 HISTORY
 
 I wrote TPath initially in Java (L<http://dfhoughton.org/treepath/>) because I wanted a more 
