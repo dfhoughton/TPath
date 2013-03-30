@@ -639,11 +639,38 @@ count from the end, so -1 retrieves the last item.
 
 =head3 Path Predicates
 
+  a[b]
+
+A path predicate is true if the node set it selects starting at the context node is
+not empty. Given the tree
+
+    a
+   / \
+  b   a
+  |   |
+  a   b
+
+the path C<//a[b]> would select only the two non-leaf C<a> nodes.
+
 =head4 Attribute Predicates
+
+  a[@leaf]
+
+An attribute predicate is true if its context node bears the given attribute. (For the
+definition of attributes, see below.) Given the tree
+
+    a
+   / \
+  b   a
+  |   |
+  a   b
+
+the path C<//a[@leaf]> would select only the leaf C<a> nodes.
 
 =head3 Attribute Tests
 
-Attribute tests compare attributes to literals, numbers, or other attributes.
+Attribute tests are predicaters which compare attributes to literals, numbers, or other 
+attributes.
 
 =head4 equality and inequality
 
@@ -792,7 +819,7 @@ by C<//*[@id = 'foo']> but this is much less efficient.
 This expression selects the root of the tree. It doesn't make much sense except as the
 first step in an expression.
 
-=head2 Grouping and Quantification
+=head2 Grouping and Repetition
 
 TPath expressions may contain sub-paths consisting of grouped alternates and steps or sub-paths
 may be quantified as in regular expressions
@@ -805,7 +832,25 @@ may be quantified as in regular expressions
 
 =item C<//aB<(/b/c)+>/d>
 
+=item C<//aB<(/b/c){3}>/d>
+
+=item C<//aB<{3,}>>
+
+=item C<//aB<{0,3}>>
+
+=item C<//aB<{,3}>>
+
 =back
+
+The last expression, C<{,3}>, one does not see in regular expressions. It is the short form
+of C<{0,3}>.
+
+Despite this similarity it should be remembered that TPath expression differ from regular 
+expressions in that they always return all possible matches, not just the first match
+discovered or, for those regular expression engines that provide longest token matching or
+other optimality criteria, the optimal match. On the other hand, the first node selected
+will correspond to the first match using greedy repetition. And if you have optimality 
+criteria you are free to re-rank the nodes selected and pick the first node by this ranking.
 
 =head2 Hiding Nodes
 
