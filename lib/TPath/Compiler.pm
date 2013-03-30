@@ -91,11 +91,23 @@ sub cs {
 	my $q = $step->{cs}{quantifier};
 	if ( exists $step->{cs}{step} ) {
 		my $s = full( $step->{cs}, $forester );
+		return Quantified->new(
+			s          => $s,
+			quantifier => 'e',
+			top        => $q->{enum}{end},
+			bottom     => $q->{enum}{start}
+		) if ref $q;
 		return Quantified->new( s => $s, quantifier => $q );
 	}
 	my $e = SE->new( e => treepath( $step->{cs}{grouped_step}, $forester ) );
 	return $e unless $q;
-	return Quantified->new( e => $e, quantifier => $q );
+	return Quantified->new(
+		s          => $e,
+		quantifier => 'e',
+		top        => $q->{enum}{end},
+		bottom     => $q->{enum}{start}
+	) if ref $q;
+	return Quantified->new( s => $e, quantifier => $q );
 }
 
 sub full {

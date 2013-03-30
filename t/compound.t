@@ -41,4 +41,16 @@ $path     = q{//b(/c|/d)/e};
 is( scalar @elements, 2,
 	"found the right number of elements with $path on $p" );
 
+$p = parse('<a><a><b/></a><b/></a>');
+$path     = q{/a{2}/b};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 1,
+	"found the right number of elements with $path on $p" );
+
+$p = parse('<a><a><b/><a><b/></a></a><b/></a>');
+$path     = q{/a{1,2}/b};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 2,
+	"found the right number of elements with $path on $p" );
+
 done_testing();

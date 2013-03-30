@@ -627,7 +627,7 @@ tests that filter the candidate nodes selected by the selectors.
 
 There may be space inside the square brackets.
 
-=head2 Index Predicates
+=head3 Index Predicates
 
   //foo/bar[0]
 
@@ -637,43 +637,40 @@ index is 0, unlike in XML, so the expression above selects the first bar under e
 The index rules are the same as those for Perl arrays: 0 is the first item; negative indices
 count from the end, so -1 retrieves the last item.
 
-=head2 Attributes
+=head3 Path Predicates
 
-  //foo[@bar]
-  //foo[@bar(1, 'string', path, @attribute, @attribute = 'test')]
+=head4 Attribute Predicates
 
-Attributes identify callbacks that evaluate the context node to see whether the respective
-attribute is defined for it. If the callback returns a defined value, the predicate is true
-and the candidate is accepted; otherwise, it is rejected.
+=head3 Attribute Tests
 
-As the second example above demonstrates, attributes may take arguments and these arguments
-may be numbers, strings, paths, other attributes, or attribute tests (see below). Paths are
-evaluated relative to the candidate node being tested, as are attributes and attribute tests.
-A path arguments represents the nodes selected by this path relative to the candidate node.
+Attribute tests compare attributes to literals, numbers, or other attributes.
 
-Attribute parameters are enclosed within parentheses. Within these parentheses, they are
-delimited by commas. Space is optional around parameters.
+=head4 equality and inequality
 
-For the standard attribute set available to all expressions, see L<TPath::Attributes::Standard>.
-For the extended set that can be composed in, see L<TPath::Attributes::Extended>. There are
-various ways one can add bespoke attributes but the easiest is to add them to an individual
-forester via the C<add_attribute> method:
+  a[@b = 1]
+  a[@b = "c"]
+  a[@b = @c]
+  a[@b == @c]
+  a[@b != @c]
+  ...
 
-  my $forester = MyForester->new;
-  $forester->add_attribute( 'foo' => sub {
-     my ( $self, $node, $index, $collection, @params) = @_;
-     ...
-  });
+=head4 ranking
 
-TODO: explain other means to define new attributes.
+  a[@b < 1]
+  a[@b < "c"]
+  a[@b < @c]
+  a[@b > 1]
+  a[@b <= 1]
+  ...
 
-=head2 Attribute Tests
+If you wish to test a path instead of an attribute -- to test against the cardinality
+of the node set collected, say -- you can use the C<@echo> attribute. This attribute
+returns the value of its parameter, thus converting anything that can be the parameter
+of an attribute, including expressions, into attributes.
 
-Attribute tests compare attributes to literals, numbers, or other attributes
+TODO: complete this section by describing the definitions of equality and rank used.
 
-TODO: complete this section.
-
-=head2 Boolean Predicates
+=head3 Boolean Predicates
 
 Boolean predicates combine various terms -- attributes, attribute tests, or tpath expressions --
 via boolean operators:
@@ -717,6 +714,60 @@ The normal precedence rules of logical operators applies to these:
 
 Space is required around operators only where necessary to prevent their being
 interpreted as part of a path or attribute.
+
+=head2 Attributes
+
+  //foo[@bar]
+  //foo[@bar(1, 'string', path, @attribute, @attribute = 'test')]
+
+Attributes identify callbacks that evaluate the context node to see whether the respective
+attribute is defined for it. If the callback returns a defined value, the predicate is true
+and the candidate is accepted; otherwise, it is rejected.
+
+As the second example above demonstrates, attributes may take arguments and these arguments
+may be numbers, strings, paths, other attributes, or attribute tests (see below). Paths are
+evaluated relative to the candidate node being tested, as are attributes and attribute tests.
+A path arguments represents the nodes selected by this path relative to the candidate node.
+
+Attribute parameters are enclosed within parentheses. Within these parentheses, they are
+delimited by commas. Space is optional around parameters.
+
+For the standard attribute set available to all expressions, see L<TPath::Attributes::Standard>.
+For the extended set that can be composed in, see L<TPath::Attributes::Extended>. There are
+various ways one can add bespoke attributes but the easiest is to add them to an individual
+forester via the C<add_attribute> method:
+
+  my $forester = MyForester->new;
+  $forester->add_attribute( 'foo' => sub {
+     my ( $self, $node, $index, $collection, @params) = @_;
+     ...
+  });
+
+Other methods are to defined them as annotated methods of the forester
+
+  sub foo :Attr {
+  	 my ( $self, $node, $index, $collection, @params) = @_;
+  	 ...
+  }
+
+If this would cause a namespace collision or is not a possible method name, you can provide 
+the attribute name as a parameter of the method attribute:
+
+  sub foo :Attr(problem:name) {
+  	 my ( $self, $node, $index, $collection, @params) = @_;
+  	 ...
+  }
+
+Defining attributes as annotated methods is particularly useful if you wish to
+create an attribute library that you can mix into various foresters. In this case
+you define the attributes within a role instead of the forester itself.
+
+  package PimpedForester;
+  use Moose;
+  extends 'TPath::Forester';
+  with qw(TheseAttributes ThoseAttributes YonderAttributes Etc);
+  sub tag { ... }
+  sub children { ... }
 
 =head2 Special Selectors
 

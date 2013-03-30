@@ -64,7 +64,9 @@ our $path_grammar = do {
     
        <token: segment> <separator>? <step> | <cs> | <error: Expected path step>
        
-       <token: quantifier> [?+*]
+       <token: quantifier> [?+*] | <enum>
+       
+       <rule: enum> [{] <start=(\d*+)> (?: , <end=(\d*+)> )? [}]
        
        <token: grouped_step> \( \s*+ <treepath> \s*+ \) <quantifier>?
     
@@ -279,6 +281,7 @@ sub normalize_compounds {
 
 			my $cs = $ref->{cs};
 			if ($cs) {
+				normalize_enums($cs);
 				my $gs = $cs->{grouped_step};
 				if (   $gs
 					&& @{ $gs->{treepath}{path} } == 1
@@ -303,12 +306,82 @@ sub normalize_compounds {
 				my $cs = $v->{cs};
 				$among_steps //= $cs // 0 || $v->{step} // 0;
 				last unless $among_steps;
-				if ( $cs && $cs->{step} && !$cs->{quantifier} ) {
-					splice @$ref, $i, 1, $cs;
+				if ($cs) {
+					if ( $cs->{step} ) {
+						if ( !$cs->{quantifier} ) {
+							splice @$ref, $i, 1, $cs;
+						}
+						elsif ( $cs->{quantifier} eq 'vacuous' ) {
+							delete $cs->{quantifier};
+							splice @$ref, $i, 1, $cs;
+						}
+					}
+					elsif (
+						( $cs->{grouped_step}{quantifier} // '' ) eq 'vacuous' )
+					{
+						my $path = $cs->{grouped_step}{treepath}{path};
+						if ( @$path == 1 ) {
+							splice @$ref, $i, 1, @{ $path->[0]{segment} };
+						}
+					}
 				}
 			}
 		}
 	}
+}
+
+# normalizes enumerated quantifiers
+sub normalize_enums {
+	my $cs         = shift;
+	my $is_grouped = exists $cs->{grouped_step};
+	my $q =
+	    $is_grouped
+	  ? $cs->{grouped_step}{quantifier}
+	  : $cs->{quantifier};
+	return unless $q && ref $q;
+	my $enum = $q->{enum};
+	my $start = $enum->{start} ||= 0;
+	my $end;
+	if ( exists $enum->{end} ) {
+		$end = $enum->{end} || 0;
+	}
+	else {
+		$end = $start;
+	}
+	confess 'empty {x,y} quantifier ' . $enum->{''}
+	  unless $start || $end;
+	if ( $end == 1 ) {
+		if ( $start == 1 ) {
+			if ($is_grouped) {
+				$cs->{grouped_step}{quantifier} = 'vacuous';
+			}
+			else {
+				$cs->{quantifier} = 'vacuous';
+			}
+			return;
+		}
+		if ( $start == 0 ) {
+			if ($is_grouped) {
+				$cs->{grouped_step}{quantifier} = '?';
+			}
+			else {
+				$cs->{quantifier} = '?';
+			}
+			return;
+		}
+	}
+	elsif ( $start == 1 && $end == 0 ) {
+		if ($is_grouped) {
+			$cs->{grouped_step}{quantifier} = '+';
+		}
+		else {
+			$cs->{quantifier} = '+';
+		}
+		return;
+	}
+	confess 'in {x,y} quantifier ' . $enum->{''} . ' end is less than start'
+	  if $start > $end && ( $enum->{end} // '' ) ne '';
+	$enum->{end} = $end;
 }
 
 # converts complement => '^' to complement => 1 simply to make AST function clearer
