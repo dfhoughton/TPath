@@ -189,7 +189,7 @@ our $path_grammar = do {
           <[args=attribute]> <cmp> <[args=value]> | <[args=value]> <cmp> <[args=attribute]>
           | <error:>
     
-       <token: cmp> [<>=]=?+|!= | <error: Expecting comparison operator>
+       <token: cmp> [<>=]=?+|![=~]|=~ | <error: Expecting comparison operator>
     
        <token: value> <v=literal> | <v=num> | <attribute>
     
@@ -340,6 +340,7 @@ sub normalize_enums {
 	  : $cs->{quantifier};
 	return unless $q && ref $q;
 	my $enum = $q->{enum};
+	my $start_defined = $enum->{start} ne '';
 	my $start = $enum->{start} ||= 0;
 	my $end;
 	if ( exists $enum->{end} ) {
@@ -348,8 +349,6 @@ sub normalize_enums {
 	else {
 		$end = $start;
 	}
-	confess 'empty {x,y} quantifier ' . $enum->{''}
-	  unless $start || $end;
 	if ( $end == 1 ) {
 		if ( $start == 1 ) {
 			if ($is_grouped) {
@@ -378,7 +377,17 @@ sub normalize_enums {
 			$cs->{quantifier} = '+';
 		}
 		return;
+	} elsif ($start_defined && $start == 0 && ($enum->{end} // 'bad') eq '') {
+		if ($is_grouped) {
+			$cs->{grouped_step}{quantifier} = '*';
+		}
+		else {
+			$cs->{quantifier} = '*';
+		}
+		return;
 	}
+	confess 'empty {x,y} quantifier ' . $enum->{''}
+	  unless $start || $end;
 	confess 'in {x,y} quantifier ' . $enum->{''} . ' end is less than start'
 	  if $start > $end && ( $enum->{end} // '' ) ne '';
 	$enum->{end} = $end;

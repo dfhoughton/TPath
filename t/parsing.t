@@ -86,6 +86,9 @@ leaf::a
 //b:b[@attr != "1"]
 //b:b[@attr(1) != "1"]
 //b:b[@attr("fo:o") != "1"]
+a[@b =~ 'c']
+a[@b !~ 'c']
+a{0,}
 END
 
 # a bunch of expressions not licensed by the spec
@@ -99,6 +102,11 @@ my @unparsable = make_paths(<<'END');
 />*(1)
 /child::a(1)
 a(b)
+a{}
+a{0}
+a{,}
+a{,0}
+a{2,1}
 END
 
 # pairs of expressions that should have the same ASTs
@@ -142,6 +150,9 @@ a{1,1}
 a?
 a{,1}
 
+a{,1}
+a{0,1}
+
 a?
 a{0,1}
 
@@ -162,6 +173,9 @@ a{1,}
 
 (/a/b)+
 (/a/b){1,}
+
+a{0,}
+a*
 END
 
 # some leaf values to test
