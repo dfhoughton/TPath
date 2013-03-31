@@ -767,9 +767,10 @@ Attribute parameters are enclosed within parentheses. Within these parentheses, 
 delimited by commas. Space is optional around parameters.
 
 For the standard attribute set available to all expressions, see L<TPath::Attributes::Standard>.
-For the extended set that can be composed in, see L<TPath::Attributes::Extended>. There are
-various ways one can add bespoke attributes but the easiest is to add them to an individual
-forester via the C<add_attribute> method:
+For the extended set that can be composed in, see L<TPath::Attributes::Extended>.
+
+There are various ways one can add bespoke attributes but the easiest is to add them to an 
+individual forester via the C<add_attribute> method:
 
   my $forester = MyForester->new;
   $forester->add_attribute( 'foo' => sub {
