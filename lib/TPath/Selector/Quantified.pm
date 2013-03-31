@@ -82,7 +82,7 @@ sub _enum_iterate {
 }
 
 sub _iterate {
-	my ( $s, $i, $c, $top, $bottom, $count ) = @_;
+	my ( $s, $i, $c ) = @_;
 	return [] unless @$c;
 	my @next = map { $s->select( $_, $i ) } @$c;
 	return [ @{ _iterate( $s, $i, \@next ) }, @$c ];
