@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+
+0.010     2013-03-30 22:22:12 America/New_York
   * added enumerated repetition -- a{2}, a{,2}, a{2,}, a{2,3}
   * added matching as attribute test
   * improved documentation
