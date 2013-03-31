@@ -125,7 +125,7 @@ something that understands your trees. In general to use C<TPath> you instantiat
 then call the forester's methods.
 
 Forester objects make use of an index (L<TPath::Index>), which caches information not present in, or
-not cheaply from, the nodes themselves. If no index is explicitly provided it is created, but one
+not cheaply extracted from, the nodes themselves. If no index is explicitly provided it is created, but one
 can gain some efficiency by reusing an index when select paths from a tree. One can use a forester's
 C<index> method to produce a C<TPath::Index>.
 
