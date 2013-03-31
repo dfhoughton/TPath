@@ -339,10 +339,11 @@ sub normalize_enums {
 	  ? $cs->{grouped_step}{quantifier}
 	  : $cs->{quantifier};
 	return unless $q && ref $q;
-	my $enum = $q->{enum};
+	my $enum          = $q->{enum};
 	my $start_defined = $enum->{start} ne '';
-	my $start = $enum->{start} ||= 0;
+	my $start         = $enum->{start} ||= 0;
 	my $end;
+
 	if ( exists $enum->{end} ) {
 		$end = $enum->{end} || 0;
 	}
@@ -377,7 +378,8 @@ sub normalize_enums {
 			$cs->{quantifier} = '+';
 		}
 		return;
-	} elsif ($start_defined && $start == 0 && ($enum->{end} // 'bad') eq '') {
+	}
+	elsif ( $start_defined && $start == 0 && ( $enum->{end} // 'bad' ) eq '' ) {
 		if ($is_grouped) {
 			$cs->{grouped_step}{quantifier} = '*';
 		}

@@ -690,6 +690,13 @@ attributes.
   a[@b <= 1]
   ...
 
+=head4 matching
+
+  a[@b =~ '(?<!c)d']
+  a[@b !~ '(?<!c)d']
+  a[@b =~ @c]
+  ...
+
 If you wish to test a path instead of an attribute -- to test against the cardinality
 of the node set collected, say -- you can use the C<@echo> attribute. This attribute
 returns the value of its parameter, thus converting anything that can be the parameter
