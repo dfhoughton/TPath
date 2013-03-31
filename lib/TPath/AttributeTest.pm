@@ -137,7 +137,7 @@ sub _s_func {
 		}
 		when ('e') {
 			return sub {
-				my ( $self, $n, $i, $c ) = @_;
+				my ( $self, $n, $i ) = @_;
 				my @c = $v->select( $n, $i );
 				join '', @c;
 			};
