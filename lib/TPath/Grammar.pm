@@ -49,6 +49,7 @@ our %AXES = map { $_ => 1 } qw(
 );
 
 our $path_grammar = do {
+	our $buffer;
 	use Regexp::Grammars;
 	qr{
        <nocontext:>
@@ -110,8 +111,8 @@ our $path_grammar = do {
           | (?<=\A\s{4}.)
     
        <token: specific>
-          ( <.name> )
-          (?{ $MATCH = clean_escapes($^N) })
+          <name>
+          (?{ $MATCH = $MATCH{name} })
           | <error: Expected specific tag name>
     
        <token: pattern>
@@ -120,13 +121,19 @@ our $path_grammar = do {
           | <error:>
     
        <token: aname>
-          @ ( <.name> )
-          (?{ $MATCH = clean_escapes($^N ) })
+          @ <name>
+          (?{ $MATCH = $MATCH{name} })
           | <error: expected attribute name>
        
        <token: name>
-          (?>\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+
-    
+          ((?>\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+)  (?{ $MATCH = clean_escapes($^N ) })
+          | (<.qname>) (?{ $MATCH = substr $^N, 2, length($^N) -3 })
+          | <error: expected name>
+       
+       <token: qname> 
+          : (\p{PosixPunct}.+?\p{PosixPunct}) 
+          <require: (?{qname_test($^N)})> 
+     
        <rule: attribute> <aname> <args>? | <error:>
     
        <rule: args> \( <[arg]> (?: , <[arg]> )* \) | <error: Expected attribute arguments>
@@ -765,6 +772,13 @@ sub clean_escapes {
 		}
 	}
 	return $r;
+}
+
+sub qname_test {
+	my $name = shift;
+	my $s = substr $name, 0, 1;
+	my $e = substr $name, length($name) - 1, 1;
+	$s eq $e; 
 }
 
 1;
