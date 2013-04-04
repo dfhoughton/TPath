@@ -48,6 +48,7 @@ our %AXES = map { $_ => 1 } qw(
   sibling-or-self
 );
 
+our $offset       = 0;
 our $path_grammar = do {
 	our $buffer;
 	use Regexp::Grammars;
@@ -55,47 +56,49 @@ our $path_grammar = do {
        <nocontext:>
        <timeout: 10>
     
-    
     ^ <treepath> $
-    
     
        <rule: treepath> <[path]> (?: \| <[path]> )*
     
-       <token: path> (?!@) <[segment]>+ | <error:>
+       <token: path> (?!@) <[segment]>+ (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: segment> <separator>? <step> | <cs> | <error: Expected path step>
+       <token: segment> (?: <separator>? <step> | <cs> ) (?{ $offset = $INDEX if $INDEX > $offset })
        
-       <token: quantifier> [?+*] | <enum>
+       <token: quantifier> (?: [?+*] | <enum> ) (?{ $offset = $INDEX if $INDEX > $offset })
        
        <rule: enum> [{] <start=(\d*+)> (?: , <end=(\d*+)> )? [}]
        
-       <token: grouped_step> \( \s*+ <treepath> \s*+ \) <quantifier>?
+       <token: grouped_step> \( \s*+ <treepath> \s*+ \) <quantifier>? (?{ $offset = $INDEX if $INDEX > $offset })
     
        <token: id>
           :id\( ( (?>[^\)\\]|\\.)++ ) \)
           (?{ $MATCH=clean_escapes($^N) })
-          | <error: Expected id expression>
+          (?{ $offset = $INDEX if $INDEX > $offset })
     
        <token: cs>
+          (?:
           <separator>? <step> <quantifier>
           | <grouped_step>
+          ) (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: separator> \/[\/>]?+ | <error:>
+       <token: separator> \/[\/>]?+ (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: step> <full> <[predicate]>* | <abbreviated> | <error:>
+       <token: step> (?: <full> <[predicate]>* | <abbreviated> ) (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: full> <axis>? <forward>
+       <token: full> <axis>? <forward> (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: axis> (?<!//) (?<!/>) (<%AXES>) ::
+       <token: axis> 
+          (?<!//) (?<!/>) (<%AXES>) ::
           (?{ $MATCH = $^N })
-          | <error:>
+          (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: abbreviated> (?<!/[/>]) (?: \.{1,2}+ | <id> | :root )
+       <token: abbreviated> (?<!/[/>]) (?: \.{1,2}+ | <id> | :root ) (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: forward> <wildcard> | <complement=(\^)>? (?: <specific> | <pattern> | <attribute> )
-           | <error: Expecting selector>
+       <token: forward> 
+           (?: <wildcard> | <complement=(\^)>? (?: <specific> | <pattern> | <attribute> ) )
+           (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: wildcard> \* <.start_of_path> | <error:>
+       <token: wildcard> \* <.start_of_path> (?{ $offset = $INDEX if $INDEX > $offset })
        
        <token: start_of_path> # somewhat lame way to make sure * quantifier isn't misinterpreted as the wildcard character
           (?<=[/:>].)
@@ -113,59 +116,62 @@ our $path_grammar = do {
        <token: specific>
           <name>
           (?{ $MATCH = $MATCH{name} })
-          | <error: Expected specific tag name>
+          (?{ $offset = $INDEX if $INDEX > $offset })
     
        <token: pattern>
           (~(?>[^~]|~~)++~)
           (?{ $MATCH = clean_pattern($^N) })
-          | <error:>
+          (?{ $offset = $INDEX if $INDEX > $offset })
     
        <token: aname>
           @ <name>
           (?{ $MATCH = $MATCH{name} })
-          | <error: expected attribute name>
+          (?{ $offset = $INDEX if $INDEX > $offset })
        
        <token: name>
+          (?:
           ((?>\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+)  (?{ $MATCH = clean_escapes($^N ) })
           | (<.qname>) (?{ $MATCH = clean_escapes( substr $^N, 2, length($^N) -3 ) })
-          | <error: expected name>
+          ) (?{ $offset = $INDEX if $INDEX > $offset })
        
        <token: qname> 
           : (\p{PosixPunct}.+?\p{PosixPunct}) 
-          <require: (?{qname_test($^N)})> 
+          <require: (?{qname_test($^N)})>
+          (?{ $offset = $INDEX if $INDEX > $offset }) 
      
-       <rule: attribute> <aname> <args>? | <error:>
+       <rule: attribute> <aname> <args>? (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <rule: args> \( <[arg]> (?: , <[arg]> )* \) | <error: Expected attribute arguments>
+       <rule: args> \( <[arg]> (?: , <[arg]> )* \) (?{ $offset = $INDEX if $INDEX > $offset })
     
        <token: arg>
+          (?:
           <treepath> | <v=literal> | <v=num> | <attribute> | <attribute_test> | <condition>
-          | <error: Expected attribute argument>
+          ) (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: num> <.signed_int> | <.float> | <error:>
+       <token: num> (?: <.signed_int> | <.float> ) (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: signed_int> [+-]?+ <.int>   
+       <token: signed_int> [+-]?+ <.int> (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: float> [+-]?+ <.int>? \.\d++ (?: [Ee][+-]?+ <.int> )?+
+       <token: float> [+-]?+ <.int>? \.\d++ (?: [Ee][+-]?+ <.int> )?+ (?{ $offset = $INDEX if $INDEX > $offset })
     
        <token: literal>
           ((?> <.squote> | <.dquote> ))
           (?{ $MATCH = clean_literal($^N) })
-          | <error:>
+          (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: squote> ' (?>[^'\\]|\\.)*+ '
+       <token: squote> ' (?>[^'\\]|\\.)*+ ' (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: dquote> " (?>[^"\\]|\\.)*+ "   
+       <token: dquote> " (?>[^"\\]|\\.)*+ " (?{ $offset = $INDEX if $INDEX > $offset })
     
        <rule: predicate>
           \[ (*COMMIT) (?: <idx=signed_int> | <condition> ) \]
-          | <error:>
+          (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: int> \b(?:0|[1-9][0-9]*+)\b
+       <token: int> \b(?:0|[1-9][0-9]*+)\b (?{ $offset = $INDEX if $INDEX > $offset })
     
        <rule: condition> 
           <[item=not]>? <[item]> (?: <[item=operator]> <[item=not]>? <[item]> )*
-          | <error: Expecting sequence of boolean operators and operands>
+          (?{ $offset = $INDEX if $INDEX > $offset })
 
        <token: not>
           ( 
@@ -173,37 +179,40 @@ our $path_grammar = do {
              (?: \s*+ (?: ! | (?<=\s) not (?=\s) ) )*+ 
           )
           (?{$MATCH = clean_not($^N)})
-          | <error:>
+          (?{ $offset = $INDEX if $INDEX > $offset })
        
        <token: operator>
           (?: <.or> | <.xor> | <.and> )
           (?{$MATCH = clean_operator($^N)})
-          | <error: Expecting binary boolean operator>
+          (?{ $offset = $INDEX if $INDEX > $offset })
        
        <token: xor>
-          ( ` | (?<=\s) one (?=\s) )
+          ( ` | (?<=\s) one (?=\s) ) (?{ $offset = $INDEX if $INDEX > $offset })
            
        <token: and>
-          ( & | (?<=\s) and (?=\s) )
+          ( & | (?<=\s) and (?=\s) ) (?{ $offset = $INDEX if $INDEX > $offset })
            
        <token: or>
-          ( \|{2} | (?<=\s) or (?=\s) )
+          ( \|{2} | (?<=\s) or (?=\s) ) (?{ $offset = $INDEX if $INDEX > $offset })
     
        <token: term> 
-          <attribute> | <attribute_test> | <treepath>
+          (?: <attribute> | <attribute_test> | <treepath> )
+          (?{ $offset = $INDEX if $INDEX > $offset })
     
        <rule: attribute_test>
-          <[args=attribute]> <cmp> <[args=value]> | <[args=value]> <cmp> <[args=attribute]>
-          | <error:>
+          (?: <[args=attribute]> <cmp> <[args=value]> | <[args=value]> <cmp> <[args=attribute]> )
+          (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: cmp> [<>=]=?+|![=~]|=~ | <error: Expecting comparison operator>
+       <token: cmp> [<>=]=?+|![=~]|=~ (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: value> <v=literal> | <v=num> | <attribute>
+       <token: value> 
+          (?: <v=literal> | <v=num> | <attribute> )
+          (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <rule: group> \( <condition> \) | <error:>
+       <rule: group> \( <condition> \) (?{ $offset = $INDEX if $INDEX > $offset })
     
        <token: item>
-          <term> | <group> | <error: Expected operand in a boolean expression>
+          (?: <term> | <group> ) (?{ $offset = $INDEX if $INDEX > $offset })
     }x;
 };
 
@@ -216,6 +225,7 @@ a stack trace if the expression is unparsable. Otherwise it returns a hashref.
 =cut
 
 sub parse {
+	local $offset = 0;
 	my ($expr) = @_;
 	if ( $expr =~ $path_grammar ) {
 		my $ref = \%/;
@@ -232,9 +242,27 @@ sub parse {
 		return $ref;
 	}
 	else {
-		confess "could not parse '$expr' as a TPath expression:\n" . join "\n",
-		  @!;
+		confess "could not parse '$expr' as a TPath expression; "
+		  . error_message( $expr, $offset );
 	}
+}
+
+# constructs an error message indicating the parsable portion of the expression
+sub error_message {
+	my ( $expr, $offset ) = @_;
+	my $start = $offset - 20;
+	$start = 0 if $start < 0;
+	my $prefix = substr $expr, 0, $offset;
+	my $end = $offset + 20;
+	$end = length $expr if length $expr < $end;
+	my $suffix = substr $expr, $offset, $end - $offset;
+	my $error = 'matching failed at position marked by <HERE>: ';
+	$error .= '...'   if $start > 0;
+	$error .= $prefix if $prefix;
+	$error .= '<HERE>';
+	$error .= $suffix if $suffix;
+	$error .= '...'   if $end < length $expr;
+	return $error;
 }
 
 # require a separator before all non-initial steps
@@ -776,18 +804,18 @@ sub clean_escapes {
 
 sub qname_test {
 	my $name = shift;
-	my $s = substr $name, 0, 1;
-	my $end = length($name) - 1;
-	my $e = substr $name, $end, 1;
-	if ($s eq $e) {
+	my $s    = substr $name, 0, 1;
+	my $end  = length($name) - 1;
+	my $e    = substr $name, $end, 1;
+	if ( $s eq $e ) {
 		my $escaped;
-		for my $i (1 .. $end - 1) {
+		for my $i ( 1 .. $end - 1 ) {
 			if ($escaped) {
 				$escaped = 0;
 				next;
 			}
 			$s = substr $name, $i, 1;
-			if ($s eq '\\') {
+			if ( $s eq '\\' ) {
 				$escaped = 1;
 				next;
 			}
