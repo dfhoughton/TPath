@@ -103,7 +103,7 @@ our $path_grammar = do {
           | (?<=\(\s.)
           | (?<=\(\s{2}.)
           | (?<=\(\s{3}.)
-          | (?<=\(\s{4}.) # if the user puts more than 4 whitespace characters between ( and *, it will be mis-parsed
+          | (?<=\(\s{4}.) # if the user puts more than 4 whitespace characters between ) and *, it will be mis-parsed
           | (?<=\A.)
           | (?<=\A\s.)
           | (?<=\A\s{2}.)
@@ -127,7 +127,7 @@ our $path_grammar = do {
        
        <token: name>
           ((?>\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+)  (?{ $MATCH = clean_escapes($^N ) })
-          | (<.qname>) (?{ $MATCH = substr $^N, 2, length($^N) -3 })
+          | (<.qname>) (?{ $MATCH = clean_escapes( substr $^N, 2, length($^N) -3 ) })
           | <error: expected name>
        
        <token: qname> 
@@ -777,8 +777,25 @@ sub clean_escapes {
 sub qname_test {
 	my $name = shift;
 	my $s = substr $name, 0, 1;
-	my $e = substr $name, length($name) - 1, 1;
-	$s eq $e; 
+	my $end = length($name) - 1;
+	my $e = substr $name, $end, 1;
+	if ($s eq $e) {
+		my $escaped;
+		for my $i (1 .. $end - 1) {
+			if ($escaped) {
+				$escaped = 0;
+				next;
+			}
+			$s = substr $name, $i, 1;
+			if ($s eq '\\') {
+				$escaped = 1;
+				next;
+			}
+			return if $s eq $e;
+		}
+		return $escaped ? 0 : 1;
+	}
+	return;
 }
 
 1;

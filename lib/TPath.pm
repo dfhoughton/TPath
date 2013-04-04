@@ -905,6 +905,133 @@ This is verbose, but then this is not likely to be a common requirement.
 The TPath semantics facilitate the implementation of repetition, which is absent from
 XPath.
 
+=head2 Grammar
+
+    ^ <treepath> $
+    
+    
+       <rule: treepath> <[path]> ( \| <[path]> )*
+    
+       <token: path> (?!@) <segment>+
+    
+       <token: segment> <separator>? <step> | <cs>
+       
+       <token: quantifier> [?+*] | <enum>
+       
+       <rule: enum> [{] \d*+ ( , \d*+ )? [}]
+       
+       <token: grouped_step> \( \s*+ <treepath> \s*+ \) <quantifier>?
+    
+       <token: id>
+          :id\( ( (?>[^\)\\]|\\.)++ ) \)
+    
+       <token: cs>
+          <separator>? <step> <quantifier>
+          | <grouped_step>
+    
+       <token: separator> \/[\/>]?+
+    
+       <token: step> <full> <[predicate]>* | <abbreviated>
+           
+       <token: full> <axis>? <forward>
+    
+       <token: axis> (?<!//) (?<!/>) (<%AXES>) ::
+    
+       <token: abbreviated> (?<!/[/>]) ( \.{1,2}+ | <id> | :root )
+    
+       <token: forward> <wildcard> | ^? ( <specific> | <pattern> | <attribute> )
+    
+       <token: wildcard> \* <start_of_path>
+       
+       <token: start_of_path> # somewhat lame way to make sure * quantifier isn't misinterpreted as the wildcard character
+          (?<=[/:>].)
+          | (?<=\(.)
+          | (?<=\(\s.)
+          | (?<=\(\s{2}.)
+          | (?<=\(\s{3}.)
+          | (?<=\(\s{4}.) # if the user puts more than 4 whitespace characters between ) and *, it will be mis-parsed
+          | (?<=\A.)
+          | (?<=\A\s.)
+          | (?<=\A\s{2}.)
+          | (?<=\A\s{3}.)
+          | (?<=\A\s{4}.)
+    
+       <token: specific>
+          <name>
+    
+       <token: pattern>
+          (~(?>[^~]|~~)++~)
+    
+       <token: aname>
+          @ <name>
+       
+       <token: name>
+          (\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+
+          | <qname>
+       
+       <token: qname> 
+          : (\p{PosixPunct}.+?\p{PosixPunct}) 
+          <require: (?{qname_test($^N)})> 
+     
+       <rule: attribute> <aname> <args>?
+    
+       <rule: args> \( <arg> ( , <arg> )* \)
+    
+       <token: arg>
+          <treepath> | <literal> | <num> | <attribute> | <attribute_test> | <condition>
+    
+       <token: num> <signed_int> | <float>
+    
+       <token: signed_int> [+-]?+ <int>   
+    
+       <token: float> [+-]?+ <int>? \.\d++ ( [Ee][+-]?+ <int> )?+
+    
+       <token: literal>
+          <squote> | <dquote>
+    
+       <token: squote> ' ([^'\\]|\\.)*+ '
+    
+       <token: dquote> " ([^"\\]|\\.)*+ "   
+    
+       <rule: predicate>
+          \[ ( <signed_int> | <condition> ) \]
+    
+       <token: int> \b(?:0|[1-9][0-9]*+)\b
+    
+       <rule: condition> 
+          <not>? <item> ( <operator> <not>? <item> )*
+
+       <token: not>
+             ( ! | (?<=[\s\[(]) not (?=\s) ) 
+             ( \s*+ (?: ! | (?<=\s) not (?=\s) ) )*+ 
+       
+       <token: operator>
+          ( <or> | <xor> | <and> )
+       
+       <token: xor>
+          ( ` | (?<=\s) one (?=\s) )
+           
+       <token: and>
+          ( & | (?<=\s) and (?=\s) )
+           
+       <token: or>
+          ( \|{2} | (?<=\s) or (?=\s) )
+    
+       <token: term> 
+          <attribute> | <attribute_test> | <treepath>
+    
+       <rule: attribute_test>
+          <attribute> <cmp> <value> | <value> <cmp> <attribute>
+    
+       <token: cmp> [<>=]=?+|![=~]|=~
+    
+       <token: value> <literal> | <num> | <attribute>
+    
+       <rule: group> \( <condition> \)
+    
+       <token: item>
+          <term> | <group>
+
 =head1 HISTORY
 
 I wrote TPath initially in Java (L<http://dfhoughton.org/treepath/>) because I wanted a more 

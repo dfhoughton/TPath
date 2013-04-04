@@ -39,6 +39,14 @@ ancestor-or-self::a
 leaf::a
 :root/a
 :root//a
+:,a:a,
+::a,a:
+:"a a"
+:'a a'
+//@:,a:a,
+//@::a,a:
+//@:"a a"
+//@:'a a'
 ^a
 /^a
 //^a
@@ -111,6 +119,12 @@ END
 
 # pairs of expressions that should have the same ASTs
 my @equivalent = make_paths(<<'END');
+::a:
+a
+
+//@::a:
+//@a
+
 a[b]
 a[(b)]
 
@@ -197,6 +211,10 @@ separator
 />
 
 a[@\'b]
+aname
+'b
+
+a[@:,'b,]
 aname
 'b
 
