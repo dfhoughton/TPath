@@ -280,6 +280,12 @@ backslash. Any unexpected character must be escaped. So
 
 represents the literal C<a\b>.
 
+There is also a quoting convention that one can use to avoid many escapes inside a tag name.
+
+  /:"a tag name you otherwise would have to put a lot of escapes in"
+
+See the Grammar section below for details.
+
 =head3 ~a~ regex
 
 =over 2
@@ -299,7 +305,7 @@ Any attribute may be used as a selector so long as it is preceded by something o
 the null separator -- in other words, C<@> cannot be the first character in a path. This is because 
 attributes may take arguments and among other things these arguments can be both expressions and 
 other attributes. If C<@foo> were a legitimate path expression it would be ambiguous how to compile 
-C<@bar(@foo)>. Is the argument an attribute or a path with an attribute selector. You can produce
+C<@bar(@foo)>. Is the argument an attribute or a path with an attribute selector? You can produce
 the effect of an attribute selector with the null separator, however, in two ways
 
 =over 2
@@ -312,6 +318,9 @@ the effect of an attribute selector with the null separator, however, in two way
 
 the second of these will be normalized in parsing to precisely what one would expect with a C<@foo>
 path.
+
+The attribute naming conventions are the same as those of tags with the exception that attributes are
+always preceded by C<@>.
 
 =head3 complement selectors
 
@@ -907,8 +916,11 @@ XPath.
 
 =head2 Grammar
 
+The following is a BNf-style grammar of the TPath expression language. It is the actual parsing code,
+in the L<Regexp::Grammars> formalism, used to parse expressions minus the bits that improve efficiency
+and adjust the construction of the abstract syntax tree produced by the parser.
+
     ^ <treepath> $
-    
     
        <rule: treepath> <[path]> ( \| <[path]> )*
     
@@ -1031,6 +1043,39 @@ XPath.
     
        <token: item>
           <term> | <group>
+
+The crucial part, most likely, is the definition of the <name> rule which governs what you can put in
+tags and attribute names without escaping. The rule, copied from above, is
+
+          (\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+
+          | <qname>
+
+This means a tag or attribute name begins with a letter, the dollar sign, or an underscore, and is followed by
+these characters or numbers, or dashes, dots, or colons followed by these characters. And at any time one can
+violate this basic rule by escaping a character that would put one in violation with the backslash character, which
+thus cannot itself appear except when escaped.
+
+Alternatively, one can "quote" the entire expression following the C<qname> convention:
+
+          : (\p{PosixPunct}.+?\p{PosixPunct}) 
+          <require: (?{qname_test($^N)})> 
+
+A quoted name begins with a colon followed by some delimiter character, which must be a POSIX punctuation mark. These
+are the symbols
+
+  [!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]
+
+B<Note that brackets are not expected to be balanced!> The entire delimited name is bracketed by a pair of these delimiter
+characters. Within these delimiters any characters may occur. The delimiters themselves, and \, may occur if they are
+escaped in the usual way. Since the C<qname> convention commits you to 3 extra-name characters before any escapes, it
+is generally not advisable unless you otherwise would have to escape more than 3 characters or you feel that whatever
+escaping you would have to do would mar legibility. Double and single quotes make particularly legible C<qname> delimiters
+if it comes to that. Compare
+
+  /home/bob//file\ name\ with\ spaces
+  /home/bob//:"file name with spaces"
+
+One uses the same number of characters in each case but the second is clearly easier on the eye.
 
 =head1 HISTORY
 
