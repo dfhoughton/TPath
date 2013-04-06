@@ -1,6 +1,11 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * added /a/"foo bar" and /a/@"foo bar" style name quoting
+  * qname quoting now requires balancing of brackets -- :{foo bar} instead of
+    :{foo bar{
+  * changed exists-one operator from ` to ; to improve readability
+  * improved documentation
 
 0.011     2013-04-04 20:06:57 America/New_York
   * added :'quote' style quoting
