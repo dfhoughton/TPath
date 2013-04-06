@@ -108,10 +108,10 @@ $i = natatime 2, grep /\S/, <<'END' =~ /.*/mg;
 /*[@log(@false one @false one @true)]
 1
 
-/*[@log(@false`@false`@true)]
+/*[@log(@false;@false;@true)]
 1
 
-/*[@log(@false ` @false ` @true)]
+/*[@log(@false ; @false ; @true)]
 1
 
 /*[@log(not @true)]

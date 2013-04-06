@@ -83,8 +83,8 @@ leaf::a
 /a[@test > 1]
 /a[! a]
 /a[(a)]
-/a[a`b]
-/a[a ` b]
+/a[a;b]
+/a[a ; b]
 /a[a&b]
 /a[a||b]
 /a[0][@test]
@@ -97,6 +97,14 @@ leaf::a
 a[@b =~ 'c']
 a[@b !~ 'c']
 a{0,}
+:(a)
+:{a}
+:[a]
+:<a>
+:/a/
+:,a,
+/a/"a"
+/a/'a'
 END
 
 # a bunch of expressions not licensed by the spec
@@ -115,6 +123,7 @@ a{0}
 a{,}
 a{,0}
 a{2,1}
+a:(a(
 END
 
 # pairs of expressions that should have the same ASTs
@@ -127,6 +136,24 @@ a
 
 ::a\:a:
 a\:a
+
+/a/'a'
+/a/a
+
+/a/"a"
+/a/a
+
+:(a)
+a
+
+:<a>
+a
+
+:{a}
+a
+
+:[a]
+a
 
 a[b]
 a[(b)]

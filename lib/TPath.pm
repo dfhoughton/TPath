@@ -736,11 +736,11 @@ True iff any of the conjoined operands is true.
 Note that boolean or is two pipe characters. This is to disambiguate the path expression
 C<a|b> from the boolean expression C<a||b>.
 
-=item C<`> or C<one>
+=item C<;> or C<one>
 
 True B<if one and only one of the conjoined operands is true>. The expression
 
-  @a ` @b
+  @a ; @b
 
 behaves like ordinary exclusive or. But if more than two operands are conjoined
 this way, the entire expression is a uniqueness test.
@@ -753,7 +753,7 @@ Groups the contained boolean operations. True iff they evaluate to true.
 
 The normal precedence rules of logical operators applies to these:
 
-  () < ! < & < ` < ||
+  () < ! < & < ; < ||
 
 Space is required around operators only where necessary to prevent their being
 interpreted as part of a path or attribute.
@@ -924,7 +924,7 @@ and adjust the construction of the abstract syntax tree produced by the parser.
     
        <rule: treepath> <[path]> ( \| <[path]> )*
     
-       <token: path> (?!@) <segment>+
+       <token: path> (?![\@"']) <segment>+
     
        <token: segment> <separator>? <step> | <cs>
        
@@ -979,6 +979,7 @@ and adjust the construction of the abstract syntax tree produced by the parser.
        
        <token: name>
           (\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+
+          | <literal>
           | <qname>
        
        <token: qname> 
@@ -1021,7 +1022,7 @@ and adjust the construction of the abstract syntax tree produced by the parser.
           ( <or> | <xor> | <and> )
        
        <token: xor>
-          ( ` | (?<=\s) one (?=\s) )
+          ( ; | (?<=\s) one (?=\s) )
            
        <token: and>
           ( & | (?<=\s) and (?=\s) )
@@ -1055,7 +1056,11 @@ these characters or numbers, or dashes, dots, or colons followed by these charac
 violate this basic rule by escaping a character that would put one in violation with the backslash character, which
 thus cannot itself appear except when escaped.
 
-Alternatively, one can "quote" the entire expression following the C<qname> convention:
+One can also use a quoted expression, with either single or double quotes. The usual escaping convention holds, so
+"a\"a" would represent two a's with a " between them. However neither single nor double quotes may begin a path as
+this would make certain expressions ambiguous -- is C<a[@b = 'c']> comparing C<@b> to a path or a literal?
+
+Finally, one can "quote" the entire expression following the C<qname> convention:
 
           : (\p{PosixPunct}.+?\p{PosixPunct}) 
           <require: (?{qname_test($^N)})> 
@@ -1063,19 +1068,51 @@ Alternatively, one can "quote" the entire expression following the C<qname> conv
 A quoted name begins with a colon followed by some delimiter character, which must be a POSIX punctuation mark. These
 are the symbols
 
-  [!"#$%&'()*+,\-./:;<=>?@[\\\]^_`{|}~]
+  <>[](){}\/!"#$%&'*+,-.:;=?@^_`|~
 
-B<Note that brackets are not expected to be balanced!> The entire delimited name is bracketed by a pair of these delimiter
-characters. Within these delimiters any characters may occur. The delimiters themselves, and \, may occur if they are
-escaped in the usual way. Since the C<qname> convention commits you to 3 extra-name characters before any escapes, it
+If the character after the colon is the first of one of the bracket pairs, the trailing delimiter must be the other member of
+the pair, so
+
+  :<a>
+  :[a]
+  :(a)
+  :{a}
+
+are correct but
+
+  :<a<
+
+and so forth are bad. However,
+
+  :>a>
+  :]a]
+  :)a)
+  :}a}
+
+are all fine, as are
+
+  :;a;
+  ::a:
+  :-a-
+
+and so forth. The C<qname> convention is a solution where you want to avoid the unreadability of escapes but have to do
+this at the beginning of a path or your tag name contains both sorts of ordinary quote characters. And again one may use
+the backslash to escape characters within the expression. If you use the backslash itself as the delimiter, you do not need
+to escape it.
+
+  :\a\    # good!
+  :\a\\a\ # also good! equivalent to a\\a
+
+Since the C<qname> convention commits you to 3 extra-name characters before any escapes, it
 is generally not advisable unless you otherwise would have to escape more than 3 characters or you feel that whatever
 escaping you would have to do would mar legibility. Double and single quotes make particularly legible C<qname> delimiters
 if it comes to that. Compare
 
-  /home/bob//file\ name\ with\ spaces
-  /home/bob//:"file name with spaces"
+  file\ name\ with\ spaces
+  :"file name with spaces"
 
-One uses the same number of characters in each case but the second is clearly easier on the eye.
+One uses the same number of characters in each case but the second is clearly easier on the eye. In this case the colon
+is necessary because " cannot begin a path expression.
 
 =head1 HISTORY
 
