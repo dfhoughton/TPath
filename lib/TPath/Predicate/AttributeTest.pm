@@ -29,7 +29,11 @@ has at => ( is => 'ro', isa => 'TPath::AttributeTest', required => 1 );
 
 sub filter {
     my ( $self, $i, $c ) = @_;
-    return grep { $self->at->test($_, $i, $c) } @$c;
+    return grep { $self->at->test( $_, $i, $c ) } @$c;
+}
+
+sub to_string {
+    $_[0]->at->to_string;
 }
 
 __PACKAGE__->meta->make_immutable;

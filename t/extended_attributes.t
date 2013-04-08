@@ -155,9 +155,9 @@ my $path = q{//*[@log(@u:millis)]};
 trap { $f->path($path)->select($p) };
 ok $trap->stderr =~ /^\d++$/, '@u:millis gave some number of milliseconds';
 
-$p = parse q{<a><b/><b foo='bar' /></a>};
+$p    = parse q{<a><b/><b foo='bar' /></a>};
 $path = q{//b[@u:def(@attr('foo'))]};
-my @c    = $f->path($path)->select($p);
+my @c = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
 
 done_testing();

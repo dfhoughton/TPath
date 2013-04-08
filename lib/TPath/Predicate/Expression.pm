@@ -33,6 +33,10 @@ sub filter {
     return grep { $self->e->test( $_, $i, $c ) } @$c;
 }
 
+sub to_string {
+    $_[0]->e->to_string;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

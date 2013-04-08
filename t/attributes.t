@@ -3,7 +3,6 @@
 use strict;
 use warnings;
 use File::Basename qw(dirname);
-
 BEGIN {
     push @INC, dirname($0);
 }

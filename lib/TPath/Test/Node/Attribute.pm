@@ -1,6 +1,6 @@
 package TPath::Test::Node::Attribute;
 
-# ABSTRACT: L<TPath::Test::Node> implementing matching; e.g., C<//~foo~>
+# ABSTRACT: L<TPath::Test::Node> implementing attributes; e.g., C<//@foo>
 
 use Moose;
 use namespace::autoclean;
@@ -26,6 +26,8 @@ sub passes {
     my ( $self, $n, $i ) = @_;
     return $self->a->test( $n, $i, [] ) ? 1 : undef;
 }
+
+sub to_string { $_[0]->a->to_string }
 
 __PACKAGE__->meta->make_immutable;
 

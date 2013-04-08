@@ -1,11 +1,11 @@
-# runs through some basic expressions
+# makes sure stringification of an expression is semantically identical to the original
 
 use strict;
 use warnings;
 use File::Basename qw(dirname);
 
 BEGIN {
-	push @INC, dirname($0);
+    push @INC, dirname($0);
 }
 
 use Test::More;
@@ -57,9 +57,9 @@ EOF
 plan tests => @paths * 3;
 
 for my $path (@paths) {
-	my ($p1, $p2);
-	lives_ok { $p1 = $f->path($path) };
-	lives_ok { $p2 = $f->path("$p1") };
-	is_deeply $p1, $p2;
+    my ( $p1, $p2 );
+    lives_ok { $p1 = $f->path($path) };
+    lives_ok { $p2 = $f->path("$p1") };
+    is_deeply $p1, $p2;
 }
 done_testing();

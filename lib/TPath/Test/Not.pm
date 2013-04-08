@@ -34,6 +34,11 @@ sub test {
     return $self->t->test( $n, $i, $c ) ? 0 : 1;
 }
 
+sub to_string {
+    my $self = shift;
+    return '!' . $self->t->to_string;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

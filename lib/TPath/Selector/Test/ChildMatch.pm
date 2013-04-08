@@ -21,6 +21,14 @@ sub BUILD {
     $self->_node_test( TPath::Test::Node::Match->new( rx => $self->rx ) );
 }
 
+sub to_string {
+    my ( $self, $first ) = @_;
+    my $s = $first ? '' : '/';
+    $s .= '^' if $self->is_inverted;
+    $s .= $self->_stringify_match( $self->rx );
+    return $s;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

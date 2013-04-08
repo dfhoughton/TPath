@@ -21,6 +21,14 @@ sub BUILD {
     $self->_node_test( TPath::Test::Node::Tag->new( tag => $self->tag ) );
 }
 
+sub to_string {
+    my ( $self, $first ) = @_;
+    my $s = $first ? '' : '/';
+    $s .= '^' if $self->is_inverted;
+    $s .= $self->_stringify_label( $self->tag, $first );
+    return $s;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

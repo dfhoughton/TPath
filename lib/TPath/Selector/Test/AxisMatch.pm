@@ -17,8 +17,17 @@ with 'TPath::Selector::Test';
 has rx => ( is => 'ro', isa => 'RegexpRef', required => 1 );
 
 sub BUILD {
-	my $self = shift;
-	$self->_node_test( TPath::Test::Node::Match->new( rx => $self->rx ) );
+    my $self = shift;
+    $self->_node_test( TPath::Test::Node::Match->new( rx => $self->rx ) );
+}
+
+sub to_string {
+    my ( $self, $first ) = @_;
+    my $s = $first ? '' : '/';
+    $s .= $self->axis . '::';
+    $s .= '^' if $self->is_inverted;
+    $s .= $self->_stringify_match( $self->rx );
+    return $s;
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -12,6 +12,14 @@ the C<foo> portion of this expression.
 
 use Moose::Role;
 
+=head1 ROLES
+
+L<TPath::Stringifiable>
+
+=cut
+
+with 'TPath::Stringifiable';
+
 =head1 REQUIRED METHODS
 
 =head2 test

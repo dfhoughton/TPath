@@ -22,6 +22,14 @@ sub BUILD {
     $self->_node_test( TPath::Test::Node::Attribute->new( a => $self->a ) );
 }
 
+sub to_string {
+    my ( $self, $first ) = @_;
+    my $s = $first ? '' : '/';
+    $s .= '^' if $self->is_inverted;
+    $s .= $self->a->to_string;
+    return $s;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

@@ -22,6 +22,11 @@ sub select {
     $n // ();
 }
 
+sub to_string {
+    my $self = shift;
+    return ':id(' . $self->_escape( $self->id, ')' ) . ')';
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

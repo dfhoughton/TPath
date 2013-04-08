@@ -25,10 +25,13 @@ The index of the item selected.
 =cut
 
 has idx => ( is => 'ro', isa => 'Int', required => 1 );
-
 sub filter {
     my ( $self, undef, $c ) = @_;
     return $c->[ $self->idx ];
+}
+
+sub to_string {
+    $_[0]->idx;
 }
 
 __PACKAGE__->meta->make_immutable;

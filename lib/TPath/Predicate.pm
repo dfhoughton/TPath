@@ -4,6 +4,14 @@ package TPath::Predicate;
 
 use Moose::Role;
 
+=head1 ROLES
+
+L<TPath::Stringifiable>
+
+=cut
+
+with 'TPath::Stringifiable';
+
 =method filter
 
 Takes an index and  a collection of nodes and returns the collection of nodes

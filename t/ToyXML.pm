@@ -83,7 +83,7 @@ sub deconstruct {
     for my $child ( @{ $ref->{children} } ) {
         push @{ $e->children }, deconstruct( $child, $e );
     }
-	return $e;
+    return $e;
 }
 
 # convert string into XML tree

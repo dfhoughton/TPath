@@ -18,6 +18,7 @@ sub select {
     my ( $self, $n, $i ) = @_;
     return $n == $i->root ? () : $i->f->parent( $n, $i );
 }
+sub to_string { '..' }
 
 __PACKAGE__->meta->make_immutable;
 

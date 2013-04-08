@@ -1,6 +1,6 @@
 package TPath::Selector::Test::Root;
 
-# ABSTRACT: handles C<root()>
+# ABSTRACT: handles C<:root>
 
 use Moose;
 use namespace::autoclean;
@@ -23,6 +23,8 @@ sub candidates {
     my ( $self, undef, $i ) = @_;
     return $i->root;
 }
+
+sub to_string { ':root' }
 
 __PACKAGE__->meta->make_immutable;
 

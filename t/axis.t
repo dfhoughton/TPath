@@ -1,4 +1,4 @@
-# checks whether attributes are working as expected
+# do axes work to spec?
 
 use strict;
 use warnings;

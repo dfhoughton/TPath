@@ -54,38 +54,73 @@ The smallest number of iterations permitted. Used only by the C<{x,y}> quantifie
 
 has bottom => ( is => 'ro', isa => 'Int', default => 0 );
 
+sub to_string {
+    my ( $self, $first ) = @_;
+    my $bracket = $self->s->isa('TPath::Selector::Expression');
+    for ( $self->quantifier ) {
+        when ('e') {
+            my $q;
+            if ( $self->top == $self->bottom ) {
+                $q = '{' . $self->top . '}';
+            }
+            elsif ( $self->bottom == 0 ) {
+                $q = '{,' . $self->top . '}';
+            }
+            elsif ( $self->top == 0 ) {
+                $q = '{' . $self->bottom . ',}';
+            }
+            else {
+                $q = '{' . $self->bottom . ',' . $self->top . '}';
+            }
+            return '(' . $self->s->to_string($first) . ")$q" if $bracket;
+            return $self->s->to_string($first) . $q;
+        }
+        when ('?') {
+            return '(' . $self->s->to_string($first) . ')?' if $bracket;
+            return $self->s->to_string($first) . '?';
+        }
+        when ('+') {
+            return '(' . $self->s->to_string($first) . ')+' if $bracket;
+            return $self->s->to_string($first) . '+';
+        }
+        when ('*') {
+            return '(' . $self->s->to_string($first) . ')*' if $bracket;
+            return $self->s->to_string($first) . '*';
+        }
+    }
+}
+
 sub select {
-	my ( $self, $n, $i, $first ) = @_;
-	my @c = $self->s->select( $n, $i, $first );
-	for ( $self->quantifier ) {
-		when ('?') { return @c, $n }
-		when ('*') { return @{ _iterate( $self->s, $i, \@c ) }, $n }
-		when ('+') { return @{ _iterate( $self->s, $i, \@c ) } }
-		when ('e') {
-			my ( $s, $top, $bottom ) =
-			  ( $self->s, $self->top, $self->bottom );
-			my $c = _enum_iterate( $s, $i, \@c, $top, $bottom, 1 );
-			return @$c, $self->bottom < 2 ? $n : ();
-		}
-	}
+    my ( $self, $n, $i, $first ) = @_;
+    my @c = $self->s->select( $n, $i, $first );
+    for ( $self->quantifier ) {
+        when ('?') { return @c, $n }
+        when ('*') { return @{ _iterate( $self->s, $i, \@c ) }, $n }
+        when ('+') { return @{ _iterate( $self->s, $i, \@c ) } }
+        when ('e') {
+            my ( $s, $top, $bottom ) = ( $self->s, $self->top, $self->bottom );
+            my $c = _enum_iterate( $s, $i, \@c, $top, $bottom, 1 );
+            return @$c, $self->bottom < 2 ? $n : ();
+        }
+    }
 }
 
 sub _enum_iterate {
-	my ( $s, $i, $c, $top, $bottom, $count ) = @_;
-	my @next = map { $s->select( $_, $i ) } @$c;
-	my @return = $count++ >= $bottom ? @$c : ();
-	unshift @return, @next
-	  if $count >= $bottom && ( !$top || $count <= $top );
-	unshift @return, @{ _iterate( $s, $i, \@next, $top, $bottom, $count ) }
-	  if !$top || $count < $top;
-	return \@return;
+    my ( $s, $i, $c, $top, $bottom, $count ) = @_;
+    my @next = map { $s->select( $_, $i ) } @$c;
+    my @return = $count++ >= $bottom ? @$c : ();
+    unshift @return, @next
+      if $count >= $bottom && ( !$top || $count <= $top );
+    unshift @return, @{ _iterate( $s, $i, \@next, $top, $bottom, $count ) }
+      if !$top || $count < $top;
+    return \@return;
 }
 
 sub _iterate {
-	my ( $s, $i, $c ) = @_;
-	return [] unless @$c;
-	my @next = map { $s->select( $_, $i ) } @$c;
-	return [ @{ _iterate( $s, $i, \@next ) }, @$c ];
+    my ( $s, $i, $c ) = @_;
+    return [] unless @$c;
+    my @next = map { $s->select( $_, $i ) } @$c;
+    return [ @{ _iterate( $s, $i, \@next ) }, @$c ];
 }
 
 __PACKAGE__->meta->make_immutable;

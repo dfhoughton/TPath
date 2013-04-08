@@ -8,17 +8,17 @@ For use in compiled TPath expressions. Not for external consumption.
 
 =cut
 
-use feature qw(switch);
+use v5.10;
 use Moose;
 use namespace::autoclean;
 
 =head1 ROLES
 
-L<TPath::Test>
+L<TPath::Test>, L<TPath::Stringifiable>
 
 =cut
 
-with 'TPath::Test';
+with qw(TPath::Test TPath::Stringifiable);
 
 =attr name
 
@@ -82,6 +82,20 @@ sub apply {
 sub test {
     my ( $self, $n, $i, $c ) = @_;
     defined $self->apply( $n, $i, $c );
+}
+
+sub to_string {
+    my $self = shift;
+    my $s    = '@' . $self->_stringify_label( $self->name );
+    my @args = @{ $self->args };
+    if (@args) {
+        $s .= '(' . $self->_stringify( $args[0] );
+        for my $arg ( @args[ 1 .. $#args ] ) {
+            $s .= ', ' . $self->_stringify($arg);
+        }
+        $s .= ')';
+    }
+    return $s;
 }
 
 __PACKAGE__->meta->make_immutable;

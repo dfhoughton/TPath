@@ -28,6 +28,11 @@ sub candidates {
     return $i->f->closest( $n, $self->node_test, $i, !$first );
 }
 
+sub to_string {
+    my $self = shift;
+    return '/>' . ( $self->is_inverted ? '^' : '' ) . $self->a->to_string;
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

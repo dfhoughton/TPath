@@ -50,9 +50,9 @@ our %AXES = map { $_ => 1 } qw(
 
 our $offset       = 0;
 our $path_grammar = do {
-	our $buffer;
-	use Regexp::Grammars;
-	qr{
+    our $buffer;
+    use Regexp::Grammars;
+    qr{
        <nocontext:>
        <timeout: 10>
     

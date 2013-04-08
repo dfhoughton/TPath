@@ -32,6 +32,11 @@ sub test {
     return $count;
 }
 
+sub to_string {
+    my $self = shift;
+    return $self->_compound_to_string(';');
+}
+
 __PACKAGE__->meta->make_immutable;
 
 1;

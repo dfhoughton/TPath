@@ -18,9 +18,18 @@ with 'TPath::Selector::Test';
 has a => ( is => 'ro', isa => 'TPath::Attribute', required => 1 );
 
 sub BUILD {
-	my $self = shift;
-	my $nt = TPath::Test::Node::Attribute->new( a => $self->a );
-	$self->_node_test($nt);
+    my $self = shift;
+    my $nt = TPath::Test::Node::Attribute->new( a => $self->a );
+    $self->_node_test($nt);
+}
+
+sub to_string {
+    my ( $self, $first ) = @_;
+    my $s = $first ? '' : '/';
+    $s .= $self->axis . '::';
+    $s .= '^' if $self->is_inverted;
+    $s .= $self->a->to_string;
+    return $s;
 }
 
 __PACKAGE__->meta->make_immutable;

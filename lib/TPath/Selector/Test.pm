@@ -29,10 +29,10 @@ by this selector.
 =cut
 
 has predicates => (
-	is         => 'ro',
-	isa        => 'ArrayRef[TPath::Predicate]',
-	default    => sub { [] },
-	auto_deref => 1
+    is         => 'ro',
+    isa        => 'ArrayRef[TPath::Predicate]',
+    default    => sub { [] },
+    auto_deref => 1
 );
 
 =attr axis
@@ -41,7 +41,8 @@ The axis on which nodes are sought; C<child> by default.
 
 =cut
 
-has axis => ( is => 'ro', isa => 'Axis', writer => '_axis', default => 'child' );
+has axis =>
+  ( is => 'ro', isa => 'Axis', writer => '_axis', default => 'child' );
 
 =attr first_sensitive
 
@@ -54,12 +55,39 @@ has first_sensitive => ( is => 'ro', isa => 'Bool', default => 0 );
 
 # axis translated into a forester method name
 has faxis => (
-	is   => 'ro',
-	isa  => 'Str',
-	lazy => 1,
-	default =>
-	  sub { my $self = shift; ( my $v = $self->axis ) =~ tr/-/_/; "axis_$v" }
+    is   => 'ro',
+    isa  => 'Str',
+    lazy => 1,
+    default =>
+      sub { my $self = shift; ( my $v = $self->axis ) =~ tr/-/_/; "axis_$v" }
 );
+
+=attr is_inverted
+
+Whether the test corresponds to a complement selector.
+
+=cut
+
+has is_inverted =>
+  ( is => 'ro', isa => 'Bool', default => 0, writer => '_mark_inverted' );
+
+around 'to_string' => sub {
+    my ( $orig, $self, @args ) = @_;
+    my $s = $self->$orig(@args);
+    for my $p ( @{ $self->predicates } ) {
+        $s .= '[' . $p->to_string . ']';
+    }
+    return $s;
+};
+
+sub _stringify_match {
+    my ( $self, $re ) = @_;
+
+    # chop off the "(?-xism:" prefix and ")" suffix
+    $re = substr $re, 8, length($re) - 9;
+    $re =~ s/~/~~/g;
+    return "~$re~";
+}
 
 =attr node_test
 
@@ -71,9 +99,10 @@ has node_test =>
   ( is => 'ro', isa => 'TPath::Test::Node', writer => '_node_test' );
 
 sub _invert {
-	my $self = shift;
-	$self->_node_test(
-		TPath::Test::Node::Complement->new( nt => $self->node_test ) );
+    my $self = shift;
+    $self->_node_test(
+        TPath::Test::Node::Complement->new( nt => $self->node_test ) );
+    $self->_mark_inverted(1);
 }
 
 =method candidates
@@ -83,31 +112,31 @@ Expects a node and an index and returns nodes selected before filtering by predi
 =cut
 
 sub candidates {
-	my ( $self, $n, $i, $first ) = @_;
-	my $axis = $self->_select_axis($first);
-	$i->f->$axis( $n, $self->node_test, $i );
+    my ( $self, $n, $i, $first ) = @_;
+    my $axis = $self->_select_axis($first);
+    $i->f->$axis( $n, $self->node_test, $i );
 }
 
 sub _select_axis {
-	my ( $self, $first ) = @_;
-	if ( $first && $self->first_sensitive ) {
-		for ( $self->axis ) {
-			when ('child')      { return 'axis_self' }
-			when ('descendant') { return 'axis_descendant_or_self' }
-		}
-	}
-	return $self->faxis;
+    my ( $self, $first ) = @_;
+    if ( $first && $self->first_sensitive ) {
+        for ( $self->axis ) {
+            when ('child')      { return 'axis_self' }
+            when ('descendant') { return 'axis_descendant_or_self' }
+        }
+    }
+    return $self->faxis;
 }
 
 # implements method required by TPath::Selector
 sub select {
-	my ( $self, $n, $i, $first ) = @_;
-	my @candidates = $self->candidates( $n, $i, $first );
-	for my $p ( $self->predicates ) {
-		last unless @candidates;
-		@candidates = $p->filter( $i, \@candidates );
-	}
-	return @candidates;
+    my ( $self, $n, $i, $first ) = @_;
+    my @candidates = $self->candidates( $n, $i, $first );
+    for my $p ( $self->predicates ) {
+        last unless @candidates;
+        @candidates = $p->filter( $i, \@candidates );
+    }
+    return @candidates;
 }
 
 1;

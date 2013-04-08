@@ -31,8 +31,13 @@ The expression within the group.
 has e => ( is => 'ro', isa => 'TPath::Expression', required => 1 );
 
 sub select {
-	my ( $self, $n, $i, $first ) = @_;
-	return @{ $self->e->_select( $n, $i, $first ) };
+    my ( $self, $n, $i, $first ) = @_;
+    return @{ $self->e->_select( $n, $i, $first ) };
+}
+
+sub to_string {
+    my $self = shift;
+    return $self->e->to_string;
 }
 
 __PACKAGE__->meta->make_immutable;

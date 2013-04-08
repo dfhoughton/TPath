@@ -22,9 +22,9 @@ use TPath::Index;
 
 with qw(TPath::Forester MyAttributes);
 
-sub children { my ( $self, $n ) = @_; $n->children }
-sub tag : Attr    { my ( $self, $n ) = @_; $n->tag }
-sub id { my ( $self, $n ) = @_; $n->attribute('id') }
+sub children   { my ( $self, $n ) = @_; $n->children }
+sub tag : Attr { my ( $self, $n ) = @_; $n->tag }
+sub id         { my ( $self, $n ) = @_; $n->attribute('id') }
 
 sub BUILD { $_[0]->_node_type('Element') }
 

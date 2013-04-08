@@ -35,7 +35,6 @@ construct(
     group => 'right',
     expected => [ 1, 0 ],
 );
-
 construct(
     vals  => [ 1, 0, 0 ],
     ops   => [qw(|| &)],

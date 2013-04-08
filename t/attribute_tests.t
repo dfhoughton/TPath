@@ -66,7 +66,7 @@ while ( my ( $xml, $path, $matches, $text ) = $i->() ) {
     is join( '', @c ), $text, "matches stringify as expected";
 }
 
-my $p = parse '<a/>';
+my $p     = parse '<a/>';
 my $index = $f->index($p);
 $i = natatime 2, grep /\S/, <<'END' =~ /.*/mg;
 /*[@log(@true and @true)]
@@ -139,10 +139,10 @@ $i = natatime 2, grep /\S/, <<'END' =~ /.*/mg;
 0
 END
 
-while (my ($path, $value) = $i->()) {
-    trap { $f->path($path)->select($p, $index) };
-    (my $result = $trap->stderr) =~ s/^\s++|\s++$//g;
-    is $result, $value, "evaluated $path correctly"
+while ( my ( $path, $value ) = $i->() ) {
+    trap { $f->path($path)->select( $p, $index ) };
+    ( my $result = $trap->stderr ) =~ s/^\s++|\s++$//g;
+    is $result, $value, "evaluated $path correctly";
 }
 
 done_testing();

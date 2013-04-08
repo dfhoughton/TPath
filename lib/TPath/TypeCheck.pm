@@ -27,7 +27,7 @@ C<TPath::Index::index()> -- so little overhead is incurred.
 
 has node_type =>
   ( isa => 'Maybe[Str]', is => 'ro', writer => '_node_type', default => undef );
-  
+
 =method _typecheck
 
 Expects a node. Confesses if the node is of the wrong type.
