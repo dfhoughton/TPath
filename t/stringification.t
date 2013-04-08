@@ -28,8 +28,10 @@ a[@attr('b') and @attr('c')]
 a[@attr('b') one @attr('c')]
 a[!@attr('b') one @attr('c')]
 a[@attr('b') or @attr('c') and @attr('d')]
+a[(@attr('b') or @attr('c')) and @attr('d')]
 /a/b
 /a//b
+\.a\\
 :"a b"
 /a/"b c"
 /a//"b c"
@@ -49,9 +51,12 @@ a*
 a{,2}
 a{2,}
 a{2}
+a{2,3}
 (a/b){2}
 :root/a
 :id(foo)/a
+.
+..
 EOF
 
 plan tests => @paths * 3;
