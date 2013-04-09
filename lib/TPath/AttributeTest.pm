@@ -12,7 +12,7 @@ This class if for internal consumption only.
 =cut
 
 use v5.10;
-use Scalar::Util qw(looks_like_number);
+use Scalar::Util qw(refaddr looks_like_number);
 use MooseX::SingletonMethod;
 use TPath::TypeConstraints;
 use namespace::autoclean;
@@ -85,10 +85,118 @@ sub BUILD {
         when ('!=') { $func = $self->_c_func( $l, $r, $lr, $ne_s, $ne_n ) }
         when ('=~') { $func = $self->_m_func( $r, 1 ) }
         when ('!~') { $func = $self->_m_func( $r, 0 ) }
+        when ('|=')  { $func = $self->_i_func( $l, $r, 0 ) }
+        when ('=|=') { $func = $self->_i_func( $l, $r, 1 ) }
+        when ('=|')  { $func = $self->_i_func( $l, $r, 2 ) }
     }
 
     # store it
     $self->add_singleton_method( test => $func );
+}
+
+# a bunch of private methods that construct custom test methods based on string indices
+sub _i_func {
+
+    # type of right value; whether the match is positive (=~)
+    my ( $self, $l_type, $r_type, $i_type ) = @_;
+    if ( $r_type =~ /n|s/ ) {
+        my $v      = $self->right;
+        my $s_func = _s_func( $self->left );
+        for ($i_type) {
+            when (0) {
+                return sub {
+                    my ( $self, $n, $i, $c ) = @_;
+                    my $lv = $self->$s_func( $n, $i, $c );
+                    my $index = index $lv, $v;
+                    return $index == 0 ? 1 : undef;
+                };
+            }
+            when (1) {
+                return sub {
+                    my ( $self, $n, $i, $c ) = @_;
+                    my $lv = $self->$s_func( $n, $i, $c );
+                    my $index = index $lv, $v;
+                    return $index > -1 ? 1 : undef;
+                };
+            }
+            when (2) {
+                my $lr = length $v;
+                return sub {
+                    my ( $self, $n, $i, $c ) = @_;
+                    my $lv = $self->$s_func( $n, $i, $c );
+                    my $index = index $lv, $v;
+                    return $index > -1
+                      && $index == length($lv) - $lr ? 1 : undef;
+                };
+            }
+        }
+    }
+    elsif ( $l_type =~ /n|s/ ) {
+        my $v      = $self->left;
+        my $s_func = _s_func( $self->right );
+        for ($i_type) {
+            when (0) {
+                return sub {
+                    my ( $self, $n, $i, $c ) = @_;
+                    my $rv = $self->$s_func( $n, $i, $c );
+                    my $index = index $v, $rv;
+                    return $index == 0 ? 1 : undef;
+                };
+            }
+            when (1) {
+                return sub {
+                    my ( $self, $n, $i, $c ) = @_;
+                    my $rv = $self->$s_func( $n, $i, $c );
+                    my $index = index $v, $rv;
+                    return $index > -1 ? 1 : undef;
+                };
+            }
+            when (2) {
+                my $ll = length $v;
+                return sub {
+                    my ( $self, $n, $i, $c ) = @_;
+                    my $rv = $self->$s_func( $n, $i, $c );
+                    my $index = index $v, $rv;
+                    return $index > -1
+                      && $index == $ll - length($rv) ? 1 : undef;
+                };
+            }
+        }
+    }
+    else {
+        my $ls_func = _s_func( $self->left );
+        my $rs_func = _s_func( $self->right );
+        for ($i_type) {
+            when (0) {
+                return sub {
+                    my ( $self, $n, $i, $c ) = @_;
+                    my $lv = $self->$ls_func( $n, $i, $c );
+                    my $rv = $self->$rs_func( $n, $i, $c );
+                    my $index = index $lv, $rv;
+                    return $index == 0 ? 1 : undef;
+                };
+            }
+            when (1) {
+                return sub {
+                    my ( $self, $n, $i, $c ) = @_;
+                    my $lv = $self->$ls_func( $n, $i, $c );
+                    my $rv = $self->$rs_func( $n, $i, $c );
+                    my $index = index $lv, $rv;
+                    return $index > -1 ? 1 : undef;
+                };
+            }
+            when (2) {
+                return sub {
+                    my ( $self, $n, $i, $c ) = @_;
+                    my $lv = $self->$ls_func( $n, $i, $c );
+                    my $rv = $self->$rs_func( $n, $i, $c );
+                    my $index = index $lv, $rv;
+                    return $index > -1
+                      && $index == length($lv) - length($rv) ? 1 : undef;
+                };
+            }
+        }
+    }
 }
 
 # a bunch of private methods that construct custom test methods
@@ -651,86 +759,69 @@ sub _se {
     my ( $l, $r ) = map { _type($_) } $v1, $v2;
     my $lr = "$l$r";
     for ($lr) {
-        when ('ss') { return $v1 eq $v2 }
-        when ('nn') { return $v1 == $v2 }
-        when ('nr') { return $v1 == @$v2 }
-        when ('rn') { return @$v1 == $v2 }
-        when ('rr') { return @$v1 == @$v2 }
+        when ('ss') { return $v1 eq $v2  ? 1 : undef }
+        when ('nn') { return $v1 == $v2  ? 1 : undef }
+        when ('nr') { return $v1 == @$v2 ? 1 : undef }
+        when ('rn') { return @$v1 == $v2 ? 1 : undef }
+        when ('rr') {
+            my @a1 = @$v1;
+            my @a2 = @$v2;
+            return undef unless @a1 == @a2;
+            for my $i ( 0 .. $#a1 ) {
+                return undef unless _se( $a1[$i], $a2[$i] );
+            }
+            return 1;
+        }
+        when ('hh') {
+            my @keys = keys %$v1;
+            return undef unless @keys == (keys %$v2);
+            for my $k (@keys) {
+                my ($o1, $o2) = ($v1->{$k}, $v2->{$k});
+                return undef unless _se($o1, $o2);
+            }
+            return 1;
+        }
         when ('oo') {
             my $f = $v1->can('equals');
-            return $f->( $v1, $v2 ) if $f;
+            return $v1->$f($v2) ? 1 : undef if $f;
             $f = $v2->can('equals');
-            return $f->( $v2, $v1 ) if $f;
-            return refaddr $v1 eq refaddr $v2;
+            return $v2->$f->($v1) ? 1 : undef if $f;
+            return refaddr $v1 == refaddr $v2 ? 1 : undef;
         }
         when (/o./) {
             my $f = $v1->can('equals');
-            return $f->( $v1, $v2 ) if $f;
-            return $v1 eq $v2;
+            return $v1->$f->($v2) ? 1 : undef if $f;
+            return undef;
         }
         when (/.o/) {
             my $f = $v2->can('equals');
-            return $f->( $v2, $v1 ) if $f;
-            return $v1 eq $v2;
+            return $v2->$f($v1) ? 1 : undef if $f;
+            return undef;
         }
-        default { return $v1 eq $v2 }
+        default { return undef }
     }
 }
 
 # double equals
 sub _de {
     my ( $v1, $v2 ) = @_;
-
     if ( !( defined $v1 && defined $v2 ) ) {
-        return !( defined $v1 || defined $v2 );
+        return !( defined $v1 || defined $v2 ) ? 1 : undef;
     }
     my ( $l, $r ) = map { _type($_) } $v1, $v2;
     my $lr = "$l$r";
     for ($lr) {
-        when ('ss') { return $v1 eq $v2 }
-        when ('nn') { return $v1 == $v2 }
-        when ('hn') { return keys %$v1 == $v2 }
-        when ('nh') { return $v1 == keys %$v2 }
-        when ('hh') {
-            my @keys = keys %$v1;
-            return 0 unless @keys == keys %$v2;
-            for my $k (@keys) {
-                return 0 unless exists $v2->{$k};
-                my $o1 = $v1->{$k};
-                my $o2 = $v2->{$k};
-                return 0 unless _de( $o1, $o2 );
-            }
-            return 1;
+        when ('ss') { return $v1 eq $v2       ? 1 : undef }
+        when ('nn') { return $v1 == $v2       ? 1 : undef }
+        when ('hn') { return keys %$v1 == $v2 ? 1 : undef }
+        when ('nh') { return $v1 == keys %$v2 ? 1 : undef }
+        when ('nr') { return $v1 == @$v2      ? 1 : undef }
+        when ('rn') { return @$v1 == $v2      ? 1 : undef }
+        default {
+            return ( refaddr $v1 || 0 ) == ( refaddr $v2 || 0 )
+              ? 1
+              : undef;
         }
-        when ('na') { return $v1 == @$v2 }
-        when ('an') { return @$v1 == $v2 }
-        when ('aa') {
-            return 0 unless @$v1 == @$v2;
-            for my $i ( 0 .. $#$v1 ) {
-                my $o1 = $v1->[$i];
-                my $o2 = $v2->[$i];
-                return 0 unless _de( $o1, $o2 );
-            }
-            return 1;
-        }
-        when ('oo') {
-            my $f = $v1->can('equals');
-            return $f->( $v1, $v2 ) if $f;
-            $f = $v2->can('equals');
-            return $f->( $v2, $v1 ) if $f;
-            return refaddr $v1 eq refaddr $v2;
-        }
-        when (/o./) {
-            my $f = $v1->can('equals');
-            return $f->( $v1, $v2 ) if $f;
-            return $v1 eq $v2;
-        }
-        when (/.o/) {
-            my $f = $v2->can('equals');
-            return $f->( $v2, $v1 ) if $f;
-            return $v1 eq $v2;
-        }
-        default { return $v1 eq $v2 }
     }
 }
 

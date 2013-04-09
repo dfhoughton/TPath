@@ -105,6 +105,9 @@ a{0,}
 :,a,
 /a/"a"
 /a/'a'
+*[@foo |= 'bar']
+*[@foo =|= 'bar']
+*[@foo =| 'bar']
 END
 
 # a bunch of expressions not licensed by the spec

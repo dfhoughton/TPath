@@ -690,6 +690,8 @@ attributes.
   a[@b != @c]
   ...
 
+The equality and inequality attribute tests 
+
 =head4 ranking
 
   a[@b < 1]
@@ -704,6 +706,11 @@ attributes.
   a[@b =~ '(?<!c)d']
   a[@b !~ '(?<!c)d']
   a[@b =~ @c]
+  ...
+  a[@b |= 'c']
+  a[@b =|= 'c']
+  a[@b =| 'c']
+  a[@b |= @c]
   ...
 
 If you wish to test a path instead of an attribute -- to test against the cardinality

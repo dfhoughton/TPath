@@ -204,7 +204,7 @@ our $path_grammar = do {
           (?: <[args=attribute]> <cmp> <[args=value]> | <[args=value]> <cmp> <[args=attribute]> )
           (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: cmp> [<>=]=?+|![=~]|=~ (?{ $offset = $INDEX if $INDEX > $offset })
+       <token: cmp> [<>=]=?+|![=~]|=~|=?\|=|=\| (?{ $offset = $INDEX if $INDEX > $offset })
     
        <token: value> 
           (?: <v=literal> | <v=num> | <attribute> )
