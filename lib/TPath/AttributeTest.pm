@@ -785,7 +785,7 @@ sub _se {
             my $f = $v1->can('equals');
             return $v1->$f($v2) ? 1 : undef if $f;
             $f = $v2->can('equals');
-            return $v2->$f->($v1) ? 1 : undef if $f;
+            return $v2->$f($v1) ? 1 : undef if $f;
             return refaddr $v1 == refaddr $v2 ? 1 : undef;
         }
         when (/o./) {

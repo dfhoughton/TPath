@@ -9,6 +9,7 @@ C<TPath::Attributes::Standard> is a role which is composed into L<TPath::Foreste
 
 =cut
 
+use v5.10;
 use Moose::Role;
 use MooseX::MethodAttributes::Role;
 use Scalar::Util qw(refaddr);
@@ -93,7 +94,7 @@ sub standard_uid : Attr(uid) {
 
 =method C<@echo(//a)>
 
-Returns is parameter. C<@echo> is useful because it can in effect turn anything
+Returns its parameter. C<@echo> is useful because it can in effect turn anything
 into an attribute. You want a predicate that passes when a path returns a node
 set of a particular cardinality?
 
@@ -272,6 +273,28 @@ Returns the id of the current node, if any.
 sub standard_id : Attr(id) {
     my ( $self, $n ) = @_;
     $self->id($n);
+}
+
+=method C<@card(//a)>
+
+Returns the cardinality of its parameter. If its parameter evaluates to a list reference, it is the
+number of items in the list. If it evaluates to a hash reference, it is the number of mappings. The
+usual parameters are expressions or attributes. Anything which evaluates to C<undef> will have a
+cardinality of 0. Anything which does not evaluate to a collection reference will have a cardinality
+of 1. 
+
+  //foo[@card(bar) = @card(@quux)]
+
+=cut
+
+sub standard_card : Attr(card) {
+    my ( undef, undef, undef, undef, $o ) = @_;
+    return 0 unless defined $o;
+    for (ref $o) {
+        when ('HASH') {return scalar keys %$o } 
+        when ('ARRAY') {return scalar @$o}
+        default { return 1 }
+    }
 }
 
 1;

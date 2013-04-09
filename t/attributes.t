@@ -3,11 +3,12 @@
 use strict;
 use warnings;
 use File::Basename qw(dirname);
+
 BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 33;
+use Test::More tests => 36;
 use Test::Trap;
 use Test::Exception;
 use ToyXMLForester;
@@ -159,5 +160,22 @@ $path = q{//*[@height = 2]};
 @c    = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
 is $c[0]->tag, 'a', 'first element has expected tag';
+
+$p    = parse(q{<a><b/><b/><b/></a>});
+$path = q{//a[@log(@card(b))]};
+trap { $f->path($path)->select($p) };
+is $trap->stderr, "3\n",
+  'received correct log message testing cardinality of a path';
+
+$f->add_attribute( quux => sub { [ 1, 2, 3 ] } );
+$path = q{//a[@log(@card(@quux))]};
+trap { $f->path($path)->select($p) };
+is $trap->stderr, "3\n",
+  'received correct log message testing cardinality of an attribute';
+
+$path = q{//a[@log(@card(@null))]};
+trap { $f->path($path)->select($p) };
+is $trap->stderr, "0\n",
+  'received correct log message testing cardinality of undef';
 
 done_testing();
