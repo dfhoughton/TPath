@@ -9,6 +9,7 @@ Revision history for TPath
   * made expressions stringifiable
   * fixed bug in compilation of :root steps
   * added the string index attribute tests |=, =|=, and =|
+  * refined definitions of equality used by attribute tests
 
 0.011     2013-04-04 20:06:57 America/New_York
   * added :'quote' style quoting
