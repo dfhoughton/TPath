@@ -204,7 +204,7 @@ our $path_grammar = do {
           (?: <[args=attribute]> <cmp> <[args=value]> | <[args=value]> <cmp> <[args=attribute]> )
           (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: cmp> [<>=]=?+|![=~]|=~|=?\|=|=\| (?{ $offset = $INDEX if $INDEX > $offset })
+       <token: cmp> [<>=]=?+ | ![=~] | =~ | =?\|= | =\| (?{ $offset = $INDEX if $INDEX > $offset })
     
        <token: value> 
           (?: <v=literal> | <v=num> | <attribute> )
@@ -639,9 +639,7 @@ sub operator_precedence {
                                         splice @ar, $i - 1, 3,
                                           {
                                             condition => {
-                                                operator => $op eq ';'
-                                                ? '^'
-                                                : $op,
+                                                operator => $op,
                                                 args => [
                                                     $ar[ $i - 1 ],
                                                     $ar[ $i + 1 ]

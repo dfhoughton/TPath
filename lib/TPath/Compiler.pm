@@ -49,7 +49,7 @@ use aliased 'TPath::Selector::Test::Root';
 use aliased 'TPath::Test::And';
 use aliased 'TPath::Test::Not';
 use aliased 'TPath::Test::Or';
-use aliased 'TPath::Test::XOr';
+use aliased 'TPath::Test::One';
 
 our @EXPORT_OK = qw(compile);
 
@@ -372,7 +372,7 @@ sub condition {
         when ('!') { return Not->new( t     => $args[0] ) }
         when ('&') { return And->new( tests => \@args ) }
         when ('||') { return Or->new( tests => \@args ) }
-        when ('^') { return XOr->new( tests => \@args ) }
+        when (';') { return One->new( tests => \@args ) }
     }
 }
 
