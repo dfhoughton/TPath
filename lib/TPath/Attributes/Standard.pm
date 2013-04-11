@@ -318,7 +318,7 @@ returned before their ancestors.
 =cut
 
 sub standard_attr :Attr(at) {
-    my ( $self, $n, $i, $c, $nodes, $attr, @params ) = @_;
+    my ( $self, undef, $i, $c, $nodes, $attr, @params ) = @_;
     my @nodes = @$nodes;
     return undef unless @nodes;
     $self->attribute($nodes[0], $attr, $i, $c, @params);
