@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+
+0.012     2013-04-11 08:39:27 America/New_York
   * added /a/"foo bar" and /a/@"foo bar" style name quoting
   * qname quoting now requires balancing of brackets -- :{foo bar} instead of
     :{foo bar{
