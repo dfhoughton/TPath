@@ -297,4 +297,31 @@ sub standard_card : Attr(card) {
     }
 }
 
+=method C<@at(foo//bar, 'baz', 1, 2, 3)>
+
+Returns the value of the named attribute with the given parameters at the first node selected by
+the path parameter evaluated relative to the context node. In the case of
+
+  @at(foo//bar, 'baz', 1, 2, 3)
+
+The path parameter is C<foo//bar>, the relevant attribute is C<@baz>, and it will be evaluated using
+the parameters 1, 2, and 3. Other examples:
+
+  @at(leaf::*[1], 'id')   # the id of the second leaf under this node
+  @at(*/*, 'height')      # the height of the first grandchild of this node
+  @at(/>foo, 'depth')     # the depth of the closest foo node
+
+It is the first node selected by the path whose attribute is evaluated, that is, the first node returned,
+so it is relevant that paths are evaluated left-to-right, depth-first, and post-ordered, descendants being
+returned before their ancestors.
+
+=cut
+
+sub standard_attr :Attr(at) {
+    my ( $self, $n, $i, $c, $nodes, $attr, @params ) = @_;
+    my @nodes = @$nodes;
+    return undef unless @nodes;
+    $self->attribute($nodes[0], $attr, $i, $c, @params);
+}
+
 1;

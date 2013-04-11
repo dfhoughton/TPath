@@ -11,6 +11,8 @@ Revision history for TPath
   * added the string index attribute tests |=, =|=, and =|
   * refined definitions of equality used by attribute tests
   * added @card attribute
+  * rename TPath::Test::XOr to TPath::Test::One and removed traces of ^ operator
+  * created @at attribute, which returns an attribute value
 
 0.011     2013-04-04 20:06:57 America/New_York
   * added :'quote' style quoting

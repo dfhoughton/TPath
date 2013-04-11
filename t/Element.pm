@@ -77,6 +77,35 @@ sub has_attribute {
     return exists $self->attributes->{$key};
 }
 
+# complete sub-tree identity
+sub equals {
+    my ( $self, $other ) = @_;
+    return unless blessed $other;
+    return unless $other->isa('Element');
+    return unless $self->tag eq $other->tag;
+    my %own_attributes   = %{ $self->attributes };
+    my %other_attributes = %{ $other->attributes };
+    return unless scalar keys %other_attributes == scalar keys %own_attributes;
+    for my $k ( keys %own_attributes ) {
+        return unless exists $other_attributes{$k};
+        my $o1 = $own_attributes{$k};
+        my $o2 = $other_attributes{$k};
+        return if ( ( defined $o1 ) ^ ( defined $o2 ) );
+        if ( defined $o1 ) {
+            return unless $o1 eq $o2;
+        }
+    }
+    my @own_children   = $self->children;
+    my @other_children = $other->children;
+    return unless @own_children == @other_children;
+    for my $i ( 0 .. $#own_children ) {
+        my $o1 = $own_children[$i];
+        my $o2 = $other_children[$i];
+        return unless $o1->equals($o2);
+    }
+    return 1;
+}
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
 

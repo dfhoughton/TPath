@@ -108,6 +108,12 @@ a{0,}
 *[@foo |= 'bar']
 *[@foo =|= 'bar']
 *[@foo =| 'bar']
+*
+/*
+//*
+child::*
+//a[@foo = @echo(*)]
+//a[@foo == @echo(*)]
 END
 
 # a bunch of expressions not licensed by the spec

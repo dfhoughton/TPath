@@ -690,7 +690,25 @@ attributes.
   a[@b != @c]
   ...
 
-The equality and inequality attribute tests 
+The equality and inequality attribute tests, as you would expect, determine whether the left
+argument is equal to the right by some definition of equality. If one operator is a number
+and the other a collection, it's equality of cardinality. If one is a string, it is whether 
+their printed forms are identical. If they are both objects or collections, either referential or
+semantic identity is measured. Referential identity means the collections or objects must be the
+same individual, must be stored at the same memory address. This is the meaning of the double
+equals sign. The single equals sign designates semantic identity, meaning, in the case of collections,
+that they are deeply equal -- the same values stored under the same indices or keys. If one of the items
+compared is an object and it has an C<equals> method, this method is invoked as a semantic equality
+test (this is the Java convention). Otherwise, referential identity is required. Objects are not treated
+as containers.
+
+The C<!=> comparator behaves as you would expect so long as one or the other of the two operands is either
+a string or a number. That is, it is the negation of C<=> or C<==>. Otherwise, collections are converted to
+cardinalities and objects to strings, with string comparison being used if either argument is an object. If
+you wish the negation of C<=> or C<==> with collections or objects, you must negate the positive form:
+
+  a[!(@b = @c)]
+  a[!(@b == @c)]
 
 =head4 ranking
 
@@ -701,24 +719,58 @@ The equality and inequality attribute tests
   a[@b <= 1]
   ...
 
+The ranking operators require some partial order of the operands. If both evaluate to numbers or strings, the
+respective orders of these are used. If one is a string, string sort order dominates. If both are collections,
+numeric sorting by cardinality is used. Objects are sorted by string comparison.
+
 =head4 matching
 
-  a[@b =~ '(?<!c)d']
+The matching operators look for character patterns within strings. They fall into two groups: the regex matchers
+and the index matchers.
+
+  a[@b =~ '(?<!c)d']  # regex matching
   a[@b !~ '(?<!c)d']
   a[@b =~ @c]
   ...
-  a[@b |= 'c']
+  a[@b |= 'c']        # index matching
   a[@b =|= 'c']
   a[@b =| 'c']
   a[@b |= @c]
   ...
 
+B<regex matching>
+
+The two regex matching operators, C<=~> and C<!~>, function as you would expect: the right operand is stringified
+and compiled into a regular expression and matched against the left operand. If the left operand is constant -- a
+string or a number -- this regex compilation occurs at compile time. Otherwise, it must be performed for every match,
+at some cost to efficiency.
+
+B<index matching>
+
+Index matching uses the string index function, so it only finds whether one literal string occurs as a substring of
+another -- the right as a substring of the left. There are three variants for the three most common uses of index
+matching:
+
+=over 2
+
+=item C<|=> prefix
+
+True if the left operand starts with the right operand.
+
+=item C<=|=> infix (anywhere)
+
+True if the right operand occurs anywhere in the left.
+
+=item C<=|> suffix
+
+True if the right operand ends the left operand.
+
+=back
+
 If you wish to test a path instead of an attribute -- to test against the cardinality
 of the node set collected, say -- you can use the C<@echo> attribute. This attribute
 returns the value of its parameter, thus converting anything that can be the parameter
 of an attribute, including expressions, into attributes.
-
-TODO: complete this section by describing the definitions of equality and rank used.
 
 =head3 Boolean Predicates
 

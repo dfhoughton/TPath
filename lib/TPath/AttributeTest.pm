@@ -753,9 +753,8 @@ sub _reduce {
 sub _se {
     my ( $v1, $v2 ) = @_;
 
-    if ( !( defined $v1 && defined $v2 ) ) {
-        return !( $v1 ^ $v2 );
-    }
+    return if defined $v1 ^ defined $v2;
+    return 1 unless defined $v1;
     my ( $l, $r ) = map { _type($_) } $v1, $v2;
     my $lr = "$l$r";
     for ($lr) {
@@ -774,10 +773,10 @@ sub _se {
         }
         when ('hh') {
             my @keys = keys %$v1;
-            return undef unless @keys == (keys %$v2);
+            return undef unless @keys == ( keys %$v2 );
             for my $k (@keys) {
-                my ($o1, $o2) = ($v1->{$k}, $v2->{$k});
-                return undef unless _se($o1, $o2);
+                my ( $o1, $o2 ) = ( $v1->{$k}, $v2->{$k} );
+                return undef unless _se( $o1, $o2 );
             }
             return 1;
         }
@@ -805,9 +804,8 @@ sub _se {
 # double equals
 sub _de {
     my ( $v1, $v2 ) = @_;
-    if ( !( defined $v1 && defined $v2 ) ) {
-        return !( defined $v1 || defined $v2 ) ? 1 : undef;
-    }
+    return if defined $v1 ^ defined $v2;
+    return 1 unless defined $v1;
     my ( $l, $r ) = map { _type($_) } $v1, $v2;
     my $lr = "$l$r";
     for ($lr) {

@@ -5,10 +5,17 @@ Key
 
 * add {x,y} style quantifiers
 * add =~ as an operand in attribute tests
-. create tests for equality measures in attribute tests
-. finish documenting equality measures in attribute tests
-. remove redundant extended attributes
-. make sure there is some cardinality attribute
+* create tests for equality measures in attribute tests
+* finish documenting equality measures in attribute tests
+- remove redundant extended attributes
+* make sure there is some cardinality attribute
+. allow bare paths in attribute tests
+. allow multi-line expressions with comments
+* rename TPath::Test::XOR to TPath::Test::One
+. refactor to use a context object instead of a bunch of parameters
+. create a previous context attribute
+. update grammar section of documentation
+. add examples
 
 Attic
 -----
