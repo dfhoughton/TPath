@@ -979,38 +979,41 @@ The following is a BNf-style grammar of the TPath expression language. It is the
 in the L<Regexp::Grammars> formalism, used to parse expressions minus the bits that improve efficiency
 and adjust the construction of the abstract syntax tree produced by the parser.
 
-    ^ <treepath> $
+    \A <treepath> \Z
     
-       <rule: treepath> <[path]> ( \| <[path]> )*
+       <rule: treepath> <path> ( \| <path> )*
     
-       <token: path> (?![\@"']) <segment>+
+       <token: path> (?![\@'"]) <segment> ( (?= / | \( / ) <segment> )*
     
-       <token: segment> <separator>? <step> | <cs>
+       <token: segment> ( <separator>? <step> | <cs> )
        
        <token: quantifier> [?+*] | <enum>
        
-       <rule: enum> [{] \d*+ ( , \d*+ )? [}]
+       <rule: enum> \{ \d*+ ( , \d*+ )? \}
        
-       <token: grouped_step> \( \s*+ <treepath> \s*+ \) <quantifier>?
+       <rule: grouped_step> \( <treepath> \) <quantifier>?
     
-       <token: id>
-          :id\( ( (?>[^\)\\]|\\.)++ ) \)
+       <token: id> :id\( ([^\)\\]|\\.)++ \)
     
        <token: cs>
+          (
           <separator>? <step> <quantifier>
           | <grouped_step>
+          )
     
        <token: separator> \/[\/>]?+
     
        <token: step> <full> <[predicate]>* | <abbreviated>
-           
+    
        <token: full> <axis>? <forward>
     
-       <token: axis> (?<!//) (?<!/>) (<%AXES>) ::
+       <token: axis> 
+          (?<!//) (?<!/>) (<%AXES>) ::
     
        <token: abbreviated> (?<!/[/>]) ( \.{1,2}+ | <id> | :root )
     
-       <token: forward> <wildcard> | ^? ( <specific> | <pattern> | <attribute> )
+       <token: forward> 
+           <wildcard> | \^? ( <specific> | <pattern> | <attribute> )
     
        <token: wildcard> \* <start_of_path>
        
@@ -1027,82 +1030,71 @@ and adjust the construction of the abstract syntax tree produced by the parser.
           | (?<=\A\s{3}.)
           | (?<=\A\s{4}.)
     
-       <token: specific>
-          <name>
+       <token: specific> <name>
     
-       <token: pattern>
-          (~(?>[^~]|~~)++~)
+       <token: pattern> ~([^~]|~~)++~
     
-       <token: aname>
-          @ <name>
+       <token: aname> @ <name>
        
        <token: name>
-          (\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+
+          (\\.|[\p{L}\$_])([\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+
           | <literal>
           | <qname>
        
        <token: qname> 
-          : (\p{PosixPunct}.+?\p{PosixPunct}) 
+          : ([[:punct:]].+?[[:punct:]]) 
           <require: (?{qname_test($^N)})> 
      
-       <rule: attribute> <aname> <args>?
+       <rule: attribute> <aname> <args>? <.cp>
     
        <rule: args> \( <arg> ( , <arg> )* \)
     
        <token: arg>
-          <treepath> | <literal> | <num> | <attribute> | <attribute_test> | <condition>
+          <literal> | <num> | <attribute> | <treepath> | <attribute_test> | <condition>
     
        <token: num> <signed_int> | <float>
     
-       <token: signed_int> [+-]?+ <int>   
+       <token: signed_int> [+-]?+ <int>
     
        <token: float> [+-]?+ <int>? \.\d++ ( [Ee][+-]?+ <int> )?+
     
-       <token: literal>
-          <squote> | <dquote>
+       <token: literal> <squote> | <dquote>
     
        <token: squote> ' ([^'\\]|\\.)*+ '
     
-       <token: dquote> " ([^"\\]|\\.)*+ "   
+       <token: dquote> " ([^"\\]|\\.)*+ "
     
        <rule: predicate>
           \[ ( <signed_int> | <condition> ) \]
     
-       <token: int> \b(?:0|[1-9][0-9]*+)\b
+       <token: int> \b(0|[1-9][0-9]*+)\b
     
        <rule: condition> 
           <not>? <item> ( <operator> <not>? <item> )*
 
        <token: not>
              ( ! | (?<=[\s\[(]) not (?=\s) ) 
-             ( \s*+ (?: ! | (?<=\s) not (?=\s) ) )*+ 
+             ( \s*+ ( ! | (?<=\s) not (?=\s) ) )*+ 
        
-       <token: operator>
-          ( <or> | <xor> | <and> )
+       <token: operator> <or> | <xor> | <and>
        
-       <token: xor>
-          ( ; | (?<=\s) one (?=\s) )
+       <token: xor> ( ; | (?<=\s) one (?=\s) )
            
-       <token: and>
-          ( & | (?<=\s) and (?=\s) )
+       <token: and> ( & | (?<=\s) and (?=\s) )
            
-       <token: or>
-          ( \|{2} | (?<=\s) or (?=\s) )
+       <token: or> ( \|{2} | (?<=\s) or (?=\s) )
     
-       <token: term> 
-          <attribute> | <attribute_test> | <treepath>
+       <token: term> <attribute> | <attribute_test> | <treepath>
     
-       <rule: attribute_test>
-          <attribute> <cmp> <value> | <value> <cmp> <attribute>
+       <rule: attribute_test> <attribute> <cmp> <value> | <value> <cmp> <attribute>
     
-       <token: cmp> [<>=]=?+|![=~]|=~
+       <token: cmp> [<>=]=?+ | ![=~] | =~ | =?\|= | =\|
     
        <token: value> <literal> | <num> | <attribute>
     
        <rule: group> \( <condition> \)
     
-       <token: item>
-          <term> | <group>
+       <token: item> <term> | <group>
 
 The crucial part, most likely, is the definition of the <name> rule which governs what you can put in
 tags and attribute names without escaping. The rule, copied from above, is
@@ -1172,6 +1164,31 @@ if it comes to that. Compare
 
 One uses the same number of characters in each case but the second is clearly easier on the eye. In this case the colon
 is necessary because " cannot begin a path expression.
+
+=head3 Comments and Whitespace
+
+Before or after most elemenst of TPath expressions one may put arbitrary whitespace or #-style comments.
+
+  # a path made more complicated than necessary
+  
+  //a  # first look for a elements
+  /*/* # find the grandchildren of these
+  [0]  # select the first grandchild
+  [    # and log its foo property
+  @log( @foo )
+  ]
+
+There are some places where one cannot put whitespace or a comment: between a separator and a selector
+
+  // a  # bad!
+
+between an C<@> and an attribute name
+
+  @ foo # bad!
+
+and between a repetition suffix and the element repeated
+
+  //a + # bad!
 
 =head1 HISTORY
 

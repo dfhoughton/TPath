@@ -10,15 +10,15 @@ Key
 - remove redundant extended attributes
 * make sure there is some cardinality attribute
 . allow bare paths in attribute tests
-. allow multi-line expressions with comments
+* allow multi-line expressions with comments
 * rename TPath::Test::XOR to TPath::Test::One
 . refactor to use a context object instead of a bunch of parameters
 . create a previous context attribute
-. update grammar section of documentation
+* update grammar section of documentation
 . add examples
 . allow qname quoting in literals
-* fix \p{PosixPunct} issue with v5.10 on BSD
-. die instead of confessing in grammar and compiler
+. fix \p{PosixPunct} issue with v5.10 on BSD
+* die instead of confessing in grammar and compiler
 . add usual escapes inside string literals
 
 Attic
