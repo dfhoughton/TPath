@@ -120,7 +120,7 @@ our $path_grammar = do {
           (?{ $MATCH = $MATCH{name} })
        
        <token: name>
-           ((?>\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+)  (?{ $MATCH = clean_escapes($^N ) })
+          ((?>\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+)  (?{ $MATCH = clean_escapes($^N ) })
           | <literal> (?{ $MATCH = $MATCH{literal} })
           | (<.qname>) (?{ $MATCH = clean_escapes( substr $^N, 2, length($^N) -3 ) })
        
@@ -360,9 +360,8 @@ sub normalize_enums {
         }
         return;
     }
-    die 'empty {x,y} quantifier ' . $enum->{''}
-      unless $start || $end;
-    die 'in {x,y} quantifier ' . $enum->{''} . ' end is less than start'
+    die 'empty {x,y} quantifier' unless $start || $end;
+    die 'in {x,y} quantifier end is less than start'
       if $start > $end && ( $enum->{end} // '' ) ne '';
     $enum->{end} = $end;
 }

@@ -7,7 +7,7 @@ Key
 . refactor to use a context object instead of a bunch of parameters
 . create a previous context attribute
 . add examples
-. allow qname quoting in literals
+- allow qname quoting in literals
 . fix \p{PosixPunct} issue with v5.10 on BSD
 . add usual escapes inside string literals
 
