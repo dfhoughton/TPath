@@ -3,22 +3,12 @@ Key
  - = discarded
  * = completed
 
-* add {x,y} style quantifiers
-* add =~ as an operand in attribute tests
-* create tests for equality measures in attribute tests
-* finish documenting equality measures in attribute tests
-- remove redundant extended attributes
-* make sure there is some cardinality attribute
 . allow bare paths in attribute tests
-* allow multi-line expressions with comments
-* rename TPath::Test::XOR to TPath::Test::One
 . refactor to use a context object instead of a bunch of parameters
 . create a previous context attribute
-* update grammar section of documentation
 . add examples
 . allow qname quoting in literals
 . fix \p{PosixPunct} issue with v5.10 on BSD
-* die instead of confessing in grammar and compiler
 . add usual escapes inside string literals
 
 Attic
@@ -33,3 +23,13 @@ Completed TODO items kept around as curios.
 * figure out odd warning being emitted by demo code
 * add wrap method to forester for use in coercion
 * add tag method to forester to reduce coding burden for most adaptations
+* add {x,y} style quantifiers
+* add =~ as an operand in attribute tests
+* create tests for equality measures in attribute tests
+* finish documenting equality measures in attribute tests
+- remove redundant extended attributes
+* make sure there is some cardinality attribute
+* allow multi-line expressions with comments
+* rename TPath::Test::XOR to TPath::Test::One
+* update grammar section of documentation
+* die instead of confessing in grammar and compiler
