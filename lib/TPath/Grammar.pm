@@ -56,19 +56,19 @@ our $path_grammar = do {
        <nocontext:>
        <timeout: 10>
     
-    ^ <treepath> $
+    \A <.ws> <treepath> <.ws> \Z
     
        <rule: treepath> <[path]> (?: \| <[path]> )*
     
-       <token: path> (?![\@'"]) <[segment]>+ (?{ $offset = $INDEX if $INDEX > $offset })
+       <token: path> (?![\@'"]) <[segment]> (?: (?= / | \( <.ws> / ) <[segment]> )* (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: segment> (?: <separator>? <step> | <cs> ) (?{ $offset = $INDEX if $INDEX > $offset })
+       <token: segment> (?: <separator>? <step> | <cs> ) <.ws> (?{ $offset = $INDEX if $INDEX > $offset })
        
        <token: quantifier> (?: [?+*] | <enum> ) (?{ $offset = $INDEX if $INDEX > $offset })
        
        <rule: enum> [{] <start=(\d*+)> (?: , <end=(\d*+)> )? [}]
        
-       <token: grouped_step> \( \s*+ <treepath> \s*+ \) <quantifier>? (?{ $offset = $INDEX if $INDEX > $offset })
+       <rule: grouped_step> \( <treepath> \) <quantifier>? (?{ $offset = $INDEX if $INDEX > $offset })
     
        <token: id>
           :id\( ( (?>[^\)\\]|\\.)++ ) \)
@@ -83,7 +83,7 @@ our $path_grammar = do {
     
        <token: separator> \/[\/>]?+ (?{ $offset = $INDEX if $INDEX > $offset })
     
-       <token: step> (?: <full> <[predicate]>* | <abbreviated> ) (?{ $offset = $INDEX if $INDEX > $offset })
+       <token: step> (?: <full> (?: <.ws> <[predicate]> )* | <abbreviated> ) (?{ $offset = $INDEX if $INDEX > $offset })
     
        <token: full> <axis>? <forward> (?{ $offset = $INDEX if $INDEX > $offset })
     
@@ -136,7 +136,7 @@ our $path_grammar = do {
           ) (?{ $offset = $INDEX if $INDEX > $offset })
        
        <token: qname> 
-          : (\p{PosixPunct}.+?\p{PosixPunct}) 
+          : ([[:punct:]].+?[[:punct:]]) 
           <require: (?{qname_test($^N)})>
           (?{ $offset = $INDEX if $INDEX > $offset }) 
      
@@ -146,7 +146,7 @@ our $path_grammar = do {
     
        <token: arg>
           (?:
-          <treepath> | <v=literal> | <v=num> | <attribute> | <attribute_test> | <condition>
+          <v=literal> | <v=num> | <attribute> | <treepath> | <attribute_test> | <condition>
           ) (?{ $offset = $INDEX if $INDEX > $offset })
     
        <token: num> (?: <.signed_int> | <.float> ) (?{ $offset = $INDEX if $INDEX > $offset })
@@ -214,7 +214,10 @@ our $path_grammar = do {
     
        <token: item>
           (?: <term> | <group> ) (?{ $offset = $INDEX if $INDEX > $offset })
-    }x;
+          
+       <token: ws>
+          (?: \s*+ (?: \#.*? $ )?+ )*+
+    }xms;
 };
 
 =func parse
@@ -239,7 +242,6 @@ sub parse {
             fix_predicates($ref);
         }
         optimize($ref);
-        confirm_separators( $ref, 0 );
         return $ref;
     }
     else {
@@ -264,46 +266,6 @@ sub error_message {
     $error .= $suffix if $suffix;
     $error .= '...'   if $end < length $expr;
     return $error;
-}
-
-# require a separator before all non-initial steps
-sub confirm_separators {
-    my ( $ref, $non_initial ) = @_;
-    for ( ref $ref ) {
-        when ('ARRAY') { confirm_separators( $_, $non_initial ) for @$ref }
-        when ('HASH') {
-            my ($path) = $ref->{path};
-            if ($path) {
-                for my $i ( 0 .. $#$path ) {
-                    my @steps = @{ $path->[$i]{segment} };
-                    for my $j ( 0 .. $#steps ) {
-                        my $step = $steps[$j];
-                        if (   ( $j || $non_initial )
-                            && $step->{step}
-                            && !$step->{separator} )
-                        {
-                            confess
-'every non-initial step must be preceded by one of the separators "/", "//", or "/>"';
-                        }
-                        confirm_separators( $step, $i ? 1 : $non_initial );
-                    }
-                }
-            }
-            else {
-                my $attribute = $ref->{attribute};
-                if ($attribute) { confirm_separators( $attribute, 0 ) }
-                else {
-                    my $predicate = $ref->{predicate};
-                    if ($predicate) {
-                        confirm_separators( $predicate, 0 );
-                    }
-                    else {
-                        confirm_separators( $_, $non_initial ) for values %$ref;
-                    }
-                }
-            }
-        }
-    }
 }
 
 # convert (/foo) to /foo and (/foo)? to /foo?

@@ -16,6 +16,10 @@ Key
 . create a previous context attribute
 . update grammar section of documentation
 . add examples
+. allow qname quoting in literals
+* fix \p{PosixPunct} issue with v5.10 on BSD
+. die instead of confessing in grammar and compiler
+. add usual escapes inside string literals
 
 Attic
 -----

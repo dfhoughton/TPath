@@ -1,6 +1,7 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * multi-line paths and comments
 
 0.012     2013-04-11 08:39:27 America/New_York
   * added /a/"foo bar" and /a/@"foo bar" style name quoting

@@ -114,7 +114,22 @@ a{0,}
 child::*
 //a[@foo = @echo(*)]
 //a[@foo == @echo(*)]
+//a [ @foo == 1 ]
+//a [0] //b [ c ]
 END
+
+push @parsable, q{
+
+# a comment
+
+/a #comment
+[1] # comment  
+};
+push @parsable, q{//@foo(
+    1,
+    "arg" # comment
+    )
+};
 
 # a bunch of expressions not licensed by the spec
 my @unparsable = make_paths(<<'END');
@@ -133,6 +148,9 @@ a{,}
 a{,0}
 a{2,1}
 a:(a(
+// a
+a {2}
+a *
 END
 
 # pairs of expressions that should have the same ASTs
@@ -231,6 +249,28 @@ a{0,}
 a*
 END
 
+push @equivalent, q{//a//b}, q{
+    //a # comment
+    
+    //b
+    #comment
+    #comment
+};
+push @equivalent, q{//@foo('bar')}, q{//@foo
+    # comment
+    ( # comment
+    'bar' # comment
+    ) #comment
+};
+push @equivalent, q{//a[@b = 'c']}, q{
+    //a #comment
+    [ # comment
+    @b # comment
+    = # comment
+    'c' #comment
+    ] # comment
+};
+
 # some leaf values to test
 my @leaves = make_paths(<<'END');
 a[@b = 'foo']
@@ -289,6 +329,10 @@ c
 v
 1
 END
+
+push @leaves, q{//a[@b('
+    c')]}, 'v', q{
+    c};
 
 plan tests => @parsable + @unparsable + @equivalent / 2 + @leaves / 3;
 
