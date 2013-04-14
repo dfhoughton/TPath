@@ -59,31 +59,29 @@ our $path_grammar = do {
     
        <rule: treepath> <[path]> (?: \| <[path]> )*
     
-       <token: path> (?![\@'"]) <[segment]> (?: (?= / | \( <.ws> / ) <[segment]> )* <.cp>
+       <token: path> (?![\@'"]) <[segment]> (?: (?= / | \( <.ws> / ) <[segment]> )*
     
-       <token: segment> (?: <separator>? <step> | <cs> ) <.ws> <.cp>
+       <token: segment> (?: <separator>? <step> | <cs> ) <.ws>
        
        <token: quantifier> (?: [?+*] | <enum> ) <.cp>
        
        <rule: enum> [{] <start=(\d*+)> (?: , <end=(\d*+)> )? [}]
        
-       <rule: grouped_step> \( <treepath> \) <quantifier>? <.cp>
+       <rule: grouped_step> \( <treepath> \) <quantifier>?
     
        <token: id>
           :id\( ( (?>[^\)\\]|\\.)++ ) \)
           (?{ $MATCH=clean_escapes($^N) }) <.cp>
     
        <token: cs>
-          (?:
-          <separator>? <step> <quantifier>
+           <separator>? <step> <quantifier>
           | <grouped_step>
-          ) <.cp>
     
        <token: separator> \/[\/>]?+ <.cp>
     
-       <token: step> (?: <full> (?: <.ws> <[predicate]> )* | <abbreviated> ) <.cp>
+       <token: step> <full> (?: <.ws> <[predicate]> )* | <abbreviated>
     
-       <token: full> <axis>? <forward> <.cp>
+       <token: full> <axis>? <forward>
     
        <token: axis> 
           (?<!//) (?<!/>) (<%AXES>) ::
@@ -92,7 +90,7 @@ our $path_grammar = do {
        <token: abbreviated> (?<!/[/>]) (?: \.{1,2}+ | <id> | :root ) <.cp>
     
        <token: forward> 
-           (?: <wildcard> | <complement=(\^)>? (?: <specific> | <pattern> | <attribute> ) ) <.cp>
+           <wildcard> | <complement=(\^)>? (?: <specific> | <pattern> | <attribute> )
     
        <token: wildcard> \* <.start_of_path> <.cp>
        
@@ -119,29 +117,25 @@ our $path_grammar = do {
     
        <token: aname>
           @ <name>
-          (?{ $MATCH = $MATCH{name} }) <.cp>
+          (?{ $MATCH = $MATCH{name} })
        
        <token: name>
-          (?:
-          ((?>\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+)  (?{ $MATCH = clean_escapes($^N ) })
+           ((?>\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+)  (?{ $MATCH = clean_escapes($^N ) })
           | <literal> (?{ $MATCH = $MATCH{literal} })
           | (<.qname>) (?{ $MATCH = clean_escapes( substr $^N, 2, length($^N) -3 ) })
-          ) <.cp>
        
        <token: qname> 
           : ([[:punct:]].+?[[:punct:]]) 
           <require: (?{qname_test($^N)})> <.cp> 
      
-       <rule: attribute> <aname> <args>? <.cp>
+       <rule: attribute> <aname> <args>?
     
        <rule: args> \( <[arg]> (?: , <[arg]> )* \) <.cp>
     
        <token: arg>
-          (?:
-          <v=literal> | <v=num> | <attribute> | <treepath> | <attribute_test> | <condition>
-          ) <.cp>
+           <v=literal> | <v=num> | <attribute> | <treepath> | <attribute_test> | <condition>
     
-       <token: num> (?: <.signed_int> | <.float> ) <.cp>
+       <token: num> <.signed_int> | <.float>
     
        <token: signed_int> [+-]?+ <.int> <.cp>
     
@@ -149,7 +143,7 @@ our $path_grammar = do {
     
        <token: literal>
           ((?> <.squote> | <.dquote> ))
-          (?{ $MATCH = clean_literal($^N) }) <.cp>
+          (?{ $MATCH = clean_literal($^N) })
     
        <token: squote> ' (?>[^'\\]|\\.)*+ ' <.cp>
     
@@ -161,7 +155,7 @@ our $path_grammar = do {
        <token: int> \b(?:0|[1-9][0-9]*+)\b <.cp>
     
        <rule: condition> 
-          <[item=not]>? <[item]> (?: <[item=operator]> <[item=not]>? <[item]> )* <.cp>
+          <[item=not]>? <[item]> (?: <[item=operator]> <[item=not]>? <[item]> )*
 
        <token: not>
           ( 
@@ -172,7 +166,7 @@ our $path_grammar = do {
        
        <token: operator>
           (?: <.or> | <.xor> | <.and> )
-          (?{$MATCH = clean_operator($^N)}) <.cp>
+          (?{$MATCH = clean_operator($^N)})
        
        <token: xor> (?: ; | (?<=\s) one (?=\s) ) <.cp>
            
@@ -180,21 +174,18 @@ our $path_grammar = do {
            
        <token: or> (?: \|{2} | (?<=\s) or (?=\s) ) <.cp>
     
-       <token: term> 
-          (?: <attribute> | <attribute_test> | <treepath> ) <.cp>
+       <token: term> <attribute> | <attribute_test> | <treepath>
     
        <rule: attribute_test>
-          (?: <[args=attribute]> <cmp> <[args=value]> | <[args=value]> <cmp> <[args=attribute]> )
-          <.cp>
+          <[args=attribute]> <cmp> <[args=value]> | <[args=value]> <cmp> <[args=attribute]>
     
        <token: cmp> (?: [<>=]=?+ | ![=~] | =~ | =?\|= | =\| ) <.cp>
     
-       <token: value> 
-          (?: <v=literal> | <v=num> | <attribute> ) <.cp>
+       <token: value> <v=literal> | <v=num> | <attribute>
     
        <rule: group> \( <condition> \) <.cp>
     
-       <token: item> (?: <term> | <group> ) <.cp>
+       <token: item> <term> | <group>
           
        <token: ws> (?: \s*+ (?: \#.*? $ )?+ )*+ <.cp>
        
