@@ -74,9 +74,9 @@ for my $path (@paths) {
     };
     if ($@) {
         die
-"failed compilation of stringification of path $path into $p1; error: $@"
-          ;
+"failed compilation of stringification of path $path into $p1; error: $@";
     }
-    is_deeply $p1, $p2;
+    is_deeply $p1, $p2,
+      "for path $path and stringifications $p1 and $p2";
 }
 done_testing();
