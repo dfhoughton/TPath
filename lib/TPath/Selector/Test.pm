@@ -84,7 +84,12 @@ sub _stringify_match {
     my ( $self, $re ) = @_;
 
     # chop off the "(?-xism:" prefix and ")" suffix
-    $re = substr $re, 8, length($re) - 9 if $re =~ /^\Q(?-xism:\E/;
+    if ( $re =~ /^\Q(?-xism:\E/ ) {
+        $re = substr $re, 8, length($re) - 9;
+    }
+    elsif ( $re =~ /^\Q(?^:\E/ ) {
+        $re = substr $re, 4, length($re) - 5;
+    }
     $re =~ s/~/~~/g;
     return "~$re~";
 }
