@@ -63,8 +63,20 @@ plan tests => @paths * 3;
 
 for my $path (@paths) {
     my ( $p1, $p2 );
-    lives_ok { $p1 = $f->path($path) };
-    lives_ok { $p2 = $f->path("$p1") };
+    eval {
+        lives_ok { $p1 = $f->path($path) };
+    };
+    if ($@) {
+        die "failed initial compilation of path $path; error: $@";
+    }
+    eval {
+        lives_ok { $p2 = $f->path("$p1") };
+    };
+    if ($@) {
+        die
+"failed compilation of stringification of path $path into $p1; error: $@"
+          ;
+    }
     is_deeply $p1, $p2;
 }
 done_testing();
