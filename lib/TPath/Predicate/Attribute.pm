@@ -28,8 +28,8 @@ The attribute evaluated.
 has a => ( is => 'ro', isa => 'TPath::Attribute', required => 1 );
 
 sub filter {
-    my ( $self, $i, $c ) = @_;
-    return grep { $self->a->test( $_, $i, $c ) } @$c;
+    my ( $self, $c ) = @_;
+    return grep { $self->a->test($_) } @$c;
 }
 
 sub to_string {

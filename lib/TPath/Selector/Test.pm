@@ -107,14 +107,15 @@ sub _invert {
 
 =method candidates
 
-Expects a node and an index and returns nodes selected before filtering by predicates.
+Expects an L<TPath::Context> and whether this is the first selector in its path
+and returns nodes selected before filtering by predicates.
 
 =cut
 
 sub candidates {
-    my ( $self, $n, $i, $first ) = @_;
+    my ( $self, $ctx, $first ) = @_;
     my $axis = $self->_select_axis($first);
-    $i->f->$axis( $n, $self->node_test, $i );
+    return $ctx->i->f->$axis( $ctx, $self->node_test );
 }
 
 sub _select_axis {
@@ -130,11 +131,11 @@ sub _select_axis {
 
 # implements method required by TPath::Selector
 sub select {
-    my ( $self, $n, $i, $first ) = @_;
-    my @candidates = $self->candidates( $n, $i, $first );
+    my ( $self, $ctx, $first ) = @_;
+    my @candidates = $self->candidates( $ctx, $first );
     for my $p ( $self->predicates ) {
         last unless @candidates;
-        @candidates = $p->filter( $i, \@candidates );
+        @candidates = $p->filter( \@candidates );
     }
     return @candidates;
 }

@@ -59,8 +59,8 @@ Returns the node itself.
 =cut
 
 sub standard_this : Attr(this) {
-    my ( undef, $n ) = @_;
-    return $n;
+    my ( undef, $ctx ) = @_;
+    return $ctx->n;
 }
 
 =method C<@uid>
@@ -74,20 +74,23 @@ child is C</1/0>. And so on.
 =cut
 
 sub standard_uid : Attr(uid) {
-    my ( $self, $n, $i ) = @_;
+    my ( $self, $ctx ) = @_;
+    my $original = $ctx;
     my @list;
-    my $node = $n;
+    my ( $node, $i ) = ( $ctx->n, $ctx->i );
     while ( !$i->is_root($node) ) {
-        my $ra       = refaddr $node;
-        my $parent   = $self->parent( $node, $i );
-        my @children = $self->children( $parent, $i );
+        my $ra = refaddr $node;
+        $ctx = $ctx->wrap($node);
+        my $parent = $self->parent($ctx);
+        last unless $parent;
+        my @children = $self->children( $parent->n, $i );
         for my $index ( 0 .. $#children ) {
-            if ( refaddr $children[$index] eq $ra ) {
+            if ( refaddr $children[$index] == $ra ) {
                 push @list, $index;
                 last;
             }
         }
-        $node = $parent;
+        $node = $parent->n;
     }
     return '/' . join( '/', @list );
 }
@@ -107,7 +110,7 @@ into an attribute.
 =cut
 
 sub standard_echo : Attr(echo) {
-    my ( undef, undef, undef, undef, $o ) = @_;
+    my ( undef, undef, $o ) = @_;
     return $o;
 }
 
@@ -118,8 +121,8 @@ Returns whether the node is without children.
 =cut
 
 sub standard_is_leaf : Attr(leaf) {
-    my ( undef, $n, $i ) = @_;
-    return $i->f->is_leaf( $n, $i ) ? 1 : undef;
+    my ( undef, $ctx ) = @_;
+    return $ctx->i->f->is_leaf($ctx) ? 1 : undef;
 }
 
 =method C<@pick(//foo,1)>
@@ -129,7 +132,7 @@ Takes a collection and an index and returns the indexed member of the collection
 =cut
 
 sub standard_pick : Attr(pick) {
-    my ( undef, undef, undef, undef, $collection, $index ) = @_;
+    my ( undef, undef, $collection, $index ) = @_;
     return $collection->[ $index // 0 ];
 }
 
@@ -140,7 +143,7 @@ Takes a collection and returns its size.
 =cut
 
 sub standard_size : Attr(size) {
-    my ( undef, undef, undef, undef, $collection ) = @_;
+    my ( undef, undef, $collection ) = @_;
     return scalar @$collection;
 }
 
@@ -153,6 +156,7 @@ Returns the size of the tree rooted at the context node.
 sub standard_tsize : Attr(tsize) {
     my ( $self, $n, $i ) = @_;
     my $size = 1;
+    ( $n, $i ) = ( $n->n, $n->i ) if blessed $n && $n->isa('TPath::Context');
     for my $kid ( $self->children( $n, $i ) ) {
         $size += $self->standard_tsize( $kid, $i );
     }
@@ -166,11 +170,12 @@ Returns the number of leave under the context node.
 =cut
 
 sub standard_width : Attr(width) {
-    my ( $self, $n, $i ) = @_;
-    return 1 if $self->standard_is_leaf( $n, $i );
+    my ( $self, $ctx ) = @_;
+    return 1 if $self->standard_is_leaf($ctx);
+    my ( $n, $i ) = ( $ctx->n, $ctx->i );
     my $width = 0;
     for my $kid ( $self->children( $n, $i ) ) {
-        $width += $self->standard_width( $kid, $i );
+        $width += $self->standard_width( $ctx->wrap($kid) );
     }
     return $width;
 }
@@ -182,13 +187,13 @@ Returns the number of ancestors of the context node.
 =cut
 
 sub standard_depth : Attr(depth) {
-    my ( $self, $n, $i ) = @_;
-    return 0 if $self->standard_is_root( $n, $i );
+    my ( $self, $ctx ) = @_;
+    return 0 if $self->standard_is_root($ctx);
     my $depth = -1;
     do {
         $depth++;
-        $n = $self->parent( $n, $i );
-    } while ( defined $n );
+        $ctx = $self->parent($ctx);
+    } while ( defined $ctx );
     return $depth;
 }
 
@@ -200,11 +205,12 @@ node from a leaf. Leaf nodes have a height of 1, their parents, 2, etc.
 =cut
 
 sub standard_height : Attr(height) {
-    my ( $self, $n, $i ) = @_;
-    return 1 if $self->standard_is_leaf( $n, $i );
+    my ( $self, $ctx ) = @_;
+    return 1 if $self->standard_is_leaf($ctx);
+    my ( $n, $i ) = ( $ctx->n, $ctx->i );
     my $max = 0;
     for my $kid ( $self->children( $n, $i ) ) {
-        my $m = $self->standard_height( $kid, $i );
+        my $m = $self->standard_height( $ctx->wrap($kid) );
         $max = $m if $m > $max;
     }
     return $max + 1;
@@ -217,8 +223,8 @@ Returns whether the context node is the tree root.
 =cut
 
 sub standard_is_root : Attr(root) {
-    my ( $self, $n, $i ) = @_;
-    return $i->is_root($n) ? 1 : undef;
+    my ( $self, $ctx ) = @_;
+    return $ctx->i->is_root( $ctx->n ) ? 1 : undef;
 }
 
 =method C<@null>
@@ -240,11 +246,14 @@ node.
 =cut
 
 sub standard_index : Attr(index) {
-    my ( $self, $n, $i ) = @_;
+    my ( $self, $ctx ) = @_;
+    my ( $n, $i ) = ( $ctx->n, $ctx->i );
     return -1 if $i->is_root($n);
-    my @siblings = $self->_kids( $self->parent( $n, $i ), $i );
+    my $parent   = $self->parent($ctx);
+    my @siblings = $self->_kids( $parent, $parent );
+    my $ra       = refaddr $n;
     for my $index ( 0 .. $#siblings ) {
-        return $index if refaddr $siblings[$index] eq refaddr $n;
+        return $index if refaddr $siblings[$index]->n == $ra;
     }
     confess "$n not among children of its parent";
 }
@@ -257,7 +266,7 @@ See attribute C<log_stream> in L<TPath::Forester>.
 =cut
 
 sub standard_log : Attr(log) {
-    my ( $self, undef, undef, undef, @messages ) = @_;
+    my ( $self, undef, @messages ) = @_;
     for my $m (@messages) {
         $self->log_stream->put($m);
     }
@@ -271,8 +280,8 @@ Returns the id of the current node, if any.
 =cut
 
 sub standard_id : Attr(id) {
-    my ( $self, $n ) = @_;
-    $self->id($n);
+    my ( $self, $ctx ) = @_;
+    $self->id( $ctx->n );
 }
 
 =method C<@card(//a)>
@@ -288,12 +297,12 @@ of 1.
 =cut
 
 sub standard_card : Attr(card) {
-    my ( undef, undef, undef, undef, $o ) = @_;
+    my ( undef, undef, $o ) = @_;
     return 0 unless defined $o;
-    for (ref $o) {
-        when ('HASH') {return scalar keys %$o } 
-        when ('ARRAY') {return scalar @$o}
-        default { return 1 }
+    for ( ref $o ) {
+        when ('HASH')  { return scalar keys %$o }
+        when ('ARRAY') { return scalar @$o }
+        default        { return 1 }
     }
 }
 
@@ -317,11 +326,11 @@ returned before their ancestors.
 
 =cut
 
-sub standard_attr :Attr(at) {
-    my ( $self, undef, $i, $c, $nodes, $attr, @params ) = @_;
+sub standard_attr : Attr(at) {
+    my ( $self, $ctx, $nodes, $attr, @params ) = @_;
     my @nodes = @$nodes;
     return undef unless @nodes;
-    $self->attribute($nodes[0], $attr, $i, $c, @params);
+    $self->attribute( $ctx->wrap( $nodes[0] ), $attr, @params );
 }
 
 1;

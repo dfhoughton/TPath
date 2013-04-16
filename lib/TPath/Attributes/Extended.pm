@@ -54,14 +54,8 @@ Absolute value of numeric argument.
 =cut
 
 sub extended_abs : Attr(m:abs) {
-    abs $_[4];
+    abs $_[2];
 }
-
-=method C<@m:ceil(1.5)>
-
-Returns smallest whole number greater than or equal to the numeric argument.
-
-=cut
 
 =method C<@m:ceil(1.5)>
 
@@ -71,7 +65,7 @@ Returns smallest whole number greater than or equal to the numeric argument.
 
 sub extended_ceil : Attr(m:ceil) {
     require POSIX;
-    POSIX::ceil( $_[4] );
+    POSIX::ceil( $_[2] );
 }
 
 =method C<@m:floor(1.5)>
@@ -82,7 +76,7 @@ Returns largest whole number less than or equal to the numeric argument.
 
 sub extended_floor : Attr(m:floor) {
     require POSIX;
-    POSIX::floor( $_[4] );
+    POSIX::floor( $_[2] );
 }
 
 =method C<@m:int(1.5)>
@@ -92,7 +86,7 @@ Returns integer portion of the numeric argument.
 =cut
 
 sub extended_int : Attr(m:int) {
-    int $_[4];
+    int $_[2];
 }
 
 =method C<@m:round(1.5)>
@@ -103,7 +97,7 @@ for the rounding.
 =cut
 
 sub extended_round : Attr(m:round) {
-    sprintf '%.0f', $_[4];
+    sprintf '%.0f', $_[2];
 }
 
 =method C<@m:max(1,2,3,4,5)>
@@ -113,7 +107,7 @@ Takes an arbitrary number of arguments and returns the maximum, treating them as
 =cut
 
 sub extended_max : Attr(m:max) {
-    max @_[ 4 .. $#_ ];
+    max @_[ 2 .. $#_ ];
 }
 
 =method C<@m:min(1,2,3,4,5)>
@@ -123,7 +117,7 @@ Takes an arbitrary number of arguments and returns the minimum, treating them as
 =cut
 
 sub extended_min : Attr(m:min) {
-    min @_[ 4 .. $#_ ];
+    min @_[ 2 .. $#_ ];
 }
 
 =method C<@m:sum(1,2,3,4,5)>
@@ -133,7 +127,7 @@ Takes an arbitrary number of arguments and returns the sum, treating them as num
 =cut
 
 sub extended_sum : Attr(m:sum) {
-    sum @_[ 4 .. $#_ ];
+    sum @_[ 2 .. $#_ ];
 }
 
 =method C<@m:prod(1,2,3,4,5)>
@@ -144,7 +138,7 @@ An empty list returns 0.
 =cut
 
 sub extended_prod : Attr(m:prod) {
-    0 + reduce { $a * $b } @_[ 4 .. $#_ ];
+    0 + reduce { $a * $b } @_[ 2 .. $#_ ];
 }
 
 =method C<@s:matches('str','re')>
@@ -155,7 +149,7 @@ if the regex is C<$re>, the regex tested against is C<^$re$>.
 =cut
 
 sub extended_matches : Attr(s:matches) {
-    my ( $str, $re ) = @_[ 4, 5 ];
+    my ( $str, $re ) = @_[ 2, 3 ];
     ( $str // '' ) =~ /^$re$/ ? 1 : undef;
 }
 
@@ -168,7 +162,7 @@ C<^$re>.
 =cut
 
 sub extended_looking_at : Attr(s:looking-at) {
-    my ( $str, $re ) = @_[ 4, 5 ];
+    my ( $str, $re ) = @_[ 2, 3 ];
     $str =~ /^$re/ ? 1 : undef;
 }
 
@@ -179,7 +173,7 @@ Returns whether a prefix of the given string matches the given regex anywhere.
 =cut
 
 sub extended_find : Attr(s:find) {
-    my ( $str, $re ) = @_[ 4, 5 ];
+    my ( $str, $re ) = @_[ 2, 3 ];
     $str =~ /$re/ ? 1 : undef;
 }
 
@@ -190,7 +184,7 @@ Whether the string has the given prefix.
 =cut
 
 sub extended_starts_with : Attr(s:starts-with) {
-    my ( $str, $prefix ) = @_[ 4, 5 ];
+    my ( $str, $prefix ) = @_[ 2, 3 ];
     0 == index $str, $prefix ? 1 : undef;
 }
 
@@ -201,7 +195,7 @@ Whether the string has the given suffix.
 =cut
 
 sub extended_ends_with : Attr(s:ends-with) {
-    my ( $str, $suffix ) = @_[ 4, 5 ];
+    my ( $str, $suffix ) = @_[ 2, 3 ];
     -1 < index( $str, $suffix, length($str) - length($suffix) ) ? 1 : undef;
 }
 
@@ -212,7 +206,7 @@ Whether the string contains the given substring.
 =cut
 
 sub extended_contains : Attr(s:contains) {
-    my ( $str, $infix ) = @_[ 4, 5 ];
+    my ( $str, $infix ) = @_[ 2, 3 ];
     -1 < index( $str, $infix ) ? 1 : undef;
 }
 
@@ -223,7 +217,7 @@ The index of the substring within the string.
 =cut
 
 sub extended_index : Attr(s:index) {
-    my ( $str, $infix ) = @_[ 4, 5 ];
+    my ( $str, $infix ) = @_[ 2, 3 ];
     index $str, $infix;
 }
 
@@ -234,7 +228,7 @@ Takes an arbitrary number of arguments and returns their concatenation as a stri
 =cut
 
 sub extended_concat : Attr(s:concat) {
-    join '', @_[ 4 .. $#_ ];
+    join '', @_[ 2 .. $#_ ];
 }
 
 =method C<@s:replace-first('str','rx','rep')>
@@ -245,7 +239,7 @@ the first pattern match with the replacement.
 =cut
 
 sub extended_replace_first : Attr(s:replace-first) {
-    my ( $str, $rx, $rep ) = @_[ 4 .. 6 ];
+    my ( $str, $rx, $rep ) = @_[ 2 .. 4 ];
     $str =~ s/$rx/$rep/;
     $str;
 }
@@ -258,7 +252,7 @@ every pattern match with the replacement.
 =cut
 
 sub extended_replace_all : Attr(s:replace-all) {
-    my ( $str, $rx, $rep ) = @_[ 4 .. 6 ];
+    my ( $str, $rx, $rep ) = @_[ 2 .. 4 ];
     $str =~ s/$rx/$rep/g;
     $str;
 }
@@ -271,7 +265,7 @@ every literal occurrence of the substring with the replacement string.
 =cut
 
 sub extended_replace : Attr(s:replace) {
-    my ( $str, $ss, $rep ) = @_[ 4 .. 6 ];
+    my ( $str, $ss, $rep ) = @_[ 2 .. 4 ];
     my $l     = length $ss;
     my $start = 0;
     my $ns    = '';
@@ -292,7 +286,7 @@ Takes two strings and returns the comparison of the two using C<cmp>.
 =cut
 
 sub extended_compare : Attr(s:cmp) {
-    my ( $s1, $s2 ) = @_[ 4, 5 ];
+    my ( $s1, $s2 ) = @_[ 2, 3 ];
     $s1 cmp $s2;
 }
 
@@ -313,7 +307,7 @@ identical to the Java version.
 =cut
 
 sub extended_substr : Attr(s:substr) {
-    my ( $s, $i1, $i2 ) = @_[ 4 .. 6 ];
+    my ( $s, $i1, $i2 ) = @_[ 2 .. 4 ];
     if ( defined $i2 ) {
         substr $s, $i1, $i2 - $i1;
     }
@@ -329,7 +323,7 @@ The length of the string parameter.
 =cut
 
 sub extended_len : Attr(s:len) {
-    length $_[4];
+    length $_[2];
 }
 
 =method C<@s:uc('str')>
@@ -339,7 +333,7 @@ The string parameter in uppercase.
 =cut
 
 sub extended_uc : Attr(s:uc) {
-    uc $_[4];
+    uc $_[2];
 }
 
 =method C<@s:lc('str')>
@@ -349,7 +343,7 @@ The string parameter in lowercase.
 =cut
 
 sub extended_lc : Attr(s:lc) {
-    lc $_[4];
+    lc $_[2];
 }
 
 =method C<@s:ucfirst('str')>
@@ -359,7 +353,7 @@ The function C<ucfirst> applied to the string parameter.
 =cut
 
 sub extended_uc_first : Attr(s:ucfirst) {
-    ucfirst $_[4];
+    ucfirst $_[2];
 }
 
 =method C<@s:trim('str')>
@@ -369,7 +363,7 @@ Removes marginal whitespace from string parameter.
 =cut
 
 sub extended_trim : Attr(s:trim) {
-    ( my $s = $_[4] ) =~ s/^\s++|\s++$//g;
+    ( my $s = $_[2] ) =~ s/^\s++|\s++$//g;
     $s;
 }
 
@@ -395,7 +389,7 @@ C<null> to keep it semantically equivalent to the Java version of C<@s:join>.
 =cut
 
 sub extended_join : Attr(s:join) {
-    my ( $sep, @strings ) = @_[ 4 .. $#_ ];
+    my ( $sep, @strings ) = @_[ 2 .. $#_ ];
     $sep //= 'null';
     join "$sep", @strings;
 }
@@ -420,7 +414,7 @@ Whether the argument is defined.
 =cut
 
 sub extended_udef : Attr(u:def) {
-    defined $_[4] ? 1 : undef;
+    defined $_[2] ? 1 : undef;
 }
 
 1;

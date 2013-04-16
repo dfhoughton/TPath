@@ -14,7 +14,7 @@ with 'TPath::Stringifiable';
 
 =method filter
 
-Takes an index and  a collection of nodes and returns the collection of nodes
+Takes an index and  a collection of L<TPath::Context> objects and returns the collection of contexts
 for which the predicate is true.
 
 =cut

@@ -91,36 +91,36 @@ sub to_string {
 }
 
 sub select {
-    my ( $self, $n, $i, $first ) = @_;
-    my @c = $self->s->select( $n, $i, $first );
+    my ( $self, $ctx, $first ) = @_;
+    my @c = $self->s->select( $ctx, $first );
     for ( $self->quantifier ) {
-        when ('?') { return @c, $n }
-        when ('*') { return @{ _iterate( $self->s, $i, \@c ) }, $n }
-        when ('+') { return @{ _iterate( $self->s, $i, \@c ) } }
+        when ('?') { return @c, $ctx }
+        when ('*') { return @{ _iterate( $self->s, \@c ) }, $ctx }
+        when ('+') { return @{ _iterate( $self->s, \@c ) } }
         when ('e') {
             my ( $s, $top, $bottom ) = ( $self->s, $self->top, $self->bottom );
-            my $c = _enum_iterate( $s, $i, \@c, $top, $bottom, 1 );
-            return @$c, $self->bottom < 2 ? $n : ();
+            my $c = _enum_iterate( $s, \@c, $top, $bottom, 1 );
+            return @$c, $self->bottom < 2 ? $ctx : ();
         }
     }
 }
 
 sub _enum_iterate {
-    my ( $s, $i, $c, $top, $bottom, $count ) = @_;
-    my @next = map { $s->select( $_, $i ) } @$c;
+    my ( $s, $c, $top, $bottom, $count ) = @_;
+    my @next = map { $s->select($_) } @$c;
     my @return = $count++ >= $bottom ? @$c : ();
     unshift @return, @next
       if $count >= $bottom && ( !$top || $count <= $top );
-    unshift @return, @{ _iterate( $s, $i, \@next, $top, $bottom, $count ) }
+    unshift @return, @{ _iterate( $s, \@next, $top, $bottom, $count ) }
       if !$top || $count < $top;
     return \@return;
 }
 
 sub _iterate {
-    my ( $s, $i, $c ) = @_;
+    my ( $s, $c ) = @_;
     return [] unless @$c;
-    my @next = map { $s->select( $_, $i ) } @$c;
-    return [ @{ _iterate( $s, $i, \@next ) }, @$c ];
+    my @next = map { $s->select($_) } @$c;
+    return [ @{ _iterate( $s, \@next ) }, @$c ];
 }
 
 __PACKAGE__->meta->make_immutable;

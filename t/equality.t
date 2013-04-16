@@ -94,8 +94,8 @@ is $elements[0], '<b><aa/></b>', 'found correct element';
     }
 
     sub p : Attr {
-        my ( undef, $n ) = @_;
-        $n->payload;
+        my ( undef, $ctx ) = @_;
+        $ctx->n->payload;
     }
 
 }

@@ -23,8 +23,8 @@ has nt => ( is => 'ro', isa => 'TPath::Test::Node', required => 1 );
 
 # required by TPath::Test::Node
 sub passes {
-    my ( $self, $n, $i ) = @_;
-    return $self->nt->passes( $n, $i ) ? undef : 1;
+    my ( $self, $ctx ) = @_;
+    return $self->nt->passes($ctx) ? undef : 1;
 }
 
 __PACKAGE__->meta->make_immutable;

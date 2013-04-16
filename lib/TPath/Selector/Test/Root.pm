@@ -20,8 +20,8 @@ Expects node and index. Returns root node.
 =cut
 
 sub candidates {
-    my ( $self, undef, $i ) = @_;
-    return $i->root;
+    my ( $self, $ctx ) = @_;
+    return $ctx->i->root;
 }
 
 sub to_string { ':root' }

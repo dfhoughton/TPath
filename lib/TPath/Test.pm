@@ -24,8 +24,7 @@ with 'TPath::Stringifiable';
 
 =head2 test
 
-Takes a node, an index, and a collection of nodes and returns whether the node
-passes the predicate.
+Takes a L<TPath::Context> and returns whether the node passes the predicate.
 
 =cut
 

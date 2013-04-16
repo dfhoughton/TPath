@@ -24,8 +24,8 @@ sub BUILD {
 
 # required by TPath::Selector::Test
 sub candidates {
-    my ( $self, $n, $i, $first ) = @_;
-    return $i->f->closest( $n, $self->node_test, $i, !$first );
+    my ( $self, $ctx, $first ) = @_;
+    return $ctx->i->f->closest( $ctx, $self->node_test, !$first );
 }
 
 sub to_string {

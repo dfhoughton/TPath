@@ -15,8 +15,8 @@ with 'TPath::Selector';
 
 # required by TPath::Selector
 sub select {
-    my ( undef, $n ) = @_;
-    $n;
+    my ( undef, $ctx ) = @_;
+    $ctx;
 }
 
 sub to_string { '.' }

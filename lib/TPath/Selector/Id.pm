@@ -17,9 +17,9 @@ has id => ( isa => 'Str', is => 'ro', required => 1 );
 
 # required by TPath::Selector
 sub select {
-    my ( $self, undef, $idx ) = @_;
-    my $n = $idx->indexed->{ $self->id };
-    $n // ();
+    my ( $self, $ctx ) = @_;
+    my $n = $ctx->i->indexed->{ $self->id };
+    $ctx->bud($n) // ();
 }
 
 sub to_string {

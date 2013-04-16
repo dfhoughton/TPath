@@ -41,8 +41,8 @@ sub children {
 }
 
 sub tag : Attr {                 # also an attribute!
-    my ( $self, $n ) = @_;
-    $n->{tag};
+    my ( $self, $ctx ) = @_;
+    $ctx->n->{tag};
 }
 
 package main;

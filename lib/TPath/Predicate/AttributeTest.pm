@@ -28,8 +28,8 @@ The L<TPath::AttributeTest> selected items must pass.
 has at => ( is => 'ro', isa => 'TPath::AttributeTest', required => 1 );
 
 sub filter {
-    my ( $self, $i, $c ) = @_;
-    return grep { $self->at->test( $_, $i, $c ) } @$c;
+    my ( $self, $c ) = @_;
+    return grep { $self->at->test($_) } @$c;
 }
 
 sub to_string {

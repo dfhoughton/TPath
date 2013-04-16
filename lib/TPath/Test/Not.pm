@@ -30,8 +30,8 @@ has t => ( is => 'ro', isa => 'CondArg', required => 1 );
 
 # required by TPath::Test
 sub test {
-    my ( $self, $n, $i, $c ) = @_;
-    return $self->t->test( $n, $i, $c ) ? 0 : 1;
+    my ( $self, $ctx ) = @_;
+    return $self->t->test($ctx) ? 0 : 1;
 }
 
 sub to_string {

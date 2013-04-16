@@ -208,8 +208,10 @@ END
 $f->add_attribute(
     'foobar',
     sub {
-        my ( $self, $n, $i, $c ) = @_;
-        my $v = defined $n->attribute('foo') && defined $n->attribute('bar');
+        my ( $self, $ctx ) = @_;
+        my $n = $ctx->n;
+        my $v = defined $n->attribute('foo')
+          && defined $n->attribute('bar');
         $v ? 1 : undef;
     }
 );
@@ -218,11 +220,13 @@ $path     = '//*[@foobar]';
 @elements = $f->path($path)->select($p);
 is scalar @elements, 1, "got element from $p using new attribute \@foobar";
 
-$p        = parse(q{<a><b foo="bar" bar="foo"/><b foo="foo"/></a>});
+$p = parse(q{<a><b foo="bar" bar="foo"/><b foo="foo"/></a>});
+my $i = $f->index($p);
 $path     = '//*[@attr("foo")]';
-@elements = $f->path($path)->select($p);
+@elements = $f->path($path)->select($p, $i);
 is scalar @elements, 2, "correct number of elements in $p with $path";
-my $v = $f->attribute( $elements[0], 'attr', undef, undef, 'foo' );
+my $v = $f->attribute( TPath::Context->new( n => $elements[0], i => $i ),
+    'attr', 'foo' );
 is $v, 'bar', "correct value of attribute";
 
 $p        = parse(q{<a><b><c/></b><foo><d/><e><foo/></e></foo></a>});

@@ -14,10 +14,10 @@ with 'TPath::Test::Compound';
 
 # required by TPath::Test
 sub test {
-    my ( $self, $n, $i, $c ) = @_;
+    my ( $self, $ctx ) = @_;
     my $count = 0;
     for my $t ( @{ $self->tests } ) {
-        if ( $t->test( $n, $i, $c ) ) {
+        if ( $t->test($ctx) ) {
             return 0 if $count;
             $count++;
         }

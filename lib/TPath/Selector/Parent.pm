@@ -15,8 +15,9 @@ with 'TPath::Selector';
 
 # required by TPath::Selector
 sub select {
-    my ( $self, $n, $i ) = @_;
-    return $n == $i->root ? () : $i->f->parent( $n, $i );
+    my ( $self, $ctx ) = @_;
+    my ( $n, $i ) = ( $ctx->n, $ctx->i );
+    return $n == $i->root ? () : $i->f->parent( $ctx );
 }
 sub to_string { '..' }
 

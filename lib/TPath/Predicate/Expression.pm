@@ -29,8 +29,8 @@ The L<TPath::Expression> evaluated by the predicate.
 has e => ( is => 'ro', isa => 'TPath::Expression', required => 1 );
 
 sub filter {
-    my ( $self, $i, $c ) = @_;
-    return grep { $self->e->test( $_, $i, $c ) } @$c;
+    my ( $self, $c ) = @_;
+    return grep { $self->e->test($_) } @$c;
 }
 
 sub to_string {

@@ -18,6 +18,7 @@ An object that will get us the nodes identified by our path expression.
 
 use TPath::TypeCheck;
 use TPath::TypeConstraints;
+use TPath::Context;
 use Scalar::Util qw(refaddr);
 use Moose;
 
@@ -68,17 +69,19 @@ sub select {
     $self->f->_typecheck($n);
     $i //= $self->f->index($n);
     $i->index;
-    my $sel = $self->_select( $n, $i, 1 );
-    return wantarray ? @$sel : $sel->[0];
+    my $ctx = TPath::Context->new( n => $n, i => $i );
+    my $sel = $self->_select( $ctx, 1 );
+    return
+      wantarray ? map { $_->n } @$sel : @$sel ? $sel->[0]->n : undef;
 }
 
 # select minus the initialization steps
 sub _select {
-    my ( $self, $n, $i, $first ) = @_;
+    my ( $self, $ctx, $first ) = @_;
 
     my @sel;
     for my $fork ( @{ $self->_selectors } ) {
-        push @sel, @{ _sel( $n, $i, $fork, 0, $first ) };
+        push @sel, @{ _sel( $ctx, $fork, 0, $first ) };
     }
     @sel = uniq @sel if @{ $self->_selectors } > 1;
 
@@ -87,27 +90,28 @@ sub _select {
 
 # required by TPath::Test
 sub test {
-    my ( $self, $n, $i ) = @_;
-    !!$self->select( $n, $i );
+    my ( $self, $ctx ) = @_;
+    !!$self->select( $ctx->n, $ctx->i );
 }
 
 # goes down steps of path
 sub _sel {
-    my ( $n, $i, $fork, $idx, $first ) = @_;
+    my ( $ctx, $fork, $idx, $first ) = @_;
     my $selector = $fork->[ $idx++ ];
-    my @c = uniq $selector->select( $n, $i, $first );
+    my @c = uniq $selector->select( $ctx, $first );
     return \@c if $idx == @$fork;
 
     my @sel;
-    push @sel, @{ _sel( $_, $i, $fork, $idx, 0 ) } for @c;
+    push @sel, @{ _sel( $_, $fork, $idx, 0 ) } for @c;
     return \@sel;
 }
 
 # a substitute for List::MoreUtils::uniq which uses reference address rather than stringification to establish identity
+# the list filtered is assumed to be of TPath::Context objects
 sub uniq(@) {
     return @_ if @_ < 2;
     my %seen = ();
-    grep { not $seen{ refaddr $_ }++ } @_;
+    grep { not $seen{ refaddr $_->n }++ } @_;
 }
 
 sub to_string { $_[0]->string }

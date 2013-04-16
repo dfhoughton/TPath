@@ -4,13 +4,13 @@ use Moose::Role;
 use MooseX::MethodAttributes::Role;
 
 sub attr : Attr {
-    my ( $self, $n, $i, $c, $name ) = @_;
-    $n->attribute($name);
+    my ( $self, $ctx, $name ) = @_;
+    $ctx->n->attribute($name);
 }
 
 sub te : Attr {
-    my ( $self, $n, $i, $c, $name ) = @_;
-    $n->tag eq $name ? 1 : undef;
+    my ( $self, $ctx, $name ) = @_;
+    $ctx->n->tag eq $name ? 1 : undef;
 }
 
 package ToyXMLForester;
@@ -22,9 +22,10 @@ use TPath::Index;
 
 with qw(TPath::Forester MyAttributes);
 
-sub children   { my ( $self, $n ) = @_; $n->children }
-sub tag : Attr { my ( $self, $n ) = @_; $n->tag }
-sub id         { my ( $self, $n ) = @_; $n->attribute('id') }
+sub children             { my ( $self, $n )   = @_; $n->children }
+sub tag                  { my ( $self, $n )   = @_; $n->tag }
+sub tag_attr : Attr(tag) { my ( undef, $ctx ) = @_; $ctx->n->tag }
+sub id                   { my ( $self, $n )   = @_; $n->attribute('id') }
 
 sub BUILD { $_[0]->_node_type('Element') }
 

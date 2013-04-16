@@ -31,8 +31,8 @@ The expression within the group.
 has e => ( is => 'ro', isa => 'TPath::Expression', required => 1 );
 
 sub select {
-    my ( $self, $n, $i, $first ) = @_;
-    return @{ $self->e->_select( $n, $i, $first ) };
+    my ( $self, $ctx, $first ) = @_;
+    return @{ $self->e->_select( $ctx, $first ) };
 }
 
 sub to_string {

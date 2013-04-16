@@ -4,7 +4,7 @@ Key
  * = completed
 
 . allow bare paths in attribute tests
-. refactor to use a context object instead of a bunch of parameters
+* refactor to use a context object instead of a bunch of parameters
 . create a previous context attribute
 . add examples
 - allow qname quoting in literals

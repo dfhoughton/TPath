@@ -16,7 +16,7 @@ with 'TPath::Stringifiable';
 
 =head2 select
 
-Takes a node, an index, and whether the selection concerns the initial node
+Takes L<TPath::Context> and whether the selection concerns the initial node
 and returns a collection of nodes.
 
 =cut

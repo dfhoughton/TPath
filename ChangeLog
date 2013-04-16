@@ -4,6 +4,7 @@ Revision history for TPath
 
 0.013     2013-04-14 17:32:57 America/New_York
   * multi-line paths and comments
+  * refactored to work on TPath::Contexts rather than nodes
 
 0.012     2013-04-11 08:39:27 America/New_York
   * added /a/"foo bar" and /a/@"foo bar" style name quoting

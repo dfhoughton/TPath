@@ -72,7 +72,7 @@ indexed by this index.
 
 sub is_root {
     my ( $self, $n ) = @_;
-    return refaddr $n eq $self->_root_ref;
+    return refaddr $n == $self->_root_ref;
 }
 
 sub BUILD {
@@ -99,7 +99,7 @@ sub index {
 
 sub walk {
     my ( $self, $n ) = @_;
-    my @children = $self->f->_kids( $n, $self );
+    my @children = $self->f->_decontextualized_kids( $n, $self );
     $self->n_index($n);
     for my $c (@children) {
         $self->pc_index( $n, $c );

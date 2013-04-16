@@ -29,8 +29,8 @@ The L<TPath::Test> evaluated by the predicate.
 has t => ( is => 'ro', does => 'TPath::Test', required => 1 );
 
 sub filter {
-    my ( $self, $i, $c ) = @_;
-    return grep { $self->t->test( $_, $i, $c ) } @$c;
+    my ( $self, $c ) = @_;
+    return grep { $self->t->test($_) } @$c;
 }
 
 sub to_string { $_[0]->t->to_string }
