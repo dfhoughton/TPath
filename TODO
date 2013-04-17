@@ -11,6 +11,8 @@ Key
 * fix \p{PosixPunct} issue with v5.10 on BSD
 . add usual escapes inside string literals
 . comb documentation for pre-TPath::Context parameter lists
+. document previous:: axis
+. simplify axis code in forester
 
 Attic
 -----

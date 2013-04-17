@@ -42,6 +42,7 @@ our %AXES = map { $_ => 1 } qw(
   parent
   preceding
   preceding-sibling
+  previous
   self
   sibling
   sibling-or-self

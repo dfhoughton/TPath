@@ -2,6 +2,7 @@ Revision history for TPath
 
 {{$NEXT}}
   * added :p selector
+  * added previous:: axis
 
 0.013     2013-04-14 17:32:57 America/New_York
   * multi-line paths and comments

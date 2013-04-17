@@ -119,6 +119,7 @@ child::*
 /a/:p
 /a/:p[@foo]
 /a/:p{2}
+//a/previous::*
 END
 
 push @parsable, q{

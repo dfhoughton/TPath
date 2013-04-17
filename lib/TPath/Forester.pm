@@ -373,6 +373,16 @@ sub axis_preceding {
     $self->_preceding( $ctx, $ctx, $t );
 }
 
+sub axis_previous {
+    my ( $self, $ctx, $t ) = @_;
+    my @previous;
+    while ( my $previous = $ctx->previous ) {
+        push @previous, $previous if $t->passes($previous);
+        $ctx = $previous;
+    }
+    return @previous;
+}
+
 sub axis_preceding_sibling {
     my ( $self, $ctx, $t ) = @_;
     $self->_preceding_siblings( $ctx, $ctx, $t );
