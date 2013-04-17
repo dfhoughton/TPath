@@ -197,7 +197,7 @@ sub standard_depth : Attr(depth) {
     return $depth;
 }
 
-=method C<@depth>
+=method C<@height>
 
 Returns the greatest number of generations, inclusive, separating this
 node from a leaf. Leaf nodes have a height of 1, their parents, 2, etc.

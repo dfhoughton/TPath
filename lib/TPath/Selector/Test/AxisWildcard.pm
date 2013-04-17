@@ -2,7 +2,7 @@ package TPath::Selector::Test::AxisWildcard;
 
 # ABSTRACT: handles C</ancestor::*> or C</preceding::*> where this is not the first step in the path, or C<ancestor::*>, etc.
 
-use feature 'state';
+use v5.10;
 use Moose;
 use TPath::Test::Node::True;
 use namespace::autoclean;

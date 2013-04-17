@@ -81,7 +81,7 @@ our $path_grammar = do {
     
        <token: step> <full> (?: <.ws> <[predicate]> )* | <abbreviated>
     
-       <token: full> <axis>? <forward>
+       <token: full> <axis>? <forward> | (?<=(?<!/)/) <previous=(:p)> <.cp>
     
        <token: axis> 
           (?<!//) (?<!/>) (<%AXES>) ::

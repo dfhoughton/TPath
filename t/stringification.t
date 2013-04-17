@@ -57,6 +57,7 @@ a{2,3}
 :id(foo)/a
 .
 ..
+//a/:p[@te('a')]
 EOF
 
 plan tests => @paths * 3;
@@ -67,13 +68,13 @@ for my $path (@paths) {
         lives_ok { $p1 = $f->path($path) };
     };
     if ($@) {
-        die "failed initial compilation of path $path; error: $@";
+        diag "failed initial compilation of path $path; error: $@";
     }
     eval {
         lives_ok { $p2 = $f->path("$p1") };
     };
     if ($@) {
-        die
+        diag
 "failed compilation of stringification of path $path into $p1; error: $@";
     }
     is_deeply $p1, $p2,

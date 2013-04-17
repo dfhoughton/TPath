@@ -53,7 +53,21 @@ Makes a context that doesn't preserve the path.
 
 sub wrap {
     my ( $self, $n ) = @_;
-    return bless [ $n, $self->[1], [] ], __PACKAGE__;
+    return bless [ $n, $self->[1], [] ];
+}
+
+=method previous
+
+Returns the context of the node selected immediately before the context node.
+
+=cut
+
+sub previous {
+    my $self     = shift;
+    my @previous = @{ $self->[2] };
+    my $n        = shift @previous;
+    return () unless $n;
+    return bless [ $n, $self->[1], \@previous ];
 }
 
 =method n

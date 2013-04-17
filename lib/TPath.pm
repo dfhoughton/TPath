@@ -895,6 +895,22 @@ by C<//*[@id = 'foo']> but this is much less efficient.
 This expression selects the root of the tree. It doesn't make much sense except as the
 first step in an expression.
 
+=head3 :p : Select the Previously Selected Node
+
+This expression selects the node from which the current node was selected. For example, C</a/b/:p>
+will select the C<a> node selected before the C<b> node. How is this ever useful? Well, it lets one
+write expressions like
+
+  //a//b[@height = @at(/:p, 'depth')]
+
+This selects all C<b> nodes descended from C<a> nodes where some C<a> node the C<b> node is descended
+from has the same depth as the C<b> node's height.
+
+One can iterate the C<:p> selector to move different distances up the selection path and one can impose
+predicates on the selector to filter the selection.
+
+  //a//b//c//d[@height = @at(/:p+, 'depth')] 
+
 =head2 Grouping and Repetition
 
 TPath expressions may contain sub-paths consisting of grouped alternates and steps or sub-paths
