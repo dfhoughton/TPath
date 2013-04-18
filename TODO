@@ -4,15 +4,10 @@ Key
  * = completed
 
 . allow bare paths in attribute tests
-* refactor to use a context object instead of a bunch of parameters
-- create a previous context attribute
 . add examples
-- allow qname quoting in literals
-* fix \p{PosixPunct} issue with v5.10 on BSD
 . add usual escapes inside string literals
-. comb documentation for pre-TPath::Context parameter lists
-* document previous:: axis
 . simplify axis code in forester
+. add math in attribute tests
 
 Attic
 -----
@@ -36,3 +31,9 @@ Completed TODO items kept around as curios.
 * rename TPath::Test::XOR to TPath::Test::One
 * update grammar section of documentation
 * die instead of confessing in grammar and compiler
+* refactor to use a context object instead of a bunch of parameters
+- create a previous context attribute
+- allow qname quoting in literals
+* fix \p{PosixPunct} issue with v5.10 on BSD
+* comb documentation for pre-TPath::Context parameter lists
+* document previous:: axis
