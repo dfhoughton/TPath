@@ -44,9 +44,14 @@ __END__
       @{ $n->{children} };
   }
   
-  sub tag : Attr {                 # also an attribute!
+  sub tag {
       my ( $self, $n ) = @_;
       $n->{tag};
+  }
+  
+  sub tag_at : Attr(tag) {         # tags receive the selection context, not the bare node
+      my ( $self, $context ) = @_;
+      $context->n->{tag};
   }
   
   package main;
@@ -561,6 +566,34 @@ are selected from the tree relative the the C<c> node. Selected nodes will be in
     |     |     |
     o     p     q
 
+=item previous
+
+  //c/previous::*
+
+         ROOT
+          |
+          a
+         /|\
+        / | \
+       /  |  \
+      /   |   \
+     /    |    \
+    B     c     d
+   /|\   /|\   /|\
+  e f g h i j l m n
+    |     |     |
+    o     p     q
+
+The previous axis is a bit different from the others. It doesn't concern the
+structure of the tree but the history of node selection. The root node is always
+included because it is always the initial selection context.
+
+By itself the previous axis is not terribly useful, as it is silly in general to
+select a node, then other nodes, then backtrack. It is useful, however, when one
+wants to compare properties of different nodes in the selection history. See also
+the C<:p> selector, which selects the immediately preceding node in the selection
+history.
+
 =item self
 
   //c/self::*
@@ -674,7 +707,7 @@ definition of attributes, see below.) Given the tree
   |   |
   a   b
 
-the path C<//a[@leaf]> would select only the leaf C<a> nodes.
+the path C<//a[@leaf]> would select only the leaf C<a> node.
 
 =head3 Attribute Tests
 
@@ -695,7 +728,7 @@ argument is equal to the right by some definition of equality. If one operator i
 and the other a collection, it's equality of cardinality. If one is a string, it is whether 
 their printed forms are identical. If they are both objects or collections, either referential or
 semantic identity is measured. Referential identity means the collections or objects must be the
-same individual, must be stored at the same memory address. This is the meaning of the double
+same individual -- must be stored at the same memory address. This is the meaning of the double
 equals sign. The single equals sign designates semantic identity, meaning, in the case of collections,
 that they are deeply equal -- the same values stored under the same indices or keys. If one of the items
 compared is an object and it has an C<equals> method, this method is invoked as a semantic equality
@@ -770,7 +803,9 @@ True if the right operand ends the left operand.
 If you wish to test a path instead of an attribute -- to test against the cardinality
 of the node set collected, say -- you can use the C<@echo> attribute. This attribute
 returns the value of its parameter, thus converting anything that can be the parameter
-of an attribute, including expressions, into attributes.
+of an attribute, including expressions, into attributes. Note that the value of an
+expression argument will be a list of L<TPath::Context> objects. The selected nodes are
+available from these contexts via their C<n> accessor.
 
 =head3 Boolean Predicates
 
@@ -822,14 +857,15 @@ interpreted as part of a path or attribute.
   //foo[@bar]
   //foo[@bar(1, 'string', path, @attribute, @attribute = 'test')]
 
-Attributes identify callbacks that evaluate the context node to see whether the respective
+Attributes identify callbacks that evaluate a L<TPath::Context> to see whether the respective
 attribute is defined for it. If the callback returns a defined value, the predicate is true
 and the candidate is accepted; otherwise, it is rejected.
 
 As the second example above demonstrates, attributes may take arguments and these arguments
 may be numbers, strings, paths, other attributes, or attribute tests (see below). Paths are
 evaluated relative to the candidate node being tested, as are attributes and attribute tests.
-A path arguments represents the nodes selected by this path relative to the candidate node.
+A path arguments represents the L<TPath::Context> objects selected by this path relative to the 
+candidate node.
 
 Attribute parameters are enclosed within parentheses. Within these parentheses, they are
 delimited by commas. Space is optional around parameters.
@@ -842,14 +878,14 @@ individual forester via the C<add_attribute> method:
 
   my $forester = MyForester->new;
   $forester->add_attribute( 'foo' => sub {
-     my ( $self, $node, $index, $collection, @params) = @_;
+     my ( $self, $context, @params) = @_;
      ...
   });
 
 Other methods are to defined them as annotated methods of the forester
 
   sub foo :Attr {
-  	 my ( $self, $node, $index, $collection, @params) = @_;
+  	 my ( $self, $context, @params) = @_;
   	 ...
   }
 
@@ -857,7 +893,7 @@ If this would cause a namespace collision or is not a possible method name, you 
 the attribute name as a parameter of the method attribute:
 
   sub foo :Attr(problem:name) {
-  	 my ( $self, $node, $index, $collection, @params) = @_;
+  	 my ( $self, $context, @params) = @_;
   	 ...
   }
 

@@ -18,12 +18,7 @@ use warnings;
 
 use overload '""' => \&to_string;
 
-=method new
-
-To be regarded as private. Let TPath code create contexts.
-
-=cut
-
+# To be regarded as private. Let TPath code create contexts.
 sub new {
     my $class  = shift;
     my %params = @_;
@@ -31,26 +26,15 @@ sub new {
     bless $self, $class;
 }
 
-=method bud
-
-A constructor that constructs a new context by augmenting an existing context.
-Expects a new node and the collection from which it was chosen. To be regarded
-as private.
-
-=cut
-
+# A constructor that constructs a new context by augmenting an existing context.
+# Expects a new node and the collection from which it was chosen. To be regarded
+# as private.
 sub bud {
     my ( $self, $n ) = @_;
-    return bless [ $n, $self->[1], [ $self->[0], @{ $self->[2] } ] ],
-      __PACKAGE__;
+    return bless [ $n, $self->[1], [ $self->[0], @{ $self->[2] } ] ];
 }
 
-=method wrap
-
-Makes a context that doesn't preserve the path.
-
-=cut
-
+#Makes a context that doesn't preserve the path.
 sub wrap {
     my ( $self, $n ) = @_;
     return bless [ $n, $self->[1], [] ];
@@ -68,6 +52,18 @@ sub previous {
     my $n        = shift @previous;
     return () unless $n;
     return bless [ $n, $self->[1], \@previous ];
+}
+
+=method first
+
+Returns the first context in the selection history represented by this context.
+
+=cut
+
+sub first {
+    my $self = shift;
+    return $self unless @{ $self->[2] };
+    $self->wrap( $self->[2][-1] );
 }
 
 =method n

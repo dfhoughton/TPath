@@ -107,6 +107,10 @@ Attribute test expressions like this require that the left and right operands be
 attributes or constants, but this is no restriction because C<@echo> turns everything
 into an attribute.
 
+Note that L<TPath::Expression> parameters evaluate not to a list of nodes but to a
+list of L<TPath::Context> objects. Each context's node can be obtained by its C<n>
+accessor.
+
 =cut
 
 sub standard_echo : Attr(echo) {
@@ -308,7 +312,7 @@ sub standard_card : Attr(card) {
 
 =method C<@at(foo//bar, 'baz', 1, 2, 3)>
 
-Returns the value of the named attribute with the given parameters at the first node selected by
+Returns the value of the named attribute with the given parameters at the first L<TPath::Context> selected by
 the path parameter evaluated relative to the context node. In the case of
 
   @at(foo//bar, 'baz', 1, 2, 3)
@@ -320,9 +324,9 @@ the parameters 1, 2, and 3. Other examples:
   @at(*/*, 'height')      # the height of the first grandchild of this node
   @at(/>foo, 'depth')     # the depth of the closest foo node
 
-It is the first node selected by the path whose attribute is evaluated, that is, the first node returned,
-so it is relevant that paths are evaluated left-to-right, depth-first, and post-ordered, descendants being
-returned before their ancestors.
+It is the first L<TPath::Context> selected by the path whose attribute is evaluated, that is, 
+the first node returned, so it is relevant that paths are evaluated left-to-right, depth-first, and 
+post-ordered, descendants being returned before their ancestors.
 
 =cut
 

@@ -144,7 +144,10 @@ sub extended_prod : Attr(m:prod) {
 =method C<@s:matches('str','re')>
 
 Returns whether the given string matches the given regex. That is,
-if the regex is C<$re>, the regex tested against is C<^$re$>.
+if the regex is C<$re>, the regex tested against is C<^$re$>. Note that this is
+redundant: one can also use the C<=~> operator for this purpose.
+
+  //foo[@bar =~ '^baz$']
 
 =cut
 
@@ -157,7 +160,10 @@ sub extended_matches : Attr(s:matches) {
 
 Returns whether a prefix of the given string matches the given regex.
 That is, if the regex given is C<$re>, the regex tested against is
-C<^$re>.
+C<^$re>.  Note that this is redundant: one can also use the C<=~> operator 
+for this purpose.
+
+  //foo[@bar =~ '^baz']
 
 =cut
 
@@ -168,7 +174,10 @@ sub extended_looking_at : Attr(s:looking-at) {
 
 =method C<@s:find('str','re')>
 
-Returns whether a prefix of the given string matches the given regex anywhere.
+Returns whether a prefix of the given string matches the given regex anywhere.  Note that this is
+redundant: one can also use the C<=~> operator for this purpose.
+
+  //foo[@bar =~ 'baz']
 
 =cut
 
@@ -179,7 +188,10 @@ sub extended_find : Attr(s:find) {
 
 =method C<@s:starts-with('str','prefix')>
 
-Whether the string has the given prefix.
+Whether the string has the given prefix. Note that this is
+redundant: one can also use the C<|=> operator for this purpose.
+
+  //foo[@bar |= 'baz']
 
 =cut
 
@@ -190,7 +202,10 @@ sub extended_starts_with : Attr(s:starts-with) {
 
 =method C<@s:ends-with('str','suffix')>
 
-Whether the string has the given suffix.
+Whether the string has the given suffix. Note that this is
+redundant: one can also use the C<=|> operator for this purpose.
+
+  //foo[@bar =| 'baz']
 
 =cut
 
@@ -201,7 +216,10 @@ sub extended_ends_with : Attr(s:ends-with) {
 
 =method C<@s:contains('str','infix')>
 
-Whether the string contains the given substring.
+Whether the string contains the given substring. Note that this is
+redundant: one can also use the C<=|=> operator for this purpose.
+
+  //foo[@bar =|= 'baz']
 
 =cut
 
