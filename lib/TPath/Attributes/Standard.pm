@@ -81,7 +81,7 @@ sub standard_uid : Attr(uid) {
     while ( !$i->is_root($node) ) {
         my $ra = refaddr $node;
         $ctx = $ctx->wrap($node);
-        my $parent = $self->parent($ctx);
+        my $parent = $self->parent( $original, $ctx );
         last unless $parent;
         my @children = $self->children( $parent->n, $i );
         for my $index ( 0 .. $#children ) {
@@ -193,10 +193,11 @@ Returns the number of ancestors of the context node.
 sub standard_depth : Attr(depth) {
     my ( $self, $ctx ) = @_;
     return 0 if $self->standard_is_root($ctx);
-    my $depth = -1;
+    my $depth    = -1;
+    my $original = $ctx;
     do {
         $depth++;
-        $ctx = $self->parent($ctx);
+        $ctx = $self->parent( $original, $ctx );
     } while ( defined $ctx );
     return $depth;
 }
@@ -253,8 +254,9 @@ sub standard_index : Attr(index) {
     my ( $self, $ctx ) = @_;
     my ( $n, $i ) = ( $ctx->n, $ctx->i );
     return -1 if $i->is_root($n);
-    my $parent   = $self->parent($ctx);
-    my @siblings = $self->_kids( $parent, $parent );
+    my $original = $ctx;
+    my $parent   = $self->parent( $original, $ctx );
+    my @siblings = $self->_kids( $original, $parent );
     my $ra       = refaddr $n;
     for my $index ( 0 .. $#siblings ) {
         return $index if refaddr $siblings[$index]->n == $ra;

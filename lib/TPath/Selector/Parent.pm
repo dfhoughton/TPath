@@ -17,7 +17,7 @@ with 'TPath::Selector';
 sub select {
     my ( $self, $ctx ) = @_;
     my ( $n, $i ) = ( $ctx->n, $ctx->i );
-    return $n == $i->root ? () : $i->f->parent( $ctx );
+    return $n == $i->root ? () : $i->f->parent( $ctx, $ctx );
 }
 sub to_string { '..' }
 

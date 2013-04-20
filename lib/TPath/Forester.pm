@@ -276,10 +276,10 @@ L<TPath::Index>.
 =cut
 
 sub parent {
-    my ( $self, $ctx ) = @_;
+    my ( $self, $original, $ctx ) = @_;
     my $p = $ctx->i->parent( $ctx->n );
     return undef unless $p;
-    return $ctx->bud($p);
+    return $original->bud($p);
 }
 
 =method id
@@ -363,7 +363,7 @@ sub axis_leaf { my ( $self, $ctx, $t ) = @_; $self->_leaves( $ctx, $ctx, $t ) }
 
 sub axis_parent {
     my ( $self, $ctx, $t ) = @_;
-    my $parent = $self->parent($ctx);
+    my $parent = $self->parent( $ctx, $ctx );
     return () unless $parent;
     return $t->passes($parent) ? $parent : ();
 }
@@ -416,12 +416,14 @@ sub closest {
 
 sub _siblings_or_self {
     my ( $self, $original, $ctx, $t ) = @_;
-    grep { $t->passes($_) } $self->_kids( $original, $self->parent($ctx) );
+    grep { $t->passes($_) }
+      $self->_kids( $original, $self->parent( $original, $ctx ) );
 }
 
 sub _siblings {
     my ( $self, $original, $ctx, $t ) = @_;
-    my @siblings = $self->_untested_siblings( $original, $self->parent($ctx) );
+    my @siblings =
+      $self->_untested_siblings( $original, $self->parent( $original, $ctx ) );
     grep { $t->passes($_) } @siblings;
 }
 
@@ -430,7 +432,7 @@ sub _untested_siblings {
     return () if $self->is_root($ctx);
     my $ra = refaddr $ctx->n;
     grep { refaddr $_->n ne $ra }
-      $self->_kids( $original, $self->parent($ctx) );
+      $self->_kids( $original, $self->parent( $original, $ctx ) );
 }
 
 sub _preceding {
@@ -455,7 +457,7 @@ sub _preceding {
 sub _preceding_siblings {
     my ( $self, $original, $ctx, $t ) = @_;
     return () if $self->is_root($ctx);
-    my @siblings = $self->_kids( $original, $self->parent($ctx) );
+    my @siblings = $self->_kids( $original, $self->parent( $original, $ctx ) );
     return () if @siblings == 1;
     my @preceding_siblings;
     my $ra = refaddr $ctx->n;
@@ -497,7 +499,7 @@ sub _following {
 sub _following_siblings {
     my ( $self, $original, $ctx, $t ) = @_;
     return () if $self->is_root($ctx);
-    my @siblings = $self->_kids( $original, $self->parent($ctx) );
+    my @siblings = $self->_kids( $original, $self->parent( $original, $ctx ) );
     return () if @siblings == 1;
     my ( @following_siblings, $add );
     my $ra = refaddr $ctx->n;
@@ -563,7 +565,7 @@ sub _ancestors {
     my ( $self, $original, $ctx, $t ) = @_;
     my @nodes;
     while ( !$self->is_root($ctx) ) {
-        my $parent = $self->parent($ctx);
+        my $parent = $self->parent( $original, $ctx );
         unshift @nodes, $parent if $t->passes($parent);
         $ctx = $parent;
     }
