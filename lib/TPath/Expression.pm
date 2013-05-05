@@ -32,7 +32,7 @@ L<TPath::Test>, L<TPath::Stringifiable>
 
 =cut
 
-with qw(TPath::Test TPath::Stringifiable);
+with qw(TPath::Test TPath::Numifiable);
 
 =attr f
 
@@ -71,8 +71,7 @@ sub select {
     $i->index;
     my $ctx = TPath::Context->new( n => $n, i => $i );
     my $sel = $self->_select( $ctx, 1 );
-    return
-      wantarray ? map { $_->n } @$sel : @$sel ? $sel->[0]->n : undef;
+    return wantarray ? map { $_->n } @$sel : @$sel ? $sel->[0]->n : undef;
 }
 
 # select minus the initialization steps
@@ -86,6 +85,18 @@ sub _select {
     @sel = uniq @sel if @{ $self->_selectors } > 1;
 
     return \@sel;
+}
+
+=attr to_num
+
+Required by L<TPath::Numifier>. Returns the number of nodes selected given the L<TPath::Context>.
+
+=cut
+
+sub to_num {
+    my ( $self, $ctx ) = @_;
+    my $nodes = $self->_select( $ctx, 1 );
+    return scalar @$nodes;
 }
 
 # required by TPath::Test

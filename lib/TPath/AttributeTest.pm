@@ -247,25 +247,31 @@ sub _s_func {
     for ( _type($v) ) {
         when ('a') {
             return sub {
-                my ( $self, $ctx ) = @_;
+                my ( undef, $ctx ) = @_;
                 $v->apply($ctx);
             };
         }
         when ('e') {
             return sub {
-                my ( $self, $n, $i ) = @_;
-                my @c = $v->select( $n, $i );
-                join '', @c;
+                my ( undef, $ctx ) = @_;
+                my $c = $v->_sel( $ctx, 1 );
+                join '', map { $_->n } @$c;
             };
         }
         when ('t') {
             return sub {
-                my ( $self, $ctx ) = @_;
+                my ( undef, $ctx ) = @_;
                 $v->test($ctx);
             };
         }
+        when ('f') {
+            return sub {
+                my ( undef, $ctx ) = @_;
+                $v->to_num($ctx);
+            };
+        }
         when (/[ns]/) {
-            return sub { "$v" };
+            return sub { $v };
         }
     }
 }
@@ -278,12 +284,6 @@ sub _e_func {
 
     my $lv = $self->left;
     my $rv = $self->right;
-
-    # constant functions
-    return 0 + $lv == 0 + $rv ? sub { 1 } : sub { undef }
-      if $lr =~ /n[ns]|sn/;
-    return "" . $lv eq "" . $rv ? sub { 1 } : sub { undef }
-      if $lr eq 'ss';
 
     # non-silly functions
     for ($l) {
@@ -312,9 +312,15 @@ sub _e_func {
                 }
                 when ('e') {
                     return sub {
-                        my ( undef, $n, $i ) = @_;
-                        my @c = $rv->select( $n, $i );
-                        $lv == @c or undef;
+                        my ( undef, $ctx ) = @_;
+                        my $c = $rv->_sel( $ctx, 1 );
+                        $lv == @$c or undef;
+                      }
+                }
+                when ('f') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        $lv == $rv->to_num($ctx) or undef;
                       }
                 }
                 default {
@@ -340,9 +346,13 @@ sub _e_func {
                       }
                 }
                 when ('e') {
-                    my ( undef, $n, $i ) = @_;
-                    my @c = $rv->select( $n, $i );
-                    $lv eq join( '', @c ) or undef;
+                    my ( undef, $ctx ) = @_;
+                    my $c = $rv->_sel( $ctx, 1 );
+                    $lv eq join( '', map { $_->n } @$c ) or undef;
+                }
+                when ('f') {
+                    my ( undef, $ctx ) = @_;
+                    $lv eq $rv->to_num($ctx) or undef;
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -393,8 +403,16 @@ sub _e_func {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $v1 = $lv->apply($ctx);
-                        my @c  = $rv->select($ctx);
-                        return $ef->( $v1, \@c ) or undef;
+                        my $c  = $rv->_sel($ctx);
+                        return $ef->( $v1, $c ) or undef;
+                    };
+                }
+                when ('f') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $v1 = $lv->apply($ctx);
+                        my $n  = $rv->to_num($ctx);
+                        return $ef->( $v1, $n ) or undef;
                     };
                 }
                 default {
@@ -435,10 +453,20 @@ sub _e_func {
                       }
                 }
                 when ('e') {
-                    my ( undef, $ctx ) = @_;
-                    my $v1 = $lv->test($ctx);
-                    my @c  = $lv->select($ctx);
-                    return $v1 == @c or undef;
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $v1 = $lv->test($ctx);
+                        my $c = $lv->_sel( $ctx, 1 );
+                        return $v1 == @$c or undef;
+                      }
+                }
+                when ('f') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $v1 = $lv->test($ctx);
+                        my $n  = $lv->to_num($ctx);
+                        return $v1 == $n or undef;
+                      }
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -449,39 +477,94 @@ sub _e_func {
             for ($r) {
                 when ('n') {
                     return sub {
-                        my ( undef, $n, $i ) = @_;
-                        my @c = $lv->select( $n, $i );
-                        return @c == $rv or undef;
+                        my ( undef, $ctx ) = @_;
+                        my $c = $lv->_sel( $ctx, 1 );
+                        return @$c == $rv or undef;
                     };
                 }
                 when ('s') {
                     return sub {
-                        my ( undef, $n, $i ) = @_;
-                        my @c = $lv->select( $n, $i );
-                        return $rv eq join( '', @c ) or undef;
+                        my ( undef, $ctx ) = @_;
+                        my $c = $lv->_sel( $ctx, 1 );
+                        return $rv eq join( '', map { $_->n } @$c ) or undef;
                     };
                 }
                 when ('a') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my @c  = $lv->select($ctx);
+                        my $c = $lv->_sel( $ctx, 1 );
                         my $v2 = $rv->apply($ctx);
-                        return $ef->( \@c, $v2 ) or undef;
+                        return $ef->( $c, $v2 ) or undef;
                     };
                 }
                 when ('t') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my @c  = $lv->select($ctx);
+                        my $c = $lv->_sel( $ctx, 1 );
                         my $v2 = $rv->test($ctx);
-                        return @c == $v2 or undef;
+                        return @$c == $v2 or undef;
                       }
                 }
                 when ('e') {
-                    my ( undef, $n, $i ) = @_;
-                    my @c1 = $lv->select( $n, $i );
-                    my @c2 = $rv->select( $n, $i );
-                    return @c1 == @c2 or undef;
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $c1 = $lv->_sel( $ctx, 1 );
+                        my $c2 = $rv->_sel( $ctx, 1 );
+                        return @$c1 == @$c2 or undef;
+                      }
+                }
+                when ('f') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $c1 = $lv->_sel( $ctx, 1 );
+                        my $n = $rv->to_num($ctx);
+                        return @$c1 == $n or undef;
+                      }
+                }
+                default {
+                    confess "fatal logic error! unexpected argument type $r"
+                }
+            }
+        }
+        when ('f') {
+            for ($r) {
+                when (/[ns]/) {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        return $lv->to_num($ctx) == $rv or undef;
+                    };
+                }
+                when ('a') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n  = $lv->to_num($ctx);
+                        my $v2 = $rv->apply($ctx);
+                        return $ef->( $n, $v2 ) or undef;
+                    };
+                }
+                when ('t') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n  = $lv->to_num($ctx);
+                        my $v2 = $rv->test($ctx);
+                        return $ef->( $n, $v2 ) or undef;
+                      }
+                }
+                when ('e') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n = $lv->to_num($ctx);
+                        my $c = $rv->_sel($ctx);
+                        return $n == @$c or undef;
+                    };
+                }
+                when ('f') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n1 = $lv->to_num($ctx);
+                        my $n2 = $rv->to_num($ctx);
+                        return $n1 == $n2 or undef;
+                    };
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -500,13 +583,6 @@ sub _c_func {
     my $lv = $self->left;
     my $rv = $self->right;
 
-    # constant functions
-    return $nf->( $lv, $rv ) ? sub { 1 } : sub { undef }
-      if $lr =~ /n[ns]|sn/;
-    return $sf->( $lv, $rv ) ? sub { 1 } : sub { undef }
-      if $lr eq 'ss';
-
-    # non-silly functions
     for ($l) {
         when ('n') {
             for ($r) {
@@ -535,9 +611,16 @@ sub _c_func {
                 }
                 when ('e') {
                     return sub {
-                        my ( undef, $n, $i ) = @_;
-                        my @c = $rv->select( $n, $i );
-                        $nf->( $lv, scalar @c );
+                        my ( undef, $ctx ) = @_;
+                        my $c = $rv->_sel( $ctx, 1 );
+                        $nf->( $lv, scalar @$c );
+                      }
+                }
+                when ('f') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n = $rv->to_num($ctx);
+                        $nf->( $lv, $n );
                       }
                 }
                 default {
@@ -563,9 +646,18 @@ sub _c_func {
                       }
                 }
                 when ('e') {
-                    my ( undef, $n, $i ) = @_;
-                    my @c = $rv->select( $n, $i );
-                    $sf->( $lv, join '', @c );
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $c = $rv->_sel( $ctx, 1 );
+                        $sf->( $lv, join '', map { $_->n } @$c );
+                    };
+                }
+                when ('f') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n = $rv->to_num($ctx);
+                        $sf->( $lv, $n );
+                    };
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -612,13 +704,24 @@ sub _c_func {
                         my $v1 = $lv->apply($ctx);
                         my $v2 = $rv->test($ctx);
                         return _reduce( $v1, $v2, $sf, $nf, $ctx );
-                      }
+                    };
                 }
                 when ('e') {
-                    my ( undef, $ctx ) = @_;
-                    my $v1 = $lv->apply($ctx);
-                    my @c  = $rv->select($ctx);
-                    return _reduce( $v1, \@c, $sf, $nf, $ctx );
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $v1 = $lv->apply($ctx);
+                        my $c = $rv->_sel( $ctx, 1 );
+                        return _reduce( $v1, [ map { $_->n } @$c ], $sf, $nf,
+                            $ctx );
+                    };
+                }
+                when ('f') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $v1 = $lv->apply($ctx);
+                        my $n  = $rv->to_num($ctx);
+                        return _reduce( $v1, $n, $sf, $nf, $ctx );
+                    };
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -661,8 +764,16 @@ sub _c_func {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $v1 = $lv->test($ctx);
-                        my @c  = $rv->select($ctx);
-                        return $nf->( $v1, scalar @c );
+                        my $c = $rv->_sel( $ctx, 1 );
+                        return $nf->( $v1, scalar @$c );
+                    };
+                }
+                when ('f') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $v1 = $lv->test($ctx);
+                        my $n  = $rv->to_num($ctx);
+                        return $nf->( $v1, $n );
                     };
                 }
                 default {
@@ -674,40 +785,102 @@ sub _c_func {
             for ($r) {
                 when ('n') {
                     return sub {
-                        my ( undef, $n, $i ) = @_;
-                        my @c = $lv->select( $n, $i );
-                        return $nf->( scalar @c, $rv );
+                        my ( undef, $ctx ) = @_;
+                        my $c = $lv->_sel( $ctx, 1 );
+                        return $nf->( scalar @$c, $rv );
                     };
                 }
                 when ('s') {
                     return sub {
-                        my ( undef, $n, $i ) = @_;
-                        my @c = $lv->select( $n, $i );
-                        return $sf->( join( '', @c ), $rv );
+                        my ( undef, $ctx ) = @_;
+                        my $c = $lv->_sel( $ctx, 1 );
+                        return $sf->( join( '', map { $_->n } @$c ), $rv );
                     };
                 }
                 when ('a') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my @c  = $lv->select($ctx);
+                        my $c = $lv->_sel( $ctx, 1 );
                         my $v2 = $rv->apply($ctx);
-                        return _reduce( \@c, $v2, $sf, $nf, $ctx );
+                        return _reduce( [ map { $_->n } @$c ], $v2, $sf, $nf,
+                            $ctx );
                     };
                 }
                 when ('t') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my @c  = $lv->select($ctx);
+                        my $c = $lv->_sel( $ctx, 1 );
                         my $v2 = $rv->test($ctx);
-                        return $nf->( scalar @c, $v2 );
+                        return $nf->( scalar @$c, $v2 );
                       }
                 }
                 when ('e') {
                     return sub {
-                        my ( undef, $n, $i ) = @_;
-                        my @c1 = $lv->select( $n, $i );
-                        my @c2 = $rv->select( $n, $i );
-                        return $nf->( scalar @c1, scalar @c2 );
+                        my ( undef, $ctx ) = @_;
+                        my $c1 = $lv->_sel( $ctx, 1 );
+                        my $c2 = $rv->_sel( $ctx, 1 );
+                        return $nf->( scalar @$c1, scalar @$c2 );
+                    };
+                }
+                when ('f') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $c = $lv->_sel( $ctx, 1 );
+                        my $n = $rv->to_num($ctx);
+                        return $nf->( scalar @$c, $n );
+                    };
+                }
+                default {
+                    confess "fatal logic error! unexpected argument type $r"
+                }
+            }
+        }
+        when ('f') {
+            for ($r) {
+                when ('n') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n = $lv->to_num($ctx);
+                        return $nf->( $n, $rv );
+                    };
+                }
+                when ('s') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n = $lv->to_num($ctx);
+                        return $nf->( $n, $rv );
+                    };
+                }
+                when ('a') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n  = $lv->to_num($ctx);
+                        my $v2 = $rv->apply($ctx);
+                        return _reduce( $n, $v2, $sf, $nf, $ctx );
+                    };
+                }
+                when ('t') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n  = $lv->to_num($ctx);
+                        my $v2 = $rv->test($ctx);
+                        return $nf->( $n, $v2 );
+                      }
+                }
+                when ('e') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n = $lv->to_num($ctx);
+                        my $c = $rv->_sel( $ctx, 1 );
+                        return $nf->( $n, scalar @$c );
+                    };
+                }
+                when ('f') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n1 = $lv->to_num($ctx);
+                        my $n2 = $rv->to_num($ctx);
+                        return $nf->( $n1, $n2 );
                     };
                 }
                 default {
@@ -731,17 +904,23 @@ sub _reduce {
         when ('rn') { return $nf->( scalar @$v1,      $v2 ) }
         when ('sr') { return $sf->( $v1, join '', @$v2 ) }
         when ('rs') { return $sf->( join( '', @$v1 ), $v2 ) }
-        when (/[eta].|.[eta]/) {
+        when (/[etaf].|.[etaf]/) {
             my ( $v3, $v4 ) = ( $v1, $v2 );
             for ($l) {
-                when ('e') { $v3 = [ $v1->select($ctx) ] }
+                when ('e') {
+                    $v3 = [ map { $_->n } @{ $v1->_sel( $ctx, 1 ) } ];
+                }
                 when ('t') { $v3 = $v1->test($ctx) }
                 when ('a') { $v3 = $v1->apply($ctx) }
+                when ('f') { $v3 = $v1->to_num($ctx) }
             }
             for ($r) {
-                when ('e') { $v4 = [ $v2->select($ctx) ] }
+                when ('e') {
+                    $v4 = [ map { $_->n } @{ $v2->_sel( $ctx, 1 ) } ];
+                }
                 when ('t') { $v4 = $v2->test($ctx) }
                 when ('a') { $v4 = $v2->apply($ctx) }
+                when ('f') { $v4 = $v2->to_num($ctx) }
             }
             return _reduce( $v3, $v4, $sf, $nf, $ctx );
         }
@@ -837,6 +1016,7 @@ sub _type {
         return 'a' if $arg->isa('TPath::Attribute');
         return 'e' if $arg->isa('TPath::Expression');
         return 't' if $arg->isa('TPath::AttributeTest');
+        return 'f' if $arg->does('TPath::Numifiable');
         return 'o';
     }
     return 'n' if looks_like_number $arg;
@@ -845,9 +1025,9 @@ sub _type {
 
 sub to_string {
     my $self = shift;
-    $self->_stringify( $self->left ) . ' '
+    $self->_stringify( $self->left, 1 ) . ' '
       . $self->op . ' '
-      . $self->_stringify( $self->right );
+      . $self->_stringify( $self->right, 1 );
 }
 
 __PACKAGE__->meta->make_immutable;

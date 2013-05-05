@@ -18,7 +18,7 @@ L<TPath::Test>, L<TPath::Stringifiable>
 
 =cut
 
-with qw(TPath::Test TPath::Stringifiable);
+with qw(TPath::Test TPath::Numifiable);
 
 =attr name
 
@@ -77,6 +77,22 @@ sub apply {
         push @args, $value;
     }
     $self->code->( $ctx->i->f, @args );
+}
+
+=method to_num
+
+Basically an alias for C<apply>. Required by L<TPath::Numifier>.
+
+=cut
+
+sub to_num {
+    my ( $self, $ctx ) = @_;
+    my $val = $self->apply($ctx);
+    for ( ref $val ) {
+        when ('ARRAY') { return scalar @$val }
+        when ('HASH')  { return scalar keys %$val }
+        default        { return 0 + $val }
+    }
 }
 
 # required by TPath::Test

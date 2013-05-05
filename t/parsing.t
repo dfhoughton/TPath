@@ -120,6 +120,12 @@ child::*
 /a/:p[@foo]
 /a/:p{2}
 //a/previous::*
+//*[a + 1 = @foo]
+//*[1+2=3]
+//*[-a=@foo]
+//*[:sqrt(4)=@foo]
+//*[:sqrt(@foo)=4]
+//*[(1+@foo)**2 > b]
 END
 
 push @parsable, q{
@@ -153,7 +159,6 @@ a{,0}
 a{2,1}
 a:(a(
 // a
-a {2}
 a *
 END
 
@@ -251,6 +256,18 @@ a{1,}
 
 a{0,}
 a*
+
+a[2+2=4]
+a[:sqrt(16)=4]
+
+a[@foo + 1=2]
+a[1+@foo = 2]
+
+a[1+(2+(3+(4+5))) = @b]
+a[15=@b]
+
+a[2*(1+2+3+4)=@b]
+a[20=@b]
 END
 
 push @equivalent, q{//a//b}, q{

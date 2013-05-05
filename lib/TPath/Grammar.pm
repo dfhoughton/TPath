@@ -5,10 +5,13 @@ package TPath::Grammar;
 use v5.10;
 use strict;
 use warnings;
+use POSIX qw(acos asin atan ceil floor log10 tan);
+use Math::Trig qw(pi);
+use Scalar::Util qw(looks_like_number);
 
 use parent qw(Exporter);
 
-our @EXPORT_OK = qw(parse %AXES);
+our @EXPORT_OK = qw(parse %AXES %FUNCTIONS %MATH_CONSTANTS);
 
 =head1 SYNOPSIS
 
@@ -48,12 +51,57 @@ our %AXES = map { $_ => 1 } qw(
   sibling-or-self
 );
 
+# single-argument mathematical functions
+our %FUNCTIONS = (
+    abs   => sub { abs $_[0] },
+    acos  => \&acos,
+    asin  => \&asin,
+    atan  => \&atan,
+    ceil  => \&ceil,
+    cos   => sub { cos $_[0] },
+    exp   => sub { exp $_[0] },
+    floor => \&floor,
+    int   => sub { int $_[0] },
+    log   => sub { log $_[0] },
+    log10 => \&log10,
+    sin   => sub { sin $_[0] },
+    sqrt  => sub { sqrt $_[0] },
+    tan   => sub { tan $_[0] },
+);
+
+our %MATH_CONSTANTS = (
+    pi => pi,
+    e  => exp 1,
+);
+
+# map from operators to their properties;
+# [<precedence>, <commutative>, <left-associative>, <dual>]
+# not sure if "dual" is the right term; it's the operator one can use to reduce
+# the right operands with a non-commutative operator
+our %MATH_OPERATORS = (
+    '+'  => [ 3, 1, 1 ],
+    '-'  => [ 3, 0, 1, '+' ],
+    '*'  => [ 2, 1, 1 ],
+    '/'  => [ 2, 0, 1, '*' ],
+    '**' => [ 1, 0, 1, '*' ],
+    '%'  => [ 2, 0, 0 ],
+);
+
+# sort these into a list for use in reducing complex mathematical expressions
+my @math_ops =
+  map { my @ar = @{ $MATH_OPERATORS{$_} }; $ar[0] = $_; \@ar }
+  sort {
+         $MATH_OPERATORS{$a}[0] <=> $MATH_OPERATORS{$b}[0]
+      || $MATH_OPERATORS{$b}[1] <=> $MATH_OPERATORS{$a}[1]
+      || $MATH_OPERATORS{$b}[2] <=> $MATH_OPERATORS{$a}[2]
+  }
+  keys %MATH_OPERATORS;
+
 our $offset       = 0;
 our $path_grammar = do {
     our $buffer;
     use Regexp::Grammars;
     qr{
-       <nocontext:>
        <timeout: 10>
     
     \A <.ws> <treepath> <.ws> \Z
@@ -66,7 +114,9 @@ our $path_grammar = do {
        
        <token: quantifier> (?: [?+*] | <enum> ) <.cp>
        
-       <rule: enum> [{] <start=(\d*+)> (?: , <end=(\d*+)> )? [}]
+       <rule: enum> 
+          [{] <start=(\d*+)> (?: , <end=(\d*+)> )? [}] 
+          <require: (?{length $MATCH{start} or length $MATCH{end}})>
        
        <rule: grouped_step> \( <treepath> \) <quantifier>?
     
@@ -151,7 +201,7 @@ our $path_grammar = do {
        <token: dquote> " (?>[^"\\]|\\.)*+ " <.cp>
     
        <rule: predicate>
-          \[ (*COMMIT) (?: <idx=signed_int> | <condition> ) \] <.cp>
+          \[ (?: <idx=signed_int> | <condition> ) \] <.cp>
     
        <token: int> \b(?:0|[1-9][0-9]*+)\b <.cp>
     
@@ -178,11 +228,23 @@ our $path_grammar = do {
        <token: term> <attribute> | <attribute_test> | <treepath>
     
        <rule: attribute_test>
-          <[args=attribute]> <cmp> <[args=value]> | <[args=value]> <cmp> <[args=attribute]>
+          <[value]> <cmp> <[value]>
     
        <token: cmp> (?: [<>=]=?+ | ![=~] | =~ | =?\|= | =\| ) <.cp>
     
-       <token: value> <v=literal> | <v=num> | <attribute>
+       <token: value> <v=literal> | <v=num> | <attribute> | <treepath> | <math>
+       
+       <rule: math> <function> | <[item=operand]> (?: <.ws> <[item=mop]> <[item=operand]> )*
+       
+       <token: function> :? <f=%FUNCTIONS> \( <.ws> <math> <.ws> \) <.cp>
+       
+       <token: mop> :? ( <%MATH_OPERATORS> ) (?{ $MATCH = $^N }) <.cp>
+       
+       <token: operand> <num> | <minus=(-)>? (?: <mconst> | <attribute> | <treepath> | <mgroup> | <function> )
+       
+       <token: mconst> : ( <%MATH_CONSTANTS> ) (?{ $MATCH = $^N }) <.cp>
+       
+       <rule: mgroup> \( <math> \) <.cp>
     
        <rule: group> \( <condition> \) <.cp>
     
@@ -198,8 +260,12 @@ our $path_grammar = do {
 =func parse
 
 Converts a TPath expression to a parse tree, normalizing boolean expressions
-and parentheses and unescaping escaped strings. C<parse> throws an error with
-a stack trace if the expression is unparsable. Otherwise it returns a hashref.
+and parentheses, unescaping escaped strings, folding constants, and otherwise 
+optimizing the parse tree and preparing it for compilation. 
+
+C<parse> throws an exception (dies) if the expression is is unparsable or, in 
+some cases, contains an impossible condition, C<[1=2]>, for example. Otherwise,
+it returns a hashref.
 
 =cut
 
@@ -208,6 +274,7 @@ sub parse {
     my ($expr) = @_;
     if ( $expr =~ $path_grammar ) {
         my $ref = \%/;
+        normalize_math($ref);
         normalize_compounds($ref);
         complement_to_boolean($ref);
         if ( contains_condition($ref) ) {
@@ -216,12 +283,490 @@ sub parse {
             merge_conditions($ref);
             fix_predicates($ref);
         }
+        cull_predicates($ref);
         optimize($ref);
         return $ref;
     }
     else {
         die "could not parse '$expr' as a TPath expression; "
           . error_message( $expr, $offset );
+    }
+}
+
+# remove necessarily true predicates; throw errors in case of
+# necessarily false predicates
+sub cull_predicates {
+    my $ref = shift;
+    for ( ref $ref ) {
+        when ('ARRAY') { cull_predicates($_) for @$ref }
+        when ('HASH') {
+            cull_predicates($_) for values %$ref;
+            my $predicates = $ref->{predicate};
+            if ($predicates) {
+                for ( my $i = $#$predicates ; $i >= 0 ; $i-- ) {
+                    my $predicate = $predicates->[$i];
+                    my $at        = $predicate->{attribute_test};
+                    if ( $at && is_deeply( @{ $at->{value} } ) ) {
+                        my $op = $at->{cmp};
+                        if ( $op =~ /(?<!!)=$/ ) {
+                            splice @$predicates, $i;    # always true
+                        }
+                        else {
+                            die 'bad predicate: ['
+                              . $predicate->{''}
+                              . ']';                    # always false
+                        }
+                    }
+                }
+            }
+            elsif (exists $ref->{step}
+                && exists $ref->{step}{predicate}
+                && @{ $ref->{step}{predicate} } == 0 )
+            {
+                delete $ref->{step}{predicate};
+            }
+        }
+    }
+}
+
+# deep equality test used in culling predicates
+sub is_deeply {
+    my ( $r1, $r2 ) = @_;
+    my $t1 = ref $r1;
+    my $t2 = ref $r2;
+    return if $t1 xor $t2;
+    if ($t1) {
+        return unless $t1 eq $t2;
+        for ($t1) {
+            when ('ARRAY') {
+                my @ar = @$r1;
+                return unless @ar == @$r2;
+                for my $i ( 0 .. $#ar ) {
+                    return unless is_deeply( $ar[$i], $r2->[$i] );
+                }
+                return 1;
+            }
+            when ('HASH') {
+                my @ar = keys %$r1;
+                return unless @ar == keys %$r2;
+                for my $k (@ar) {
+                    return
+                      unless exists $r2->{$k}
+                      and is_deeply( $r1->{$k}, $r2->{$k} );
+                }
+                return 1;
+            }
+            default { die "logic failure" }
+        }
+    }
+    else {
+        return $r1 == $r2
+          if looks_like_number($r1) && looks_like_number($r2);
+        return $r1 eq $r2;
+    }
+}
+
+# normalize mathematical expressions
+sub normalize_math {
+    my $ref = shift;
+    if ( contains_math($ref) ) {
+        normalize_mconst($ref);
+        reduce_arithmetic($ref);
+        promote_operators($ref);
+        collapse_math_trees($ref);
+    }
+}
+
+# reduce { math => { operator => undef, item => [ { math => ... } ] } } by promoting
+# the inner math
+sub collapse_math_trees {
+    my $ref = shift;
+    for ( ref $ref ) {
+        when ('ARRAY') { collapse_math_trees($_) for @$ref }
+        when ('HASH') {
+            collapse_math_trees($_) for values %$ref;
+            if ( exists $ref->{math} && !$ref->{math}{operator} ) {
+                my $inner = $ref->{math}{item}[0];
+                $ref->{math} = $inner->{math};
+            }
+        }
+    }
+}
+
+# converts operators from infix to prefix
+sub promote_operators {
+    my $ref = shift;
+    for ( ref $ref ) {
+        when ('ARRAY') { promote_operators($_) for @$ref }
+        when ('HASH') {
+            promote_operators($_) for values %$ref;
+            if ( exists $ref->{math} ) {
+                if ( exists $ref->{math}{item} ) {
+                    $ref->{math}{operator} = $ref->{math}{item}[1];
+                    $ref->{math}{item} =
+                      [ grep { ref $_ } @{ $ref->{math}{item} } ];
+                }
+                elsif ( exists $ref->{math}{function} ) {
+                    $ref->{function} = delete $ref->{math}{function};
+                    delete $ref->{math};
+                }
+            }
+        }
+    }
+}
+
+# apply math to constant operands
+sub reduce_arithmetic {
+    my $ref = shift;
+    for ( ref $ref ) {
+        when ('HASH') {
+
+            # depth first
+            reduce_arithmetic($_) for values %$ref;
+            if ( exists $ref->{function} ) {
+                my $num = $ref->{function}{num};
+                if ( defined $num ) {
+                    $num = $FUNCTIONS{ $ref->{function}{f} }->($num);
+                    delete $ref->{function};
+                    $ref->{num} = $num;
+                }
+            }
+            elsif ( exists $ref->{attribute_test} ) {
+                my $values = $ref->{attribute_test}{value};
+                for my $i ( 0 .. $#$values ) {
+                    my $value = $values->[$i];
+                    if ( exists $value->{math} && exists $value->{math}{num} ) {
+                        $value->{v} = $value->{math}{num};
+                        delete $value->{math};
+                    }
+                    elsif ( exists $value->{num} ) {
+                        $value->{v} = $value->{num};
+                        delete $value->{num};
+                    }
+                }
+            }
+            elsif ( exists $ref->{math} || exists $ref->{mgroup} ) {
+                my $key = exists $ref->{math} ? 'math' : 'mgroup';
+                my $items = $ref->{$key}{item};
+                if ( defined $items ) {
+                    for ( scalar @$items ) {
+                        when (1) {
+                            if ( exists $items->[0]{num} ) {
+                                $ref->{num} = $items->[0]{num};
+                                delete $ref->{$key};
+                            }
+                        }
+                        when (3) {
+                            if (   exists $items->[0]{num}
+                                && exists $items->[2]{num} )
+                            {
+                                my ( $l, $op, $r ) = @$items;
+                                my $num = eval $l->{num} . $op . $r->{num};
+                                $ref->{num} = $num;
+                                delete $ref->{$key};
+                            }
+                            else {
+                                my $operator = $items->[1];
+                                if ( $MATH_OPERATORS{$operator}[1] ) { # commutative?
+                                    my ( $variables, $constants ) =
+                                      sort_vals(
+                                        grep_nums( $items, [ 0, 2 ] ) );
+                                    splice @$items, 0, 3,
+                                      {
+                                        math => {
+                                            item => [
+                                                interleave(
+                                                    $operator, @$constants,
+                                                    @$variables,
+                                                )
+                                            ]
+                                        }
+                                      };
+                                }
+                            }
+                        }
+                        default {
+                            for my $op_spec (@math_ops) {
+                                if ( @$items == 1 ) {
+                                    delete $ref->{$_} for keys %$ref;
+                                    $ref->{$_} = $items->[0]{$_}
+                                      for keys %{ $items->[0] };
+                                    last;
+                                }
+                                my ( $operator, $commutative,
+                                    $left_associative, $dual )
+                                  = @$op_spec;
+                                if ($left_associative) {    # left-associative
+                                    my @ranges =
+                                      collect_ranges( $items, $operator );
+                                    if (@ranges) {
+                                        if ($commutative) {
+                                            for my $range ( reverse @ranges ) {
+                                                my ( $variables, $constants ) =
+                                                  sort_vals(
+                                                    grep_nums( $items, $range )
+                                                  );
+                                                my ( $start, $length ) = (
+                                                    $range->[0],
+                                                    $range->[1] -
+                                                      $range->[0] + 1
+                                                );
+                                                if ( @$constants > 1 ) {
+                                                    my @nums = map { $_->{num} }
+                                                      @$constants;
+                                                    my $expr = join $operator,
+                                                      @nums;
+                                                    my $v = eval $expr;
+                                                    if (@$variables) {
+                                                        splice @$items, $start,
+                                                          $length,
+                                                          {
+                                                            math => {
+                                                                item => [
+                                                                    interleave(
+                                                                        {
+                                                                            num =>
+                                                                              $v
+                                                                        },
+                                                                        @$variables,
+                                                                        $operator,
+                                                                    )
+                                                                ]
+                                                            }
+                                                          };
+                                                    }
+                                                    else {
+                                                        splice @$items,
+                                                          $start,
+                                                          $length,
+                                                          { num => $v };
+                                                    }
+                                                }
+                                                else {
+                                                    splice @$items, $start,
+                                                      $length,
+                                                      {
+                                                        math => {
+                                                            item => [
+                                                                interleave(
+                                                                    $operator,
+                                                                    @$constants,
+                                                                    @$variables,
+                                                                )
+                                                            ]
+                                                        }
+                                                      };
+                                                }
+                                            }
+                                        }
+                                        else {    # non-commutative
+                                            for my $range ( reverse @ranges ) {
+                                                my ( $start, $length ) = (
+                                                    $range->[0],
+                                                    $range->[1] -
+                                                      $range->[0] + 1
+                                                );
+                                                my ( $left, @nums ) =
+                                                  grep_nums( $items, $range );
+                                                my ( $variables, $constants ) =
+                                                  sort_vals(@nums);
+                                                if ( @$constants > 1 ) {
+                                                    my @nums = map { $_->{num} }
+                                                      @$constants;
+                                                    my $expr = join $dual,
+                                                      @nums;
+                                                    my $v = eval $expr;
+                                                    if (@$variables) {
+                                                        splice @$items, $start,
+                                                          $length,
+                                                          {
+                                                            math => {
+                                                                item => [
+                                                                    interleave(
+                                                                        $operator,
+                                                                        $left,
+                                                                        {
+                                                                            num =>
+                                                                              $v
+                                                                        },
+                                                                        @$variables,
+                                                                    )
+                                                                ]
+                                                            }
+                                                          };
+                                                    }
+                                                    elsif (
+                                                        exists $left->{num} )
+                                                    {
+                                                        splice @$items, $start,
+                                                          $length,
+                                                          { num =>
+                                                              eval $left->{num}
+                                                              . $operator
+                                                              . $v };
+                                                    }
+                                                    else {
+                                                        splice @$items, $start,
+                                                          $length,
+                                                          {
+                                                            math => {
+                                                                item => [
+                                                                    interleave(
+                                                                        $operator,
+                                                                        $left,
+                                                                        {
+                                                                            num =>
+                                                                              $v
+                                                                        }
+                                                                    )
+                                                                ]
+                                                            }
+                                                          };
+                                                    }
+                                                }
+                                                elsif (@$constants == 1
+                                                    && !@$variables
+                                                    && exists $left->{num} )
+                                                {
+                                                    my $v =
+                                                        eval $left->{num}
+                                                      . $operator
+                                                      . $constants->[0]{num};
+                                                    splice @$items, $start,
+                                                      $length,
+                                                      { num => $v };
+                                                }
+                                                else {
+                                                    splice @$items, $start,
+                                                      $length,
+                                                      {
+                                                        math => {
+                                                            item => [
+                                                                interleave(
+                                                                    $operator,
+                                                                    $left,
+                                                                    @$constants,
+                                                                    @$variables,
+                                                                )
+                                                            ]
+                                                        }
+                                                      };
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                else {    # right-associative
+                                    for (
+                                        my $i = $#$items - 1 ;
+                                        $i > 0 ;
+                                        $i -= 2
+                                      )
+                                    {
+                                        my $op = $items->[$i];
+                                        if (   $op eq $operator
+                                            && exists $items->[ $i - 1 ]{num}
+                                            && exists $items->[ $i + 1 ]{num} )
+                                        {
+                                            splice @$items, $i - 1, 3,
+                                              { num => eval $items->[ $i - 1 ]
+                                                  . $op
+                                                  . $items->[ $i + 1 ] };
+                                        }
+                                        else {
+                                            last;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                elsif ( exists $ref->{$key}{num} ) {
+                    $ref->{num} = $ref->{$key}{num};
+                    delete $ref->{$key};
+                }
+            }
+        }
+        when ('ARRAY') { reduce_arithmetic($_) for @$ref }
+    }
+}
+
+# like join but it doesn't stringify the results
+sub interleave {
+    my ( $op, @items ) = @_;
+    my @ar = ( $items[0] );
+    push @ar, $op, $_ for @items[ 1 .. $#items ];
+    return @ar;
+}
+
+# sorts items conjoined by some arithmetic operator such that variables sort before constants
+sub sort_vals {
+    my ( $variables, $constants ) = ( [], [] );
+    push @{ exists $_->{num} ? $constants : $variables }, $_ for @_;
+    return $variables, $constants;
+}
+
+# pulls out the non-operators
+sub grep_nums {
+    my ( $items, $range ) = @_;
+    grep { ref $_ } @$items[ $range->[0] .. $range->[1] ];
+}
+
+# looks for ranges of mathematical expressions all with the same operator
+sub collect_ranges {
+    my ( $items, $op ) = @_;
+    my ( @ranges, $start );
+    my ( $i,      $lim );
+    for ( ( $i, $lim ) = ( 1, $#$items - 1 ) ; $i <= $lim ; $i += 2 ) {
+        my $op2 = $items->[$i];
+        if ( $op2 eq $op ) {
+            $start = $i - 1 if !defined $start;
+        }
+        elsif ( defined $start ) {
+            push @ranges, [ $start, $i - 1 ];
+            undef $start;
+        }
+    }
+    push @ranges, [ $start, $i - 1 ] if defined $start;
+    return @ranges;
+}
+
+# checks to see whether there is any math in the expression
+sub contains_math {
+    my $ref = shift;
+    for ( ref $ref ) {
+        when ('HASH') {
+            return 1 if exists $ref->{math};
+            for my $v ( values %$ref ) {
+                return 1 if contains_math($v);
+            }
+        }
+        when ('ARRAY') {
+            for my $v (@$ref) {
+                return 1 if contains_math($v);
+            }
+        }
+    }
+    return 0;
+}
+
+# convert mathematical constants to values
+sub normalize_mconst {
+    my $ref = shift;
+    for ( ref $ref ) {
+        when ('HASH') {
+            if ( exists $ref->{mconst} ) {
+                my $num = $MATH_CONSTANTS{ $ref->{mconst} };
+                $ref->{num} = exists $ref->{minus} ? -$num : $num;
+                delete $ref->{mconst};
+                delete $ref->{minus};
+            }
+            else {
+                normalize_mconst($_) for values %$ref;
+            }
+        }
+        when ('ARRAY') { normalize_mconst($_) for @$ref }
     }
 }
 
@@ -385,6 +930,18 @@ sub complement_to_boolean {
 sub optimize {
     my $ref = shift;
     clean_no_op($ref);
+    clean_context($ref);
+}
+
+sub clean_context {
+    my $ref = shift;
+    for ( ref $ref ) {
+        when ('ARRAY') { clean_context($_) for @$ref }
+        when ('HASH') {
+            clean_context($_) for values %$ref;
+            delete $ref->{''};
+        }
+    }
 }
 
 # remove . and /. steps
@@ -769,5 +1326,3 @@ sub qname_test {
 }
 
 1;
-
-__END__

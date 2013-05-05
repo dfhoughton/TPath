@@ -12,7 +12,7 @@ where it is expected will be a compile time rather than run time error.
 use Moose::Role;
 use Scalar::Util qw(looks_like_number);
 
-=head1 REQUIRED ROLES
+=head1 REQUIRED METHODS
 
 =head2 to_string
 
@@ -39,8 +39,9 @@ sub _escape {
 
 # general stringification procedure
 sub _stringify {
-    my ( $self, $arg ) = @_;
-    return $arg->to_string if blessed $arg && $arg->can('to_string');
+    my ( $self, $arg, @args ) = @_;
+    return $arg->to_string(@args)
+      if blessed $arg && $arg->can('to_string');
     confess 'unexpected argument type: ' . ref $arg if ref $arg;
     return $arg if looks_like_number $arg;
     return "'" . $self->_escape( $arg, "'" ) . "'";
