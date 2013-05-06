@@ -125,6 +125,7 @@ child::*
 //*[-a=@foo]
 //*[:sqrt(4)=@foo]
 //*[:sqrt(@foo)=4]
+//*[:sqrt(foo)=4]
 //*[(1+@foo)**2 > b]
 END
 

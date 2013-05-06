@@ -58,6 +58,14 @@ a{2,3}
 .
 ..
 //a/:p[@te('a')]
+a[@attr('b') - 1 = 0]
+a[@attr('b')=1]
+a[:ceil(@attr('b'))=1]
+a[:ceil(@attr('b') + 1)=1]
+a[b - 1 = 0]
+a[b=1]
+a[:ceil(b)=1]
+a[:ceil(b + 1)=1]
 EOF
 
 plan tests => @paths * 3;
@@ -65,19 +73,19 @@ plan tests => @paths * 3;
 for my $path (@paths) {
     my ( $p1, $p2 );
     eval {
-        lives_ok { $p1 = $f->path($path) };
+        lives_ok { $p1 = $f->path($path) } "could parse $path";
     };
     if ($@) {
         diag "failed initial compilation of path $path; error: $@";
     }
     eval {
-        lives_ok { $p2 = $f->path("$p1") };
+        lives_ok { $p2 = $f->path("$p1") } "could parse the stringification of $path as $p1";
     };
     if ($@) {
         diag
 "failed compilation of stringification of path $path into $p1; error: $@";
     }
     is_deeply $p1, $p2,
-      "for path $path and stringifications $p1 and $p2";
+      "identical structure produced for path $path and its stringification $p1";
 }
 done_testing();

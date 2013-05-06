@@ -941,8 +941,8 @@ sub normalize_enums {
         }
         return;
     }
-    die 'empty {x,y} quantifier' unless $start || $end;
-    die 'in {x,y} quantifier end is less than start'
+    die 'empty {x,y} quantifier in ' . $cs->{''} unless $start || $end;
+    die 'in {x,y} quantifier end is less than start in ' . $cs->{''}
       if $start > $end && ( $enum->{end} // '' ) ne '';
     $enum->{end} = $end;
 }
