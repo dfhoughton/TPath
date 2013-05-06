@@ -13,12 +13,14 @@ around with unless you're working on TPath itself.
 use strict;
 use warnings;
 use v5.10;
+use TPath::Grammar qw(%FUNCTIONS);
 
 use parent 'Exporter';
 
 use aliased 'TPath::Attribute';
 use aliased 'TPath::AttributeTest';
 use aliased 'TPath::Expression';
+use aliased 'TPath::Function';
 use aliased 'TPath::Math';
 use aliased 'TPath::Predicate::Attribute'     => 'PA';
 use aliased 'TPath::Predicate::AttributeTest' => 'PAT';
@@ -354,11 +356,23 @@ sub arg {
     return attribute_test( $at, $forester ) if defined $at;
     my $m = $arg->{math};
     return math( $m, $forester ) if defined $m;
+    my $f = $arg->{function};
+    return function( $f, $forester ) if defined $f;
     my $op = $arg->{condition}{operator};
     return condition( $arg, $forester, $op ) if defined $op;
     die
       'fatal compilation error; could not compile parsable argument with keys '
       . ( join ', ', sort keys %$arg );
+}
+
+sub function {
+    my ( $f, $forester ) = @_;
+    my $name = $f->{f};
+    return Function->new(
+        f    => $FUNCTIONS{$name},
+        name => $name,
+        arg => arg( $f->{arg}, $forester )
+    );
 }
 
 sub math {

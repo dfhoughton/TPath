@@ -75,7 +75,7 @@ around 'to_string' => sub {
     my ( $orig, $self, @args ) = @_;
     my $s = $self->$orig(@args);
     for my $p ( @{ $self->predicates } ) {
-        $s .= '[' . $p->to_string . ']';
+        $s .= '[ ' . $p->to_string . ' ]';
     }
     return $s;
 };

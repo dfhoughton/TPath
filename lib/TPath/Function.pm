@@ -10,7 +10,7 @@ has f => ( is => 'ro', isa => 'CodeRef', required => 1 );
 
 has name => ( is => 'ro', isa => 'Str', required => 1 );
 
-has arg => ( is => 'ro', isa => 'TPath::Numifier', required => 1 );
+has arg => ( is => 'ro', isa => 'TPath::Numifiable', required => 1 );
 
 sub to_num {
     my ( $self, $ctx ) = @_;
@@ -19,7 +19,15 @@ sub to_num {
 
 sub to_string {
     my $self = shift;
-    return ':', $self->name . '(' . $self->arg->to_string(1) . ')';
+    my $s    = ':' . $self->name . '(';
+    if ( $self->arg->isa('TPath::Math') ) {
+        $s .= ' ' . $self->arg->to_string(1) . ' ';
+    }
+    else {
+        $s .= $self->arg->to_string(1);
+    }
+    $s .= ')';
+    return $s;
 }
 
 1;

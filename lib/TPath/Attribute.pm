@@ -81,7 +81,7 @@ sub apply {
 
 =method to_num
 
-Basically an alias for C<apply>. Required by L<TPath::Numifier>.
+Basically an alias for C<apply>. Required by L<TPath::Numifiable>.
 
 =cut
 

@@ -5,7 +5,28 @@ package TPath::AttributeTest;
 =head1 DESCRIPTION
 
 Implements predicates such as C<//foo[@a < @b]> or C<ancestor::*[@bar = 1]>. That is, predicates
-where an attribute is tested against some value.
+where an attribute is tested against some value. Actually, there need not be an attribute on either
+side of the operator since the code was refactored to allow general math in these expressions, so
+C<AttributeTest> is now a misnomer. All the following are also acceptable
+
+  //foo[1 = 1]
+  //foo["bar" = 0]
+  //foo[bar = 1]
+  //foo[bar = 1 = 1]
+
+The last of these is of questionable utility, but it is parsable. And note that parsing is in effect
+left-associative, so this expression will be equivalent to
+
+  //foo[(bar = 1) = 1]
+
+Expressions which analytically must have a constant value will be evaluated during parsing. If they
+are necessarily false, an error will be thrown. If they are analytically true, they will be eliminated
+from the respective step's predicate list, so
+
+  //foo[1 = 1]
+
+is logically equivalent to C<//foo> and in fact will be structurally identical to C<//foo>, as the
+predicate will be eliminated during compilation.
 
 This class if for internal consumption only.
 
@@ -1016,7 +1037,7 @@ sub _type {
         return 'a' if $arg->isa('TPath::Attribute');
         return 'e' if $arg->isa('TPath::Expression');
         return 't' if $arg->isa('TPath::AttributeTest');
-        return 'f' if $arg->does('TPath::Numifiable');
+        return 'f' if $arg->DOES('TPath::Numifiable');
         return 'o';
     }
     return 'n' if looks_like_number $arg;

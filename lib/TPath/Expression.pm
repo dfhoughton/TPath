@@ -89,7 +89,7 @@ sub _select {
 
 =attr to_num
 
-Required by L<TPath::Numifier>. Returns the number of nodes selected given the L<TPath::Context>.
+Required by L<TPath::Numifiable>. Returns the number of nodes selected given the L<TPath::Context>.
 
 =cut
 

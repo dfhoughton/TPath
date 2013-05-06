@@ -236,7 +236,7 @@ our $path_grammar = do {
        
        <rule: math> <function> | <[item=operand]> (?: <.ws> <[item=mop]> <[item=operand]> )*
        
-       <token: function> :? <f=%FUNCTIONS> \( <.ws> <math> <.ws> \) <.cp>
+       <token: function> :? <f=%FUNCTIONS> \( <.ws> <arg=math> <.ws> \) <.cp>
        
        <token: mop> :? ( <%MATH_OPERATORS> ) (?{ $MATCH = $^N }) <.cp>
        
@@ -371,23 +371,48 @@ sub normalize_math {
     my $ref = shift;
     if ( contains_math($ref) ) {
         normalize_mconst($ref);
+        fix_functions($ref);
         reduce_arithmetic($ref);
         promote_operators($ref);
-        collapse_math_trees($ref);
+        collapse_math($ref);
     }
 }
 
-# reduce { math => { operator => undef, item => [ { math => ... } ] } } by promoting
-# the inner math
-sub collapse_math_trees {
+# fix { math => { operator=> undef, item=>[ { math => ... } ] } }
+sub collapse_math {
     my $ref = shift;
     for ( ref $ref ) {
-        when ('ARRAY') { collapse_math_trees($_) for @$ref }
+        when ('ARRAY') { collapse_math($_) for @$ref }
         when ('HASH') {
-            collapse_math_trees($_) for values %$ref;
-            if ( exists $ref->{math} && !$ref->{math}{operator} ) {
-                my $inner = $ref->{math}{item}[0];
-                $ref->{math} = $inner->{math};
+            collapse_math($_) for values %$ref;
+            if ( my $m = $ref->{math} ) {
+                unless ( $m->{operator} ) {
+                    delete $ref->{$_} for keys %$ref;
+                    $m = $m->{item}[0];
+                    for ( my ( $k, $v ) = each %$m ) {
+                        $ref->{$k} = $v;
+                    }
+                }
+            }
+        }
+    }
+}
+
+sub fix_functions {
+    my $ref = shift;
+    for ( ref $ref ) {
+        when ('ARRAY') { fix_functions($_) for @$ref }
+        when ('HASH') {
+            fix_functions($_) for values %$ref;
+            if ( $ref->{function} ) {
+                my @items = @{ $ref->{function}{arg}{item} };
+                if ( @items == 1 ) {
+                    $ref->{function}{arg} =
+                      $items[0];
+                }
+                else {
+                    $ref->{function}{arg} = { math => { item => \@items } };
+                }
             }
         }
     }
@@ -424,7 +449,7 @@ sub reduce_arithmetic {
             # depth first
             reduce_arithmetic($_) for values %$ref;
             if ( exists $ref->{function} ) {
-                my $num = $ref->{function}{num};
+                my $num = $ref->{function}{arg}{num};
                 if ( defined $num ) {
                     $num = $FUNCTIONS{ $ref->{function}{f} }->($num);
                     delete $ref->{function};
@@ -435,7 +460,9 @@ sub reduce_arithmetic {
                 my $values = $ref->{attribute_test}{value};
                 for my $i ( 0 .. $#$values ) {
                     my $value = $values->[$i];
-                    if ( exists $value->{math} && exists $value->{math}{num} ) {
+                    if (   exists $value->{math}
+                        && exists $value->{math}{num} )
+                    {
                         $value->{v} = $value->{math}{num};
                         delete $value->{math};
                     }
@@ -467,7 +494,8 @@ sub reduce_arithmetic {
                             }
                             else {
                                 my $operator = $items->[1];
-                                if ( $MATH_OPERATORS{$operator}[1] ) { # commutative?
+                                if ( $MATH_OPERATORS{$operator}[1] )
+                                {    # commutative?
                                     my ( $variables, $constants ) =
                                       sort_vals(
                                         grep_nums( $items, [ 0, 2 ] ) );
@@ -512,14 +540,16 @@ sub reduce_arithmetic {
                                                       $range->[0] + 1
                                                 );
                                                 if ( @$constants > 1 ) {
-                                                    my @nums = map { $_->{num} }
+                                                    my @nums =
+                                                      map { $_->{num} }
                                                       @$constants;
-                                                    my $expr = join $operator,
+                                                    my $expr =
+                                                      join $operator,
                                                       @nums;
                                                     my $v = eval $expr;
                                                     if (@$variables) {
-                                                        splice @$items, $start,
-                                                          $length,
+                                                        splice @$items,
+                                                          $start, $length,
                                                           {
                                                             math => {
                                                                 item => [
@@ -571,14 +601,15 @@ sub reduce_arithmetic {
                                                 my ( $variables, $constants ) =
                                                   sort_vals(@nums);
                                                 if ( @$constants > 1 ) {
-                                                    my @nums = map { $_->{num} }
+                                                    my @nums =
+                                                      map { $_->{num} }
                                                       @$constants;
                                                     my $expr = join $dual,
                                                       @nums;
                                                     my $v = eval $expr;
                                                     if (@$variables) {
-                                                        splice @$items, $start,
-                                                          $length,
+                                                        splice @$items,
+                                                          $start, $length,
                                                           {
                                                             math => {
                                                                 item => [
@@ -598,7 +629,8 @@ sub reduce_arithmetic {
                                                     elsif (
                                                         exists $left->{num} )
                                                     {
-                                                        splice @$items, $start,
+                                                        splice @$items,
+                                                          $start,
                                                           $length,
                                                           { num =>
                                                               eval $left->{num}
@@ -606,8 +638,8 @@ sub reduce_arithmetic {
                                                               . $v };
                                                     }
                                                     else {
-                                                        splice @$items, $start,
-                                                          $length,
+                                                        splice @$items,
+                                                          $start, $length,
                                                           {
                                                             math => {
                                                                 item => [
@@ -897,7 +929,10 @@ sub normalize_enums {
         }
         return;
     }
-    elsif ( $start_defined && $start == 0 && ( $enum->{end} // 'bad' ) eq '' ) {
+    elsif ($start_defined
+        && $start == 0
+        && ( $enum->{end} // 'bad' ) eq '' )
+    {
         if ($is_grouped) {
             $cs->{grouped_step}{quantifier} = '*';
         }
