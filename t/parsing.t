@@ -127,6 +127,9 @@ child::*
 //*[:sqrt(@foo)=4]
 //*[:sqrt(foo)=4]
 //*[(1+@foo)**2 > b]
+//*[. = *]
+//*[* = .]
+//*[@a(.) = @a(*)]
 END
 
 push @parsable, q{

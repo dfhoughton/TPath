@@ -19,7 +19,7 @@ my $f = ToyXMLForester->new;
 my ( $path, $p, @elements );
 
 $p        = parse(q{<a><b><aa/></b><b><bb/></b></a>});
-$path     = q{//b[@echo(~..~) = @echo(~a~)]};
+$path     = q{//b[~..~ = ~a~]};
 @elements = $f->path($path)->select($p);
 is @elements, 1, "found expected number of elements with $path on $p";
 is $elements[0], '<b><aa/></b>', 'found correct element';
@@ -108,11 +108,11 @@ my $tree = Node->new( tag => 'b', payload => [1] )->add(
           ->add( Node->new( tag => 'a', payload => { c => 1 } ) )
     )
 );
-$path     = q{//*[@echo(.) = @echo(*)]};
+$path     = q{//*[. = *]};
 @elements = $f->path($path)->select($tree);
 is @elements, 1, "received expected number of elements with $path";
 is $elements[0]->tag, 'a', 'expected tag for element received';
-$path     = q{//*[@echo(.) == @echo(*)]};
+$path     = q{//*[. == *]};
 @elements = $f->path($path)->select($tree);
 is @elements, 0, "received expected number of elements with $path";
 

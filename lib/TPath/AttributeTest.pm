@@ -275,7 +275,7 @@ sub _s_func {
         when ('e') {
             return sub {
                 my ( undef, $ctx ) = @_;
-                my $c = $v->_sel( $ctx, 1 );
+                my $c = $v->_select( $ctx, 1 );
                 join '', map { $_->n } @$c;
             };
         }
@@ -314,34 +314,27 @@ sub _e_func {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $v = $rv->apply($ctx);
-                        return 0 unless defined $v;
-                        if ( my $type = ref $v ) {
-                            for ($type) {
-                                when ('ARRAY') { return $rv == @$v or undef }
-                                default { return }
-                            }
-                        }
-                        $lv == $v or undef;
+                        return $ef->( $lv, $v );
                     };
                 }
                 when ('t') {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $v = $rv->test($ctx);
-                        $lv == $v or undef;
+                        return $ef->( $lv, $v );
                       }
                 }
                 when ('e') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my $c = $rv->_sel( $ctx, 1 );
-                        $lv == @$c or undef;
+                        my $c = [ map { $_->n } @{ $rv->_select( $ctx, 1 ) } ];
+                        return $ef->( $lv, $c );
                       }
                 }
                 when ('f') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        $lv == $rv->to_num($ctx) or undef;
+                        return $ef->( $lv, $rv->to_num($ctx) );
                       }
                 }
                 default {
@@ -355,25 +348,24 @@ sub _e_func {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $v = $rv->apply($ctx);
-                        return unless defined $v;
-                        return $lv eq $v or undef;
+                        return $ef->( $lv, $v );
                     };
                 }
                 when ('t') {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $v = $rv->test($ctx);
-                        $lv eq $v or undef;
+                        return $ef->( $lv, $v );
                       }
                 }
                 when ('e') {
                     my ( undef, $ctx ) = @_;
-                    my $c = $rv->_sel( $ctx, 1 );
-                    $lv eq join( '', map { $_->n } @$c ) or undef;
+                    my $c = $rv->_select( $ctx, 1 );
+                    return $ef->( $lv, [ map { $_->n } @$c ] );
                 }
                 when ('f') {
                     my ( undef, $ctx ) = @_;
-                    $lv eq $rv->to_num($ctx) or undef;
+                    return $ef->( $lv, $rv->to_num($ctx) );
                 }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
@@ -382,26 +374,11 @@ sub _e_func {
         }
         when ('a') {
             for ($r) {
-                when ('n') {
+                when (/[ns]/) {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $v = $lv->apply($ctx);
-                        return unless defined $v;
-                        if ( my $type = ref $v ) {
-                            for ($type) {
-                                when ('ARRAY') { return $rv == @$v or undef }
-                                default { return }
-                            }
-                        }
-                        $rv == $v or undef;
-                    };
-                }
-                when ('s') {
-                    return sub {
-                        my ( undef, $ctx ) = @_;
-                        my $v = $lv->apply($ctx);
-                        return unless defined $v;
-                        return $rv eq $v or undef;
+                        return $ef->( $rv, $v );
                     };
                 }
                 when ('a') {
@@ -409,7 +386,7 @@ sub _e_func {
                         my ( undef, $ctx ) = @_;
                         my $v1 = $lv->apply($ctx);
                         my $v2 = $rv->apply($ctx);
-                        return $ef->( $v1, $v2 ) or undef;
+                        return $ef->( $v1, $v2 );
                     };
                 }
                 when ('t') {
@@ -417,15 +394,15 @@ sub _e_func {
                         my ( undef, $ctx ) = @_;
                         my $v1 = $lv->apply($ctx);
                         my $v2 = $rv->test($ctx);
-                        return $ef->( $v1, $v2 ) or undef;
+                        return $ef->( $v1, $v2 );
                       }
                 }
                 when ('e') {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $v1 = $lv->apply($ctx);
-                        my $c  = $rv->_sel($ctx);
-                        return $ef->( $v1, $c ) or undef;
+                        my $c  = $rv->_select($ctx);
+                        return $ef->( $v1, $c );
                     };
                 }
                 when ('f') {
@@ -433,7 +410,7 @@ sub _e_func {
                         my ( undef, $ctx ) = @_;
                         my $v1 = $lv->apply($ctx);
                         my $n  = $rv->to_num($ctx);
-                        return $ef->( $v1, $n ) or undef;
+                        return $ef->( $v1, $n );
                     };
                 }
                 default {
@@ -447,14 +424,14 @@ sub _e_func {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $v1 = $lv->test($ctx);
-                        return $v1 == $rv or undef;
+                        return $ef->( $v1, $rv );
                     };
                 }
                 when ('s') {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $v1 = $lv->test($ctx);
-                        return $v1 eq $rv or undef;
+                        return $ef->( $v1, $rv );
                     };
                 }
                 when ('a') {
@@ -462,7 +439,7 @@ sub _e_func {
                         my ( undef, $ctx ) = @_;
                         my $v1 = $lv->test($ctx);
                         my $v2 = $rv->apply($ctx);
-                        return $ef->( $v1, $v2 ) or undef;
+                        return $ef->( $v1, $v2 );
                     };
                 }
                 when ('t') {
@@ -470,15 +447,15 @@ sub _e_func {
                         my ( undef, $ctx ) = @_;
                         my $v1 = $lv->test($ctx);
                         my $v2 = $rv->test($ctx);
-                        return $v1 == $v2 or undef;
+                        return $ef->( $v1, $v2 );
                       }
                 }
                 when ('e') {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $v1 = $lv->test($ctx);
-                        my $c = $lv->_sel( $ctx, 1 );
-                        return $v1 == @$c or undef;
+                        my $c = [ map { $_->n } @{ $lv->_select( $ctx, 1 ) } ];
+                        return $ef->( $v1, $c );
                       }
                 }
                 when ('f') {
@@ -486,7 +463,7 @@ sub _e_func {
                         my ( undef, $ctx ) = @_;
                         my $v1 = $lv->test($ctx);
                         my $n  = $lv->to_num($ctx);
-                        return $v1 == $n or undef;
+                        return $ef->( $v1, $n );
                       }
                 }
                 default {
@@ -499,47 +476,47 @@ sub _e_func {
                 when ('n') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my $c = $lv->_sel( $ctx, 1 );
-                        return @$c == $rv or undef;
+                        my $c = [ map { $_->n } @{ $lv->_select( $ctx, 1 ) } ];
+                        return $ef->( $c, $rv );
                     };
                 }
                 when ('s') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my $c = $lv->_sel( $ctx, 1 );
-                        return $rv eq join( '', map { $_->n } @$c ) or undef;
+                        my $c = [ map { $_->n } @{ $lv->_select( $ctx, 1 ) } ];
+                        return $ef->( $rv, $c );
                     };
                 }
                 when ('a') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my $c = $lv->_sel( $ctx, 1 );
+                        my $c = [ map { $_->n } @{ $lv->_select( $ctx, 1 ) } ];
                         my $v2 = $rv->apply($ctx);
-                        return $ef->( $c, $v2 ) or undef;
+                        return $ef->( $c, $v2 );
                     };
                 }
                 when ('t') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my $c = $lv->_sel( $ctx, 1 );
+                        my $c = [ map { $_->n } @{ $lv->_select( $ctx, 1 ) } ];
                         my $v2 = $rv->test($ctx);
-                        return @$c == $v2 or undef;
+                        return $ef->( $c, $v2 );
                       }
                 }
                 when ('e') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my $c1 = $lv->_sel( $ctx, 1 );
-                        my $c2 = $rv->_sel( $ctx, 1 );
-                        return @$c1 == @$c2 or undef;
+                        my $c1 = [ map { $_->n } @{ $lv->_select( $ctx, 1 ) } ];
+                        my $c2 = [ map { $_->n } @{ $rv->_select( $ctx, 1 ) } ];
+                        return $ef->( $c1, $c2 );
                       }
                 }
                 when ('f') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my $c1 = $lv->_sel( $ctx, 1 );
+                        my $c = [ map { $_->n } @{ $lv->_select( $ctx, 1 ) } ];
                         my $n = $rv->to_num($ctx);
-                        return @$c1 == $n or undef;
+                        return $ef->( $c, $n );
                       }
                 }
                 default {
@@ -552,7 +529,7 @@ sub _e_func {
                 when (/[ns]/) {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        return $lv->to_num($ctx) == $rv or undef;
+                        return $ef ( $lv->to_num($ctx), $rv );
                     };
                 }
                 when ('a') {
@@ -560,7 +537,7 @@ sub _e_func {
                         my ( undef, $ctx ) = @_;
                         my $n  = $lv->to_num($ctx);
                         my $v2 = $rv->apply($ctx);
-                        return $ef->( $n, $v2 ) or undef;
+                        return $ef->( $n, $v2 );
                     };
                 }
                 when ('t') {
@@ -568,15 +545,15 @@ sub _e_func {
                         my ( undef, $ctx ) = @_;
                         my $n  = $lv->to_num($ctx);
                         my $v2 = $rv->test($ctx);
-                        return $ef->( $n, $v2 ) or undef;
+                        return $ef->( $n, $v2 );
                       }
                 }
                 when ('e') {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $n = $lv->to_num($ctx);
-                        my $c = $rv->_sel($ctx);
-                        return $n == @$c or undef;
+                        my $c = [ map { $_->n } @{ $rv->_select($ctx) } ];
+                        return $ef->( $n, $c );
                     };
                 }
                 when ('f') {
@@ -584,7 +561,7 @@ sub _e_func {
                         my ( undef, $ctx ) = @_;
                         my $n1 = $lv->to_num($ctx);
                         my $n2 = $rv->to_num($ctx);
-                        return $n1 == $n2 or undef;
+                        return $ef->( $n1, $n2 );
                     };
                 }
                 default {
@@ -633,7 +610,7 @@ sub _c_func {
                 when ('e') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my $c = $rv->_sel( $ctx, 1 );
+                        my $c = $rv->_select( $ctx, 1 );
                         $nf->( $lv, scalar @$c );
                       }
                 }
@@ -669,7 +646,7 @@ sub _c_func {
                 when ('e') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my $c = $rv->_sel( $ctx, 1 );
+                        my $c = $rv->_select( $ctx, 1 );
                         $sf->( $lv, join '', map { $_->n } @$c );
                     };
                 }
@@ -731,7 +708,7 @@ sub _c_func {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $v1 = $lv->apply($ctx);
-                        my $c = $rv->_sel( $ctx, 1 );
+                        my $c = $rv->_select( $ctx, 1 );
                         return _reduce( $v1, [ map { $_->n } @$c ], $sf, $nf,
                             $ctx );
                     };
@@ -785,7 +762,7 @@ sub _c_func {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $v1 = $lv->test($ctx);
-                        my $c = $rv->_sel( $ctx, 1 );
+                        my $c = $rv->_select( $ctx, 1 );
                         return $nf->( $v1, scalar @$c );
                     };
                 }
@@ -807,21 +784,21 @@ sub _c_func {
                 when ('n') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my $c = $lv->_sel( $ctx, 1 );
+                        my $c = $lv->_select( $ctx, 1 );
                         return $nf->( scalar @$c, $rv );
                     };
                 }
                 when ('s') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my $c = $lv->_sel( $ctx, 1 );
+                        my $c = $lv->_select( $ctx, 1 );
                         return $sf->( join( '', map { $_->n } @$c ), $rv );
                     };
                 }
                 when ('a') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my $c = $lv->_sel( $ctx, 1 );
+                        my $c = $lv->_select( $ctx, 1 );
                         my $v2 = $rv->apply($ctx);
                         return _reduce( [ map { $_->n } @$c ], $v2, $sf, $nf,
                             $ctx );
@@ -830,7 +807,7 @@ sub _c_func {
                 when ('t') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my $c = $lv->_sel( $ctx, 1 );
+                        my $c = $lv->_select( $ctx, 1 );
                         my $v2 = $rv->test($ctx);
                         return $nf->( scalar @$c, $v2 );
                       }
@@ -838,15 +815,15 @@ sub _c_func {
                 when ('e') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my $c1 = $lv->_sel( $ctx, 1 );
-                        my $c2 = $rv->_sel( $ctx, 1 );
+                        my $c1 = $lv->_select( $ctx, 1 );
+                        my $c2 = $rv->_select( $ctx, 1 );
                         return $nf->( scalar @$c1, scalar @$c2 );
                     };
                 }
                 when ('f') {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        my $c = $lv->_sel( $ctx, 1 );
+                        my $c = $lv->_select( $ctx, 1 );
                         my $n = $rv->to_num($ctx);
                         return $nf->( scalar @$c, $n );
                     };
@@ -892,7 +869,7 @@ sub _c_func {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $n = $lv->to_num($ctx);
-                        my $c = $rv->_sel( $ctx, 1 );
+                        my $c = $rv->_select( $ctx, 1 );
                         return $nf->( $n, scalar @$c );
                     };
                 }
@@ -929,7 +906,7 @@ sub _reduce {
             my ( $v3, $v4 ) = ( $v1, $v2 );
             for ($l) {
                 when ('e') {
-                    $v3 = [ map { $_->n } @{ $v1->_sel( $ctx, 1 ) } ];
+                    $v3 = [ map { $_->n } @{ $v1->_select( $ctx, 1 ) } ];
                 }
                 when ('t') { $v3 = $v1->test($ctx) }
                 when ('a') { $v3 = $v1->apply($ctx) }
@@ -937,7 +914,7 @@ sub _reduce {
             }
             for ($r) {
                 when ('e') {
-                    $v4 = [ map { $_->n } @{ $v2->_sel( $ctx, 1 ) } ];
+                    $v4 = [ map { $_->n } @{ $v2->_select( $ctx, 1 ) } ];
                 }
                 when ('t') { $v4 = $v2->test($ctx) }
                 when ('a') { $v4 = $v2->apply($ctx) }
@@ -958,10 +935,10 @@ sub _se {
     my ( $l, $r ) = map { _type($_) } $v1, $v2;
     my $lr = "$l$r";
     for ($lr) {
-        when ('ss') { return $v1 eq $v2  ? 1 : undef }
-        when ('nn') { return $v1 == $v2  ? 1 : undef }
-        when ('nr') { return $v1 == @$v2 ? 1 : undef }
-        when ('rn') { return @$v1 == $v2 ? 1 : undef }
+        when (/so|os|ss/) { return $v1 eq $v2  ? 1 : undef }
+        when ('nn')       { return $v1 == $v2  ? 1 : undef }
+        when ('nr')       { return $v1 == @$v2 ? 1 : undef }
+        when ('rn')       { return @$v1 == $v2 ? 1 : undef }
         when ('rr') {
             my @a1 = @$v1;
             my @a2 = @$v2;

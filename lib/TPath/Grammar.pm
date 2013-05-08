@@ -97,7 +97,7 @@ my @math_ops =
   }
   keys %MATH_OPERATORS;
 
-our $offset       = 0;
+our ( $offset, $quantifiable );
 our $path_grammar = do {
     our $buffer;
     use Regexp::Grammars;
@@ -112,20 +112,20 @@ our $path_grammar = do {
     
        <token: segment> (?: <separator>? <step> | <cs> ) <.ws>
        
-       <token: quantifier> (?: [?+*] | <enum> ) <.cp>
+       <token: quantifier> (?: <require: (?{$quantifiable}) > [?+*] | <enum> ) <.cp>
        
        <rule: enum> 
           [{] <start=(\d*+)> (?: , <end=(\d*+)> )? [}] 
           <require: (?{length $MATCH{start} or length $MATCH{end}})>
        
-       <rule: grouped_step> \( <treepath> \) <quantifier>?
+       <rule: grouped_step> \( <treepath> \) (?{local $quantifiable = 1}) <quantifier>?
     
        <token: id>
           :id\( ( (?>[^\)\\]|\\.)++ ) \)
           (?{ $MATCH=clean_escapes($^N) }) <.cp>
     
        <token: cs>
-           <separator>? <step> <quantifier>
+           <separator>? <step> (?{local $quantifiable = 1}) <quantifier>
           | <grouped_step>
     
        <token: separator> \/[\/>]?+ <.cp>
@@ -143,21 +143,8 @@ our $path_grammar = do {
        <token: forward> 
            <wildcard> | <complement=(\^)>? (?: <specific> | <pattern> | <attribute> )
     
-       <token: wildcard> \* <.start_of_path> <.cp>
+       <token: wildcard> <require: (?{!$quantifiable}) > \* <.cp>
        
-       <token: start_of_path> # somewhat lame way to make sure * quantifier isn't misinterpreted as the wildcard character
-          (?<=[/:>].)
-          | (?<=\(.)
-          | (?<=\(\s.)
-          | (?<=\(\s{2}.)
-          | (?<=\(\s{3}.)
-          | (?<=\(\s{4}.) # if the user puts more than 4 whitespace characters between ) and *, it will be mis-parsed
-          | (?<=\A.)
-          | (?<=\A\s.)
-          | (?<=\A\s{2}.)
-          | (?<=\A\s{3}.)
-          | (?<=\A\s{4}.)
-    
        <token: specific>
           <name>
           (?{ $MATCH = $MATCH{name} }) <.cp>
