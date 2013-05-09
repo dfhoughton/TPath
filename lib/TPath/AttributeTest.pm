@@ -529,7 +529,7 @@ sub _e_func {
                 when (/[ns]/) {
                     return sub {
                         my ( undef, $ctx ) = @_;
-                        return $ef ( $lv->to_num($ctx), $rv );
+                        return $ef->( $lv->to_num($ctx), $rv );
                     };
                 }
                 when ('a') {
@@ -930,7 +930,7 @@ sub _reduce {
 sub _se {
     my ( $v1, $v2 ) = @_;
 
-    return if defined $v1 ^ defined $v2;
+    return undef if defined $v1 ^ defined $v2;
     return 1 unless defined $v1;
     my ( $l, $r ) = map { _type($_) } $v1, $v2;
     my $lr = "$l$r";
@@ -939,6 +939,8 @@ sub _se {
         when ('nn')       { return $v1 == $v2  ? 1 : undef }
         when ('nr')       { return $v1 == @$v2 ? 1 : undef }
         when ('rn')       { return @$v1 == $v2 ? 1 : undef }
+        when ('sr') { return $v1 eq join( '', @$v2 ) ? 1 : undef }
+        when ('rs') { return join( '', @$v1 ) eq $v2 ? 1 : undef }
         when ('rr') {
             my @a1 = @$v1;
             my @a2 = @$v2;

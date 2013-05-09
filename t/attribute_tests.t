@@ -8,7 +8,7 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 39;
+use Test::More tests => 45;
 use Test::Trap;
 use Test::Exception;
 use ToyXMLForester;
@@ -57,6 +57,21 @@ my $i = natatime 4, grep /\S/, <<'END' =~ /.*/mg;
 //*[not (@id = 'foo')] 
 6
 <e/><d/><d/><b><d/><c id="foo"/><d/></b><e/><a><e/><b><d/><c id="foo"/><d/></b><e/></a>
+
+<a><b><c/><c/><c/><c id="1"/></b><b><c id="2"/></b><b><c/><c id="3"/></b><b><c/><c/><c id="4"/></b></a>
+//b[* > 1]
+3
+<b><c/><c/><c/><c id="1"/></b><b><c/><c id="3"/></b><b><c/><c/><c id="4"/></b>
+
+<a><b><c/><c/><c/><c id="1"/></b><b><c id="2"/></b><b><c/><c id="3"/></b><b><c/><c/><c id="4"/></b></a>
+//b[* % 2 = 1]
+2
+<b><c id="2"/></b><b><c/><c/><c id="4"/></b>
+
+<a><b><c/><c/><c/><c id="1"/></b><b><c id="2"/></b><b><c/><c id="3"/></b><b><c/><c/><c id="4"/></b></a>
+//b[* + 1 = 2]
+1
+<b><c id="2"/></b>
 END
 
 while ( my ( $xml, $path, $matches, $text ) = $i->() ) {

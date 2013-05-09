@@ -17,8 +17,8 @@ has args => ( is => 'ro', isa => 'ArrayRef[MathArg]' );
 
 sub BUILD {
     my $self = shift;
-    my $sub  = eval 'sub { reduce { $a ' . $self->operator . ' $b } @_ }';
-    $self->_func($sub);
+    my $sub  = eval 'sub { $_[0] ' . $self->operator . ' $_[1] }';
+    $self->_func(sub { reduce { $sub->($a, $b) } @_ });
 }
 
 sub to_string {
