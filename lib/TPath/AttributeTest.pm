@@ -80,7 +80,6 @@ has right => ( is => 'ro', isa => 'ATArg', required => 1 );
 sub BUILD {
     my $self = shift;
     my ( $l, $r ) = $self->_types;
-    my $lr = $l . $r;
     my $func;
 
     # some coderefs to turn operators into functions
