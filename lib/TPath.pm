@@ -126,12 +126,12 @@ In TPath, "attributes" are node attributes of any sort and are implemented as me
 return these attributes, or C<undef> if the attribute is undefined for the node.
 
 The object in which the two required methods are implemented is a "forester" (L<TPath::Forester>),
-something that understands your trees. In general to use C<TPath> you instantiate a forester and
+something that understands your trees. In general, to use C<TPath> you instantiate a forester and
 then call the forester's methods.
 
 Forester objects make use of an index (L<TPath::Index>), which caches information not present in, or
 not cheaply extracted from, the nodes themselves. If no index is explicitly provided it is created, but one
-can gain some efficiency by reusing an index when select paths from a tree. One can use a forester's
+can gain some efficiency by reusing an index when selecting paths from a tree. And one can use a forester's
 C<index> method to produce a C<TPath::Index>.
 
 The paths themselves are compiled into reusable L<TPath::Expression> objects that can be applied 
@@ -155,9 +155,7 @@ A tpath expression has one or more sub-paths.
 
 =over 2
 
-=item C<B<//a/b>|preceding::d/*>
-
-=item C<//a/b|B<preceding::d/*>>
+=item C<//a/b | preceding::d/*>
 
 =back
 
@@ -171,7 +169,7 @@ descendants will be listed first.
 
 =over 2
 
-=item C<B<//a>/b[0]/E<gt>c[@d]>
+=item C<//a/b[0]/E<gt>c[@d]>
 
 =item C<//aB</b[0]>/E<gt>c[@d]>
 
@@ -207,6 +205,14 @@ number of predicates.
 The null separator is simply the absence of a separator and can only occur before the first step. 
 It means "relative to the context node". Thus is it essentially the same as the file path formalism,
 where C</a> means the file C<a> in the root directory and C<a> means the file C<a> in the current directory.
+
+B<Note>, here and in the following discussion we speak of a "root" node, but in reality the node in
+question is not the tree root but the node to which the expression is applied. This may be a bit confusing,
+but it simplifies the interpretation of expressions. If you genuinely want to begin at the root node,
+use the C<:root> selector, described below. Since in general one will apply an expression to a tree's
+root node, in general this confusion of terminology is harmless. But know that if you pick a node at
+random from a tree and apply an expression to it, this will become the "root" as far as the various
+separator definitions here and below are concerned.
 
 =head3 /
 
@@ -329,7 +335,7 @@ always preceded by C<@>.
 
 =head3 complement selectors
 
-The C<^> character before a literal, regex, or attribute selector will convert it into an attribute selector.
+The C<^> character before a literal, regex, or attribute selector will convert it into a complement selector.
 
 =over 2
 
@@ -341,12 +347,12 @@ The C<^> character before a literal, regex, or attribute selector will convert i
 
 =back
 
-Complement selectors select nodes not selected by the unmodified selector; C<//^foo> will select any node
-without the C<foo> tag, and so forth.
+Complement selectors select nodes not selected by the unmodified selector: C<//^foo> will select any node
+without the C<foo> tag, C<//~a~>, any node whose tag does not contain the C<a> character, and so forth.
 
 =head3 * wildcard
 
-The wildcard selector selects all the nodes an the relevant axis. The default axis is C<child>, so
+The wildcard selector selects all the nodes on the relevant axis. The default axis is C<child>, so
 C<//b/*> will select all the children of C<b> nodes.
 
 =head2 Axes
@@ -578,7 +584,7 @@ are selected from the tree relative the the C<c> node. Selected nodes will be in
        /  |  \
       /   |   \
      /    |    \
-    B     c     d
+    b     c     d
    /|\   /|\   /|\
   e f g h i j l m n
     |     |     |
@@ -667,8 +673,6 @@ history.
 Predicates are the sub-expressions in square brackets after selectors. They represents
 tests that filter the candidate nodes selected by the selectors. 
 
-There may be space inside the square brackets.
-
 =head3 Index Predicates
 
   //foo/bar[0]
@@ -711,8 +715,58 @@ the path C<//a[@leaf]> would select only the leaf C<a> node.
 
 =head3 Attribute Tests
 
-Attribute tests are predicaters which compare attributes to literals, numbers, or other 
-attributes.
+Attribute tests are predicaters which compare two values. The values may be attributes, expressions, other attribute
+tests, or literals, either strings or numbers. 
+
+  //a[@b = 1]       # simple equality test
+  //a[* % 2 == 0]   # mathematical expressions
+  //a[@foo > :pi]   # comparison to a named constant 
+  //a[@foo > "pi"]  # alphabetical sort order comparison
+
+The name "attribute test" is actually a misnomer: originally one of the two items compared had to be an attribute.
+Now any two values from the list above are acceptable. If both values are constant, the test is evaluated during
+compilation. Analytically true tests are discarded and analytically false ones cause an error to be thrown.
+
+=head4 math in attribute tests
+
+  //a[ (@foo + 1) ** 2 > @bar ]
+  //a[ :sqrt(@foo) == 1.414 ]
+
+Basic mathematical expressions are acceptable in attribute tests. The standard precedence relations among operators
+are preserved, the operators all have the same representation as in Perl, and one may group expressions with
+parentheses to make precedence explicit.
+
+There are two named constants, C<:pi> and C<:e>, the circle constant and the base of the natural logarithm. These are
+preceded by colons to distinguish them from path expressions. The operators -- C<+>, C<->, C<*>, C</>, C<%>, and C<**> --
+all may also be preceded by a colon when necessary to distinguish them from repetition characters are the wildcard character.
+This will rarely be necessary, but consider
+
+  //* [ a * /b = 3 ]
+
+Without the colon, this is taken to be an assertion about the cardinality of the set of nodes selected by the expression
+C<a*/b>. If one wants this to be interpreted as concerning the product of the cardinalities of two sets of nodes, one
+should write it as
+
+  //* [ a :* /b = 3 ]
+
+The colon also B<must> precede the various unary mathematical expression TPath understands:
+
+  :abs
+  :acos
+  :asin
+  :atan
+  :ceil
+  :cos
+  :exp
+  :floor
+  :int
+  :log
+  :log10
+  :sin
+  :sqrt
+  :tan
+
+These are all either the functions provided by Perl itself or those provided by the L<POSIX> module.
 
 =head4 equality and inequality
 
@@ -732,8 +786,10 @@ same individual -- must be stored at the same memory address. This is the meanin
 equals sign. The single equals sign designates semantic identity, meaning, in the case of collections,
 that they are deeply equal -- the same values stored under the same indices or keys. If one of the items
 compared is an object and it has an C<equals> method, this method is invoked as a semantic equality
-test (this is the Java convention). Otherwise, referential identity is required. Objects are not treated
-as containers.
+test (this is the Java convention). Otherwise, referential identity (C<==>, which may be overloaded)
+is required. Objects are not treated as containers. Finally, if an object is compared to a string, it will
+be the stringification of the former that is compared to the latter using the c<eq> operator when semantic
+identity is required.
 
 The C<!=> comparator behaves as you would expect so long as one or the other of the two operands is either
 a string or a number. That is, it is the negation of C<=> or C<==>. Otherwise, collections are converted to
@@ -800,13 +856,6 @@ True if the right operand ends the left operand.
 
 =back
 
-If you wish to test a path instead of an attribute -- to test against the cardinality
-of the node set collected, say -- you can use the C<@echo> attribute. This attribute
-returns the value of its parameter, thus converting anything that can be the parameter
-of an attribute, including expressions, into attributes. Note that the value of an
-expression argument will be a list of L<TPath::Context> objects. The selected nodes are
-available from these contexts via their C<n> accessor.
-
 =head3 Boolean Predicates
 
 Boolean predicates combine various terms -- attributes, attribute tests, or tpath expressions --
@@ -849,9 +898,6 @@ The normal precedence rules of logical operators applies to these:
 
   () < ! < & < ; < ||
 
-Space is required around operators only where necessary to prevent their being
-interpreted as part of a path or attribute.
-
 =head2 Attributes
 
   //foo[@bar]
@@ -862,7 +908,7 @@ attribute is defined for it. If the callback returns a defined value, the predic
 and the candidate is accepted; otherwise, it is rejected.
 
 As the second example above demonstrates, attributes may take arguments and these arguments
-may be numbers, strings, paths, other attributes, or attribute tests (see below). Paths are
+may be numbers, strings, paths, other attributes, or attribute tests. Paths are
 evaluated relative to the candidate node being tested, as are attributes and attribute tests.
 A path arguments represents the L<TPath::Context> objects selected by this path relative to the 
 candidate node.
@@ -945,7 +991,9 @@ from has the same depth as the C<b> node's height.
 One can iterate the C<:p> selector to move different distances up the selection path and one can impose
 predicates on the selector to filter the selection.
 
-  //a//b//c//d[@height = @at(/:p+, 'depth')] 
+  //a//b//c//d[@height = @at(/:p+, 'depth')]
+
+See also the C<previous::> axis.
 
 =head2 Grouping and Repetition
 
@@ -1014,7 +1062,7 @@ C<foo> descendants of other C<foo> nodes, not the nodes themselves.
 Where the two formalisms may differ is in the nodes they return when these paths are applied
 to some sub-node. In XPath, C</foo> always refers to the root node, provided this is a
 C<foo> node. In TPath it always refers to the node the path is applied to, provided it is
-a C<foo> node. (TODO: confirm this for XPath.) In XPath, if you require that the first step
+a C<foo> node. In TPath, if you require that the first step
 refer to the root node you must use the root selector C<:root>. If you also require that
 this node bear the tag C<foo> you must combine the root selector with the C<self::> axis.
 
@@ -1041,113 +1089,104 @@ and adjust the construction of the abstract syntax tree produced by the parser.
        
        <token: quantifier> [?+*] | <enum>
        
-       <rule: enum> \{ \d*+ ( , \d*+ )? \}
-       
+       <rule: enum> { \d*+ ( , \d*+ )? } 
+        
        <rule: grouped_step> \( <treepath> \) <quantifier>?
     
-       <token: id> :id\( ([^\)\\]|\\.)++ \)
+       <token: id>
+          :id\( ( [^\)\\] | \\. )+ \)
     
        <token: cs>
-          (
-          <separator>? <step> <quantifier>
+           <separator>? <step> <quantifier>
           | <grouped_step>
-          )
     
-       <token: separator> \/[\/>]?+
+       <token: separator> \/[\/>]?
     
-       <token: step> <full> <[predicate]>* | <abbreviated>
+       <token: step> <full> <predicate>* | <abbreviated>
     
-       <token: full> <axis>? <forward>
+       <token: full> <axis>? <forward> | (?<=(?<!/)/) :p
     
-       <token: axis> 
-          (?<!//) (?<!/>) (<%AXES>) ::
-    
+       <token: axis> (?<!//) (?<!/>) (<%AXES>) ::
+     
        <token: abbreviated> (?<!/[/>]) ( \.{1,2}+ | <id> | :root )
     
        <token: forward> 
-           <wildcard> | \^? ( <specific> | <pattern> | <attribute> )
+           <wildcard> | ^? ( <specific> | <pattern> | <attribute> )
     
-       <token: wildcard> \* <start_of_path>
+       <token: wildcard> \*
        
-       <token: start_of_path> # somewhat lame way to make sure * quantifier isn't misinterpreted as the wildcard character
-          (?<=[/:>].)
-          | (?<=\(.)
-          | (?<=\(\s.)
-          | (?<=\(\s{2}.)
-          | (?<=\(\s{3}.)
-          | (?<=\(\s{4}.) # if the user puts more than 4 whitespace characters between ) and *, it will be mis-parsed
-          | (?<=\A.)
-          | (?<=\A\s.)
-          | (?<=\A\s{2}.)
-          | (?<=\A\s{3}.)
-          | (?<=\A\s{4}.)
-    
        <token: specific> <name>
     
-       <token: pattern> ~([^~]|~~)++~
-    
+       <token: pattern> ~([^~]|~~)+~
+     
        <token: aname> @ <name>
        
        <token: name>
-          (\\.|[\p{L}\$_])([\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+
+          (\\.|[\p{L}\$_])([\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*
           | <literal>
           | <qname>
        
-       <token: qname> 
-          : ([[:punct:]].+?[[:punct:]]) 
-          <require: (?{qname_test($^N)})> 
+       <token: qname> : ([[:punct:]].+?[[:punct:]]) 
      
-       <rule: attribute> <aname> <args>? <.cp>
+       <rule: attribute> <aname> <args>?
     
        <rule: args> \( <arg> ( , <arg> )* \)
     
        <token: arg>
-          <literal> | <num> | <attribute> | <treepath> | <attribute_test> | <condition>
+           <literal> | <num> | <attribute> | <treepath> | <attribute_test> | <condition>
     
        <token: num> <signed_int> | <float>
     
-       <token: signed_int> [+-]?+ <int>
+       <token: signed_int> [+-]? <int>
     
-       <token: float> [+-]?+ <int>? \.\d++ ( [Ee][+-]?+ <int> )?+
+       <token: float> [+-]? <int>? \.\d+ ( [Ee][+-]? <int> )?
     
        <token: literal> <squote> | <dquote>
     
-       <token: squote> ' ([^'\\]|\\.)*+ '
+       <token: squote> ' ( [^'\\] | \\. )* '
     
-       <token: dquote> " ([^"\\]|\\.)*+ "
+       <token: dquote> " ( [^"\\] | \\. )* "
     
-       <rule: predicate>
-          \[ ( <signed_int> | <condition> ) \]
+       <rule: predicate> \[ ( < signed_int> | <condition> ) \]
     
-       <token: int> \b(0|[1-9][0-9]*+)\b
+       <token: int> \b ( 0 | [1-9] [0-9]* ) \b
     
-       <rule: condition> 
-          <not>? <item> ( <operator> <not>? <item> )*
+       <rule: condition> <not>? <item> ( <operator> <not>? <item> )*
 
-       <token: not>
-             ( ! | (?<=[\s\[(]) not (?=\s) ) 
-             ( \s*+ ( ! | (?<=\s) not (?=\s) ) )*+ 
+       <token: not> ! | not
        
        <token: operator> <or> | <xor> | <and>
        
-       <token: xor> ( ; | (?<=\s) one (?=\s) )
+       <token: xor> ; | one
            
-       <token: and> ( & | (?<=\s) and (?=\s) )
+       <token: and> & | and
            
-       <token: or> ( \|{2} | (?<=\s) or (?=\s) )
+       <token: or> \|{2} | or
     
        <token: term> <attribute> | <attribute_test> | <treepath>
     
-       <rule: attribute_test> <attribute> <cmp> <value> | <value> <cmp> <attribute>
+       <rule: attribute_test> <value> <cmp> <value>
     
-       <token: cmp> [<>=]=?+ | ![=~] | =~ | =?\|= | =\|
+       <token: cmp> [<>=]=? | ![=~] | =~ | =?\|= | =\|
     
-       <token: value> <literal> | <num> | <attribute>
+       <token: value> <literal> | <num> | <attribute> | <treepath> | <math>
+       
+       <rule: math> <function> | <operand> ( <mop> <operand> )*
+       
+       <token: function> :? <%FUNCTIONS> \( <math> \)
+       
+       <token: mop> :? <%MATH_OPERATORS>
+       
+       <token: operand> <num> | -? ( <mconst> | <attribute> | <treepath> | <mgroup> | <function> )
+       
+       <token: mconst> : <%MATH_CONSTANTS>
+       
+       <rule: mgroup> \( <math> \)
     
        <rule: group> \( <condition> \)
     
        <token: item> <term> | <group>
-
+       
 The crucial part, most likely, is the definition of the <name> rule which governs what you can put in
 tags and attribute names without escaping. The rule, copied from above, is
 
@@ -1165,8 +1204,7 @@ this would make certain expressions ambiguous -- is C<a[@b = 'c']> comparing C<@
 
 Finally, one can "quote" the entire expression following the C<qname> convention:
 
-          : (\p{PosixPunct}.+?\p{PosixPunct}) 
-          <require: (?{qname_test($^N)})> 
+          : [[:punct:]].+?[[:punct:]]
 
 A quoted name begins with a colon followed by some delimiter character, which must be a POSIX punctuation mark. These
 are the symbols
@@ -1199,7 +1237,7 @@ are all fine, as are
   :-a-
 
 and so forth. The C<qname> convention is a solution where you want to avoid the unreadability of escapes but have to do
-this at the beginning of a path or your tag name contains both sorts of ordinary quote characters. And again one may use
+this at the beginning of a path or your tag name contains both sorts of ordinary quote characters. And again, one may use
 the backslash to escape characters within the expression. If you use the backslash itself as the delimiter, you do not need
 to escape it.
 
@@ -1246,7 +1284,8 @@ and between a repetition suffix and the element repeated
 
 I wrote TPath initially in Java (L<http://dfhoughton.org/treepath/>) because I wanted a more 
 convenient way to select nodes from parse trees. I've re-written it in Perl because I figured
-it might be handy and why not?
+it might be handy and why not? Since I've been working on the Perl version I've added lots of features.
+Eventually I'll back port these to the Java version, but I haven't yet.
 
 =head1 ACKNOWLEDGEMENTS
 
