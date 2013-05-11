@@ -97,13 +97,13 @@ sub BUILD {
 
     # construct the appropriate function
     for ( $self->op ) {
-        when ('=')  { $func = $self->_e_func( $l, $r, $lr, \&_se ) }
-        when ('==') { $func = $self->_e_func( $l, $r, $lr, \&_de ) }
-        when ('<=') { $func = $self->_c_func( $l, $r, $lr, $le_s, $le_n ) }
-        when ('<')  { $func = $self->_c_func( $l, $r, $lr, $l_s,  $l_n ) }
-        when ('>=') { $func = $self->_c_func( $l, $r, $lr, $ge_s, $ge_n ) }
-        when ('>')  { $func = $self->_c_func( $l, $r, $lr, $g_s,  $g_n ) }
-        when ('!=') { $func = $self->_c_func( $l, $r, $lr, $ne_s, $ne_n ) }
+        when ('=')  { $func = $self->_e_func( $l, $r, \&_se ) }
+        when ('==') { $func = $self->_e_func( $l, $r, \&_de ) }
+        when ('<=') { $func = $self->_c_func( $l, $r, $le_s, $le_n ) }
+        when ('<')  { $func = $self->_c_func( $l, $r, $l_s,  $l_n ) }
+        when ('>=') { $func = $self->_c_func( $l, $r, $ge_s, $ge_n ) }
+        when ('>')  { $func = $self->_c_func( $l, $r, $g_s,  $g_n ) }
+        when ('!=') { $func = $self->_c_func( $l, $r, $ne_s, $ne_n ) }
         when ('=~') { $func = $self->_m_func( $r, 1 ) }
         when ('!~') { $func = $self->_m_func( $r, 0 ) }
         when ('|=')  { $func = $self->_i_func( $l, $r, 0 ) }
@@ -300,8 +300,8 @@ sub _s_func {
 # generate = test
 sub _e_func {
 
-    # left type, right type, the conjunction, the equality function
-    my ( $self, $l, $r, $lr, $ef ) = @_;
+    # left type, right type, the equality function
+    my ( $self, $l, $r, $ef ) = @_;
 
     my $lv = $self->left;
     my $rv = $self->right;
@@ -575,8 +575,8 @@ sub _e_func {
 
 sub _c_func {
 
-# left type, right type, the conjunction, the string comparison function, the number comparison function
-    my ( $self, $l, $r, $lr, $sf, $nf ) = @_;
+# left type, right type, the string comparison function, the number comparison function
+    my ( $self, $l, $r, $sf, $nf ) = @_;
 
     my $lv = $self->left;
     my $rv = $self->right;
