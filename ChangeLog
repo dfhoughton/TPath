@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+
+0.015     2013-05-11 18:28:56 America/New_York
   * added math in attribute tests
   * allowing bare expressions in attribute tests
 
