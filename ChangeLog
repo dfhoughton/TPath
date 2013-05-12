@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+
+0.016     2013-05-12 13:17:56 America/New_York
   * added check for overloaded == to single equals equality function
   * fixed stringification bug in TPath::Context for overloaded nodes
   * added autoloading of attributes
