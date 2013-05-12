@@ -154,8 +154,7 @@ our $path_grammar = do {
           (?{ $MATCH = clean_pattern($^N) }) <.cp>
     
        <token: aname>
-          @ <name>
-          (?{ $MATCH = $MATCH{name} })
+          @ (?: <name> | : <name> (?{ $MATCH{autoloaded} = 1 }) )
        
        <token: name>
           ((?>\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+)  (?{ $MATCH = clean_escapes($^N ) })

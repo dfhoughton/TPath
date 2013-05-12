@@ -954,6 +954,32 @@ you define the attributes within a role instead of the forester itself.
   sub tag { ... }
   sub children { ... }
 
+=head3 Auto-loaded Attributes
+
+Some trees, like HTML and XML parse trees, may have ad hoc attributes. Foresters for this sort
+of tree should override the default C<autoload_attribute> method. This method expects an
+attribute name and an optional list of arguments and returns a code reference. The code reference
+in turn, when applied to a context and a list of context-specific arguments, must return the value
+of the given attribute in that context. For instance, the following implements HTML attribute 
+autoloading providing these nodes have an C<attribute> method that returns the value of a particular
+attribute at a given node, or C<undef> when the attribute is undefined:
+
+  sub autoload_attribute {
+      my ( $self, $name ) = @_;
+      return sub {
+          my ( $self, $ctx ) = @_;
+          return $ctx->n->attribute($name);
+      };
+  }
+
+With this one could write expressions such as C<//div[@:style =|= 'width']> which auto-load the C<style>
+attribute. B<Note the expression syntax>: attributes whose names are preceded by an unescaped colon
+are supplied by the C<autoload_attribute> method.
+
+One could make this HTML implementation more efficient by memoizing C<autoload_attribute>. For HTML
+attributes it doesn't make sense to further parameterize attribute generation -- all you need is the
+name -- so any attribute arguments are ignored during auto-loading.
+
 =head2 Special Selectors
 
 There are three special selectors B<that cannot occur with predicates> and may only be 
@@ -1119,7 +1145,7 @@ and adjust the construction of the abstract syntax tree produced by the parser.
     
        <token: pattern> ~([^~]|~~)+~
      
-       <token: aname> @ <name>
+       <token: aname> @ :? <name>
        
        <token: name>
           (\\.|[\p{L}\$_])([\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*

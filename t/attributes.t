@@ -8,7 +8,7 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 36;
+use Test::More tests => 39;
 use Test::Trap;
 use Test::Exception;
 use ToyXMLForester;
@@ -19,6 +19,10 @@ my ( $p, $path, @c );
 
 $p    = parse(q{<a><b/><b foo="bar"/></a>});
 $path = q{//b[@attr('foo')]};
+@c    = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
+
+$path = q{//b[@:foo]};
 @c    = $f->path($path)->select($p);
 is @c, 1, "received expected from $p with $path";
 
@@ -43,6 +47,11 @@ $path = q{//b[@log(@attr('foo'))]};
 trap { @c = $f->path($path)->select($p) };
 is @c, 3, "received expected from $p with $path";
 is $trap->stderr, "1\n2\n3\n", 'received correct log messages';
+$path = q{//b[@log(@:foo)]};
+trap { @c = $f->path($path)->select($p) };
+is @c, 3, "received expected from $p with $path";
+is $trap->stderr, "1\n2\n3\n", 'received correct log messages';
+
 my $message_log = '';
 {
 

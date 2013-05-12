@@ -291,6 +291,29 @@ Override if your node has some defined notion of id.
 
 sub id { }
 
+=method autoload_attribute
+
+Expects an attribute name and optionally a list of arguments. Returns a code reference 
+instantiating the attribute. This method is required for attributes such as
+
+  //foo[@:a]
+
+or
+
+  //bar[@:b(1)]
+
+Note the unescaped colon preceding the attribute name.
+
+Autoloading is useful for this such as HTML or XML trees, where nodes may have ad hoc attributes.
+
+This method must be defined by each forester requiring attribute auto-loading. The default
+method will always return C<undef>, and if one attempts to use it to autoload an attribute
+an error will be thrown during expression compilation.
+
+=cut
+
+sub autoload_attribute { }
+
 sub _kids {
     my ( $self, $original, $ctx ) = @_;
     my $i = $ctx->i;

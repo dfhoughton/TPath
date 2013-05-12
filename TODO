@@ -8,7 +8,7 @@ Key
 . add usual escapes inside string literals
 . simplify axis code in forester
 * add math in attribute tests
-. add support for autoloading of attributes
+* add support for autoloading of attributes
 
 Attic
 -----

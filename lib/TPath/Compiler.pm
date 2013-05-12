@@ -336,10 +336,24 @@ sub attribute {
     if ( defined $args ) {
         push @args, arg( $_, $forester ) for @{ $args->{arg} };
     }
-    my $name = $attribute->{aname};
-    my $code = $forester->_attributes->{$name};
-    die 'unkown attribute @' . $name unless defined $code;
-    return Attribute->new( name => $name, args => \@args, code => $code );
+    my $name       = $attribute->{aname}{name};
+    my $autoloaded = $attribute->{aname}{autoloaded};
+    my $code;
+    if ($autoloaded) {
+        $code = $forester->autoload_attribute( $name, @args );
+        die( ref $forester ) . ' cannot autoload attribute ' . $attribute->{''}
+          unless defined $code;
+    }
+    else {
+        $code = $forester->_attributes->{$name};
+        die 'unkown attribute @' . $name unless defined $code;
+    }
+    return Attribute->new(
+        name       => $name,
+        args       => \@args,
+        code       => $code,
+        autoloaded => $autoloaded
+    );
 }
 
 sub arg {

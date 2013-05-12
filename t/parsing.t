@@ -302,8 +302,8 @@ a[@b = 'foo']
 v
 foo
 
-a[@b]
-aname
+//@b
+name
 b
 
 ~a~~b~
@@ -314,12 +314,12 @@ a~b
 separator
 />
 
-a[@\'b]
-aname
+//@\'b
+name
 'b
 
-a[@:,'b,]
-aname
+//@:,'b,
+name
 'b
 
 :id(\))
