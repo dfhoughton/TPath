@@ -36,6 +36,7 @@ use v5.10;
 use Scalar::Util qw(refaddr looks_like_number);
 use MooseX::SingletonMethod;
 use TPath::TypeConstraints;
+use overload;
 use namespace::autoclean;
 
 =head1 ROLES
@@ -959,19 +960,20 @@ sub _se {
             return 1;
         }
         when ('oo') {
-            my $f = $v1->can('equals');
+            my $f = $v1->can('equals') || overload::Method( $v1, '==' );
             return $v1->$f($v2) ? 1 : undef if $f;
-            $f = $v2->can('equals');
+            $f = $v2->can('equals') || overload::Method( $v2, '==' );
             return $v2->$f($v1) ? 1 : undef if $f;
             return refaddr $v1 == refaddr $v2 ? 1 : undef;
         }
         when (/o./) {
-            my $f = $v1->can('equals');
+            my $f = $v1->can('equals') || overload::Method( $v1, '==' );
             return $v1->$f->($v2) ? 1 : undef if $f;
             return undef;
         }
         when (/.o/) {
-            my $f = $v2->can('equals');
+            my $f =
+              $v2->can('equals') || overload::Method( $v2, '==' );
             return $v2->$f($v1) ? 1 : undef if $f;
             return undef;
         }

@@ -15,6 +15,7 @@ little added efficiency.
 
 use strict;
 use warnings;
+use Scalar::Util qw(refaddr);
 
 use overload '""' => \&to_string;
 
@@ -97,6 +98,13 @@ The stringification of a context is the stringification of its node.
 
 =cut
 
-sub to_string { "$_[0][0]" }
+sub to_string {
+    my $s;
+    eval { $s = "$_[0][0]" };
+    if ($@) {    # workaround for odd overload bug
+        $s = 'memaddr' . refaddr $_[0][0];
+    }
+    return $s;
+}
 
 1;
