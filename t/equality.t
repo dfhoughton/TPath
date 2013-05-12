@@ -116,8 +116,39 @@ is $elements[0], '<b><aa/></b>', 'found correct element';
 
 $f = Forester->new;
 
+# with no definition of semantic equality
+my $tree = Node->new( tag => 'b', payload => [1] )->add(
+    Node->new( tag => 'b', payload => [2] )->add(
+        Node->new( tag => 'a', payload => { c => 1 } )
+          ->add( Node->new( tag => 'a', payload => { c => 1 } ) )
+    )
+);
+$path     = q{//*[. = *]};
+@elements = $f->path($path)->select($tree);
+is @elements, 0, "received expected number of elements with $path";
+$path     = q{//*[. == *]};
+@elements = $f->path($path)->select($tree);
+is @elements, 0, "received expected number of elements with $path";
+
+my $payload = {foo=>'bar'};
+$tree = Node->new( tag => 'b', payload => $payload )->add(
+    Node->new( tag => 'b', payload => $payload )->add(
+        Node->new( tag => 'a', payload => { c => 1 } )
+          ->add( Node->new( tag => 'a', payload => { c => 1 } ) )
+    )
+);
+$path     = q{//*[@at(., 'p') = @at(*, 'p')]};
+@elements = $f->path($path)->select($tree);
+is @elements, 2, "received expected number of elements with $path";
+is $elements[0]->tag, 'a', 'expected tag for first element received';
+is $elements[1]->tag, 'b', 'expected tag for first element received';
+$path     = q{//*[@at(., 'p') == @at(*, 'p')]};
+@elements = $f->path($path)->select($tree);
+is @elements, 1, "received expected number of elements with $path";
+is $elements[0]->tag, 'b', 'expected tag for element received';
+
 # with 'equals' semantic equal
-my $tree = Node1->new( tag => 'b', payload => [1] )->add(
+$tree = Node1->new( tag => 'b', payload => [1] )->add(
     Node1->new( tag => 'b', payload => [2] )->add(
         Node1->new( tag => 'a', payload => { c => 1 } )
           ->add( Node1->new( tag => 'a', payload => { c => 1 } ) )
@@ -131,7 +162,6 @@ $path     = q{//*[. == *]};
 @elements = $f->path($path)->select($tree);
 is @elements, 0, "received expected number of elements with $path";
 
-my $payload = {foo=>'bar'};
 $tree = Node1->new( tag => 'b', payload => $payload )->add(
     Node1->new( tag => 'b', payload => $payload )->add(
         Node1->new( tag => 'a', payload => { c => 1 } )
