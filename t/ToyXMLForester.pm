@@ -29,7 +29,10 @@ sub id                   { my ( $self, $n )   = @_; $n->attribute('id') }
 
 sub autoload_attribute {
     my ( $self, $name ) = @_;
-    sub { $_[1]->n->attribute($name) }
+    return sub {
+        my ( $self, $ctx ) = @_;
+        return $ctx->n->attribute($name);
+    };
 }
 
 sub BUILD { $_[0]->_node_type('Element') }

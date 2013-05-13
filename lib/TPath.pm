@@ -1152,7 +1152,7 @@ and adjust the construction of the abstract syntax tree produced by the parser.
           | <literal>
           | <qname>
        
-       <token: qname> : ([[:punct:]].+?[[:punct:]]) 
+       <token: qname> : [[:punct:]].+[[:punct:]]
      
        <rule: attribute> <aname> <args>?
     

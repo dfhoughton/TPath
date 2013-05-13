@@ -125,11 +125,13 @@ sub _i_func {
         my $s_func = _s_func( $self->left );
         for ($i_type) {
             when (0) {
+                my $l = length $v;
                 return sub {
                     my ( $self, $ctx ) = @_;
                     my $lv = $self->$s_func($ctx);
-                    my $index = index $lv, $v;
-                    return $index == 0 ? 1 : undef;
+                    return undef unless length $lv >= $l;
+                    $lv = substr $lv, 0, $l;
+                    return $lv eq $v ? 1 : undef;
                 };
             }
             when (1) {
@@ -141,13 +143,13 @@ sub _i_func {
                 };
             }
             when (2) {
-                my $lr = length $v;
+                my $l = length $v;
                 return sub {
                     my ( $self, $ctx ) = @_;
                     my $lv = $self->$s_func($ctx);
-                    my $index = index $lv, $v;
-                    return $index > -1
-                      && $index == length($lv) - $lr ? 1 : undef;
+                    return undef unless length $lv >= $l;
+                    $lv = substr $lv, -$l;
+                    return $lv eq $v ? 1 : undef;
                 };
             }
         }
