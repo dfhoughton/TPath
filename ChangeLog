@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+
+0.017     2013-06-25 21:17:38 America/New_York
   * improved efficiency of |= and =|
   * fixed undefined string bug in matching operator application
 
