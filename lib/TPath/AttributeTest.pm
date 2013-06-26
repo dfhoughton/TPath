@@ -138,6 +138,7 @@ sub _i_func {
                 return sub {
                     my ( $self, $ctx ) = @_;
                     my $lv = $self->$s_func($ctx);
+                    return undef unless defined $lv;
                     my $index = index $lv, $v;
                     return $index > -1 ? 1 : undef;
                 };
@@ -147,6 +148,7 @@ sub _i_func {
                 return sub {
                     my ( $self, $ctx ) = @_;
                     my $lv = $self->$s_func($ctx);
+                    return undef unless defined $lv;
                     return undef unless length $lv >= $l;
                     $lv = substr $lv, -$l;
                     return $lv eq $v ? 1 : undef;

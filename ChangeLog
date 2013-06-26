@@ -2,6 +2,7 @@ Revision history for TPath
 
 {{$NEXT}}
   * improved efficiency of |= and =|
+  * fixed undefined string bug in matching operator application
 
 0.016     2013-05-12 13:17:56 America/New_York
   * added check for overloaded == to single equals equality function
