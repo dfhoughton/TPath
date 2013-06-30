@@ -2,6 +2,7 @@ Revision history for TPath
 
 {{$NEXT}}
   * cleaned up prereqs a bit
+  * cleaned up error message when logging under to TPath::StderrLog
 
 0.017     2013-06-25 21:17:38 America/New_York
   * improved efficiency of |= and =|

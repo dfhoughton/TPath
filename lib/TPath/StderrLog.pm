@@ -15,7 +15,7 @@ with 'TPath::LogStream';
 
 sub put {
     my ( $self, $message ) = @_;
-    print STDERR $message, "\n";
+    print STDERR $message // '', "\n";
 }
 
 __PACKAGE__->meta->make_immutable;
