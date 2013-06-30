@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+
+0.018     2013-06-30 17:22:59 America/New_York
   * cleaned up prereqs a bit
   * cleaned up error message when logging under to TPath::StderrLog
 
