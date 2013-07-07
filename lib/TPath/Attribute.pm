@@ -70,6 +70,9 @@ sub apply {
             if ( $a->isa('TPath::Attribute') ) {
                 $value = $a->apply($ctx);
             }
+            elsif ( $a->isa('TPath::Concatenation') ) {
+                $value = $a->concatenate($ctx);
+            }
             elsif ( $a->isa('TPath::AttributeTest') ) {
                 $value = $a->test($ctx);
             }

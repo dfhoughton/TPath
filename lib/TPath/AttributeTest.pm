@@ -276,6 +276,12 @@ sub _s_func {
                 $v->apply($ctx);
             };
         }
+        when ('c') {
+            return sub {
+                my ( undef, $ctx ) = @_;
+                $v->concatenate($ctx);
+            };
+        }
         when ('e') {
             return sub {
                 my ( undef, $ctx ) = @_;
@@ -341,6 +347,13 @@ sub _e_func {
                         return $ef->( $lv, $rv->to_num($ctx) );
                       }
                 }
+                when ('c') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $v = $rv->concatenate($ctx);
+                        return $ef->( $lv, $v );
+                    };
+                }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
                 }
@@ -352,6 +365,13 @@ sub _e_func {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $v = $rv->apply($ctx);
+                        return $ef->( $lv, $v );
+                    };
+                }
+                when ('c') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $v = $rv->concatenate($ctx);
                         return $ef->( $lv, $v );
                     };
                 }
@@ -390,6 +410,14 @@ sub _e_func {
                         my ( undef, $ctx ) = @_;
                         my $v1 = $lv->apply($ctx);
                         my $v2 = $rv->apply($ctx);
+                        return $ef->( $v1, $v2 );
+                    };
+                }
+                when ('c') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $v1 = $lv->apply($ctx);
+                        my $v2 = $rv->concatenate($ctx);
                         return $ef->( $v1, $v2 );
                     };
                 }
@@ -446,6 +474,14 @@ sub _e_func {
                         return $ef->( $v1, $v2 );
                     };
                 }
+                when ('c') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $v1 = $lv->test($ctx);
+                        my $v2 = $rv->concatenate($ctx);
+                        return $ef->( $v1, $v2 );
+                    };
+                }
                 when ('t') {
                     return sub {
                         my ( undef, $ctx ) = @_;
@@ -499,6 +535,14 @@ sub _e_func {
                         return $ef->( $c, $v2 );
                     };
                 }
+                when ('c') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $c = [ map { $_->n } @{ $lv->_select( $ctx, 1 ) } ];
+                        my $v2 = $rv->concatenate($ctx);
+                        return $ef->( $c, $v2 );
+                    };
+                }
                 when ('t') {
                     return sub {
                         my ( undef, $ctx ) = @_;
@@ -541,6 +585,14 @@ sub _e_func {
                         my ( undef, $ctx ) = @_;
                         my $n  = $lv->to_num($ctx);
                         my $v2 = $rv->apply($ctx);
+                        return $ef->( $n, $v2 );
+                    };
+                }
+                when ('c') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n  = $lv->to_num($ctx);
+                        my $v2 = $rv->concatenate($ctx);
                         return $ef->( $n, $v2 );
                     };
                 }
@@ -625,6 +677,13 @@ sub _c_func {
                         $nf->( $lv, $n );
                       }
                 }
+                when ('c') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n = $rv->concatenate($ctx);
+                        $nf->( $lv, $n );
+                      }
+                }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
                 }
@@ -661,6 +720,13 @@ sub _c_func {
                         $sf->( $lv, $n );
                     };
                 }
+                when ('c') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n = $rv->concatenate($ctx);
+                        $sf->( $lv, $n );
+                    };
+                }
                 default {
                     confess "fatal logic error! unexpected argument type $r"
                 }
@@ -690,6 +756,14 @@ sub _c_func {
                         my $v = $lv->apply($ctx);
                         return unless defined $v;
                         return $sf->( $v, $rv );
+                    };
+                }
+                when ('c') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $v1 = $lv->apply($ctx);
+                        my $v2 = $rv->concatenate($ctx);
+                        return $sf->( $v1, $v2 );
                     };
                 }
                 when ('a') {
@@ -746,6 +820,14 @@ sub _c_func {
                         return $sf->( $v1, $rv );
                     };
                 }
+                when ('c') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $v1 = $lv->test($ctx);
+                        my $v2 = $rv->concatenate($ctx);
+                        return $sf->( $v1, $v2 );
+                    };
+                }
                 when ('a') {
                     return sub {
                         my ( undef, $ctx ) = @_;
@@ -796,7 +878,15 @@ sub _c_func {
                     return sub {
                         my ( undef, $ctx ) = @_;
                         my $c = $lv->_select( $ctx, 1 );
-                        return $sf->( join( '', map { $_->n } @$c ), $rv );
+                        return $sf->( join( '', @$c ), $rv );
+                    };
+                }
+                when ('c') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $c = $lv->_select( $ctx, 1 );
+                        my $v2 = $rv->concatenate($ctx);
+                        return $sf->( join( '', @$c ), $v2 );
                     };
                 }
                 when ('a') {
@@ -853,6 +943,14 @@ sub _c_func {
                         return $nf->( $n, $rv );
                     };
                 }
+                when ('c') {
+                    return sub {
+                        my ( undef, $ctx ) = @_;
+                        my $n = $lv->to_num($ctx);
+                        my $v2 = $rv->concatenate($ctx);
+                        return $nf->( $n, $v2 );
+                    };
+                }
                 when ('a') {
                     return sub {
                         my ( undef, $ctx ) = @_;
@@ -906,7 +1004,7 @@ sub _reduce {
         when ('rn') { return $nf->( scalar @$v1,      $v2 ) }
         when ('sr') { return $sf->( $v1, join '', @$v2 ) }
         when ('rs') { return $sf->( join( '', @$v1 ), $v2 ) }
-        when (/[etaf].|.[etaf]/) {
+        when (/[etafc].|.[etafc]/) {
             my ( $v3, $v4 ) = ( $v1, $v2 );
             for ($l) {
                 when ('e') {
@@ -915,6 +1013,7 @@ sub _reduce {
                 when ('t') { $v3 = $v1->test($ctx) }
                 when ('a') { $v3 = $v1->apply($ctx) }
                 when ('f') { $v3 = $v1->to_num($ctx) }
+                when ('c') { $v3 = $v1->concatenate($ctx) }
             }
             for ($r) {
                 when ('e') {
@@ -923,6 +1022,7 @@ sub _reduce {
                 when ('t') { $v4 = $v2->test($ctx) }
                 when ('a') { $v4 = $v2->apply($ctx) }
                 when ('f') { $v4 = $v2->to_num($ctx) }
+                when ('c') { $v4 = $v2->concatenate($ctx) }
             }
             return _reduce( $v3, $v4, $sf, $nf, $ctx );
         }
@@ -976,8 +1076,7 @@ sub _se {
             return undef;
         }
         when (/.o/) {
-            my $f =
-              $v2->can('equals') || overload::Method( $v2, '==' );
+            my $f = $v2->can('equals') || overload::Method( $v2, '==' );
             return $v2->$f($v1) ? 1 : undef if $f;
             return undef;
         }
@@ -1021,6 +1120,7 @@ sub _type {
         return 'a' if $arg->isa('TPath::Attribute');
         return 'e' if $arg->isa('TPath::Expression');
         return 't' if $arg->isa('TPath::AttributeTest');
+        return 'c' if $arg->isa('TPath::Concatenation');
         return 'f' if $arg->DOES('TPath::Numifiable');
         return 'o';
     }

@@ -170,7 +170,13 @@ our $path_grammar = do {
        <rule: args> \( <[arg]> (?: , <[arg]> )* \) <.cp>
     
        <token: arg>
-           <v=literal> | <v=num> | <attribute> | <treepath> | <attribute_test> | <condition>
+           <v=literal> | <v=num> | <concat> | <attribute> | <treepath> | <attribute_test> | <condition>
+       
+       <rule: concat> # string concatenation
+           <[carg]> (?: ~ <[carg]>)+
+       
+       <token: carg>
+           <v=literal> | <v=num> | <attribute> | <treepath> | <math>
     
        <token: num> <.signed_int> | <.float>
     
@@ -218,7 +224,7 @@ our $path_grammar = do {
     
        <token: cmp> (?: [<>=]=?+ | ![=~] | =~ | =?\|= | =\| ) <.cp>
     
-       <token: value> <v=literal> | <v=num> | <attribute> | <treepath> | <math>
+       <token: value> <v=literal> | <v=num> | <concat> | <attribute> | <treepath> | <math>
        
        <rule: math> <function> | <[item=operand]> (?: <.ws> <[item=mop]> <[item=operand]> )*
        

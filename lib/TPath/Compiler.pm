@@ -19,6 +19,7 @@ use parent 'Exporter';
 
 use aliased 'TPath::Attribute';
 use aliased 'TPath::AttributeTest';
+use aliased 'TPath::Concatenation';
 use aliased 'TPath::Expression';
 use aliased 'TPath::Function';
 use aliased 'TPath::Math';
@@ -372,11 +373,40 @@ sub arg {
     return math( $m, $forester ) if defined $m;
     my $f = $arg->{function};
     return function( $f, $forester ) if defined $f;
+    my $c = $arg->{concat};
+    return concat( $forester, $c ) if defined $c;
     my $op = $arg->{condition}{operator};
     return condition( $arg, $forester, $op ) if defined $op;
     die
       'fatal compilation error; could not compile parsable argument with keys '
       . ( join ', ', sort keys %$arg );
+}
+
+sub concat {
+    my ( $f, $c ) = @_;
+    my @args = map { arg( $_, $f ) } @{ $c->{carg} };
+
+    # concatenate all constants
+    my $i = 0;
+    my $acc;
+    while ( $i < @args ) {
+        my $v = $args[$i];
+        if ( ref $v ) {
+            $i++;
+            $acc = 0;
+        }
+        elsif ($acc) {
+            $args[ $i - 1 ] .= $v;
+            splice @args, $i, 1;
+            $acc = 1;
+        }
+        else {
+            $acc = 1;
+            $i++;
+        }
+    }
+    return $args[0] unless @args > 1;
+    return Concatenation->new( args => \@args );
 }
 
 sub function {

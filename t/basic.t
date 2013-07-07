@@ -8,8 +8,9 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 88;
+use Test::More tests => 99;
 use Test::Exception;
+use Test::Trap;
 use ToyXMLForester;
 use ToyXML qw(parse);
 
@@ -222,8 +223,8 @@ is scalar @elements, 1, "got element from $p using new attribute \@foobar";
 
 $p = parse(q{<a><b foo="bar" bar="foo"/><b foo="foo"/></a>});
 my $i = $f->index($p);
-$path     = '//*[@attr("foo")]';
-@elements = $f->path($path)->select($p, $i);
+$path = '//*[@attr("foo")]';
+@elements = $f->path($path)->select( $p, $i );
 is scalar @elements, 2, "correct number of elements in $p with $path";
 my $v = $f->attribute( TPath::Context->new( n => $elements[0], i => $i ),
     'attr', 'foo' );
@@ -327,5 +328,49 @@ $path     = q{leaf::^@te('b')};
 is @elements, 2, "foundthe right number of elements with $path on $p";
 is "$elements[0]", '<c/>', 'first element is correct';
 is "$elements[1]", '<d/>', 'second element is correct';
+
+$p    = parse(q{<a/>});
+$path = q{//*[@log('a' ~ 'b')]};
+trap { @c = $f->path($path)->select($p) };
+is $trap->stderr, "ab\n", 'string concatenation works';
+
+$path = q{//*[@log('a' ~ .)]};
+trap { @c = $f->path($path)->select($p) };
+is $trap->stderr, "a<a/>\n", 'treepath concatenation works';
+
+$path = q{//*[@log('a' ~ 1)]};
+trap { @c = $f->path($path)->select($p) };
+is $trap->stderr, "a1\n", 'number concatenation works';
+
+$path = q{//*[@log('a' ~ @tsize)]};
+trap { @c = $f->path($path)->select($p) };
+is $trap->stderr, "a1\n", 'attribute concatenation works';
+is $f->path($path) . '', q{//*[ @log('a' ~ @tsize) ]},
+  'concatenation stringified properly';
+
+$path = q{//*[@log('a' ~ 1 + 2)]};
+trap { @c = $f->path($path)->select($p) };
+is $trap->stderr, "a3\n", 'math concatenation works';
+
+$path = q{//*[@log(@tsize ~ 'a' ~ 1)]};
+trap { @c = $f->path($path)->select($p) };
+is $trap->stderr, "1a1\n",
+  'three item concatenation with initial attribute works';
+
+$path = q{//*[@log('a' ~ @tsize ~ 1)]};
+trap { @c = $f->path($path)->select($p) };
+is $trap->stderr, "a11\n",
+  'three item concatenation with central attribute works';
+
+$path = q{//*[@log('a' ~ 1 ~ @tsize)]};
+trap { @c = $f->path($path)->select($p) };
+is $trap->stderr, "a11\n",
+  'three item concatenation with final attribute works';
+
+$path = q{//*[@log('a' ~ 1 ~ 1)]};
+trap { @c = $f->path($path)->select($p) };
+is $trap->stderr, "a11\n", 'three item concatenation with all constants works';
+is $f->path($path) . '', q{//*[ @log('a11') ]},
+  'constants folded properly when concatenation stringified';
 
 done_testing();

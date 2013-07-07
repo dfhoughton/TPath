@@ -9,7 +9,8 @@ Key
 . simplify axis code in forester
 * add math in attribute tests
 * add support for autoloading of attributes
-. add string concatenation operator
+* add string concatenation operator
+. refactor apply attribute method so that reflection occurs only once
 
 Attic
 -----
