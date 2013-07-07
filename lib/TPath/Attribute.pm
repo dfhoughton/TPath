@@ -36,6 +36,14 @@ The arguments the attribute takes, if any.
 
 has args => ( is => 'ro', isa => 'ArrayRef', required => 1 );
 
+# caches results of reflective code for processing args
+has _arg_subs => (
+    is      => 'ro',
+    isa     => 'ArrayRef[CodeRef]',
+    lazy    => 1,
+    builder => '_build_arg_subs'
+);
+
 =attr code
 
 The actual code reference invoked when C<apply> is called.
@@ -63,31 +71,42 @@ sub apply {
     my @args = ($ctx);
 
     # invoke all code to reify arguments
+    push @args, $_->($ctx) for @{ $self->_arg_subs };
+    $self->code->( $ctx->i->f, @args );
+}
+
+sub _build_arg_subs {
+    my $self = shift;
+    my @codes;
     for my $a ( @{ $self->args } ) {
-        my $value = $a;
-        my $type  = ref $a;
+        my $type = ref $a;
+        my $sub;
         if ( $type && $type !~ /ARRAY|HASH/ ) {
             if ( $a->isa('TPath::Attribute') ) {
-                $value = $a->apply($ctx);
+                $sub = sub { $a->apply(shift) };
             }
             elsif ( $a->isa('TPath::Concatenation') ) {
-                $value = $a->concatenate($ctx);
+                $sub = sub { $a->concatenate(shift) };
             }
             elsif ( $a->isa('TPath::AttributeTest') ) {
-                $value = $a->test($ctx);
+                $sub = sub { $a->test(shift) };
             }
             elsif ( $a->isa('TPath::Expression') ) {
-                $value =
-                  [ map { $_->n } @{ $a->_select( $ctx, 0 ) } ];
+                $sub = sub {
+                    [ map { $_->n } @{ $a->_select( shift, 0 ) } ];
+                };
             }
             elsif ( $a->does('TPath::Test') ) {
-                $value = $a->test($ctx);
+                $sub = sub { $a->test(shift) };
             }
-            else { confess 'unknown argument type: ' . ( ref $a ) }
+            else { confess "unknown argument type: $type" }
         }
-        push @args, $value;
+        else {
+            $sub = sub { $a };
+        }
+        push @codes, $sub;
     }
-    $self->code->( $ctx->i->f, @args );
+    return \@codes;
 }
 
 =method to_num

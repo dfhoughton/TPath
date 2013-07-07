@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * added string concatenation
+  * added caching of reflection results
 
 0.018     2013-06-30 17:22:59 America/New_York
   * cleaned up prereqs a bit
