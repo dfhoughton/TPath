@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+
+0.019     2013-07-07 21:43:15 America/New_York
   * added string concatenation
   * added caching of reflection results
 
