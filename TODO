@@ -11,6 +11,7 @@ Key
 * add support for autoloading of attributes
 * add string concatenation operator
 . refactor apply attribute method so that reflection occurs only once
+. create logical attributes @some, @one, @none, @all
 
 Attic
 -----
