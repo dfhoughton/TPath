@@ -10,7 +10,7 @@ Key
 * add math in attribute tests
 * add support for autoloading of attributes
 * add string concatenation operator
-. refactor apply attribute method so that reflection occurs only once
+* refactor apply attribute method so that reflection occurs only once
 . create logical attributes @some, @one, @none, @all
 
 Attic
