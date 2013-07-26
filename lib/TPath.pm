@@ -1305,7 +1305,7 @@ is necessary because " cannot begin a path expression.
 
 =head3 Comments and Whitespace
 
-Before or after most elemenst of TPath expressions one may put arbitrary whitespace or #-style comments.
+Before or after most elements of TPath expressions one may put arbitrary whitespace or #-style comments.
 
   # a path made more complicated than necessary
   
