@@ -113,8 +113,8 @@ Returns whether the node is without children.
 =cut
 
 sub standard_is_leaf : Attr(leaf) {
-    my ( undef, $ctx ) = @_;
-    return $ctx->i->f->is_leaf($ctx) ? 1 : undef;
+    my ( $self, $ctx ) = @_;
+    return $self->is_leaf($ctx) ? 1 : undef;
 }
 
 =method C<@pick(//foo,1)>
@@ -325,6 +325,115 @@ sub standard_attr : Attr(at) {
     my @nodes = @$nodes;
     return undef unless @nodes;
     $self->attribute( $ctx->wrap( $nodes[0] ), $attr, @params );
+}
+
+=method C<@all(@a, b, 1, "foo")>
+
+True if all its parameters evaluate to true, the standard boolean
+interpretation being given to collection parameters.
+
+=cut
+
+sub standard_all : Attr(all) {
+    my ($self, undef, @params) = @_;
+    for (@params) {
+        return undef unless $self->_booleanize($_);
+    }
+    return 1;
+}
+
+=method C<@none(@a, b, 1, "foo")>
+
+True if all its parameters evaluate to false, the standard boolean
+interpretation being given to collection parameters.
+
+=cut
+
+sub standard_none : Attr(none) {
+    my ($self, undef, @params) = @_;
+    for (@params) {
+        return undef if $self->_booleanize($_);
+    }
+    return 1;
+}
+
+=method C<@some(@a, b, 1, "foo")>
+
+True if any of its parameters evaluates to true, the standard boolean
+interpretation being given to collection parameters.
+
+=cut
+
+sub standard_some : Attr(some) {
+    my ($self, undef, @params) = @_;
+    for (@params) {
+        return 1 if $self->_booleanize($_);
+    }
+    return undef;
+}
+
+=method C<@one(@a, b, 1, "foo")>
+
+True if only one of its parameters evaluates to true, the standard boolean
+interpretation being given to collection parameters.
+
+=cut
+
+sub standard_one : Attr(one) {
+    my ($self, undef, @params) = @_;
+    my $found;
+    for (@params) {
+        if ($self->_booleanize($_)) {
+            return undef if $found;
+            $found = 1;
+        }
+    }
+    return $found;
+}
+
+=method C<@tcount(@a, b, 1, "foo")>
+
+Returns the number of parameters evaluating to true.
+
+=cut
+
+sub standard_tcount : Attr(tcount) {
+    my ($self, undef, @params) = @_;
+    my $found = 0;
+    for (@params) {
+        $found++ if $self->_booleanize($_);
+    }
+    return $found;
+}
+
+=method C<@fcount(@a, b, 1, "foo")>
+
+Returns the number of parameters evaluating to false.
+
+=cut
+
+sub standard_fcount : Attr(fcount) {
+    my ($self, undef, @params) = @_;
+    my $found = 0;
+    for (@params) {
+        $found++ unless $self->_booleanize($_);
+    }
+    return $found;
+}
+
+=method C<<$f->_booleanize($v)>>
+
+Converts a scalar to a boolean value, dereferencing hash and array refs.
+
+=cut
+
+sub _booleanize {
+    my ($self, $v) = @_;
+    for (ref $v) {
+        when ('ARRAY') { $v = @$v }
+        when ('HASH') { $v = keys %$v }
+    }
+    return $v && 1;
 }
 
 1;

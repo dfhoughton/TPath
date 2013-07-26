@@ -8,7 +8,7 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 39;
+use Test::More tests => 60;
 use Test::Trap;
 use Test::Exception;
 use ToyXMLForester;
@@ -186,5 +186,84 @@ $path = q{//a[@log(@card(@null))]};
 trap { $f->path($path)->select($p) };
 is $trap->stderr, "0\n",
   'received correct log message testing cardinality of undef';
+
+$p    = parse q{<a><b/><c/><d/><e/></a>};
+$path = q{//@some(self::a, self::b)};
+@c    = $f->path($path)->select($p);
+is @c, 2, "received expected from $p with $path";
+is $c[0]->tag, 'b', 'first element has expected tag';
+is $c[1]->tag, 'a', 'second element has expected tag';
+
+$path = q{//@some(1, 0)};
+@c    = $f->path($path)->select($p);
+is @c, 5, "received expected from $p with $path";
+
+$path = q{//@some(1, 1, 0)};
+@c    = $f->path($path)->select($p);
+is @c, 5, "received expected from $p with $path";
+
+$path = q{//@some(0, 0, 0)};
+@c    = $f->path($path)->select($p);
+is @c, 0, "received expected from $p with $path";
+
+$path = q{//@all(1, 0)};
+@c    = $f->path($path)->select($p);
+is @c, 0, "received expected from $p with $path";
+
+$path = q{//@all(1)};
+@c    = $f->path($path)->select($p);
+is @c, 5, "received expected from $p with $path";
+
+$path = q{//@all(1, 1, 1, 1)};
+@c    = $f->path($path)->select($p);
+is @c, 5, "received expected from $p with $path";
+
+$path = q{//@all(0, 0, 0, 1, 0)};
+@c    = $f->path($path)->select($p);
+is @c, 0, "received expected from $p with $path";
+
+$path = q{//@one(1, 0)};
+@c    = $f->path($path)->select($p);
+is @c, 5, "received expected from $p with $path";
+
+$path = q{//@one(1, 0, 0, 0)};
+@c    = $f->path($path)->select($p);
+is @c, 5, "received expected from $p with $path";
+
+$path = q{//@one(1, 0, 0, 1)};
+@c    = $f->path($path)->select($p);
+is @c, 0, "received expected from $p with $path";
+
+$path = q{//@none(1, 0)};
+@c    = $f->path($path)->select($p);
+is @c, 0, "received expected from $p with $path";
+
+$path = q{//@none(0)};
+@c    = $f->path($path)->select($p);
+is @c, 5, "received expected from $p with $path";
+
+$path = q{//@none(0, 0, 0, 0)};
+@c    = $f->path($path)->select($p);
+is @c, 5, "received expected from $p with $path";
+
+$path = q{//@none(0, 0, 0, 1)};
+@c    = $f->path($path)->select($p);
+is @c, 0, "received expected from $p with $path";
+
+$path = q{//*[@tcount(1, 0) = 1]};
+@c    = $f->path($path)->select($p);
+is @c, 5, "received expected from $p with $path";
+
+$path = q{//*[@tcount(1, 1, 0) = 2]};
+@c    = $f->path($path)->select($p);
+is @c, 5, "received expected from $p with $path";
+
+$path = q{//*[@fcount(1, 0) = 1]};
+@c    = $f->path($path)->select($p);
+is @c, 5, "received expected from $p with $path";
+
+$path = q{//*[@fcount(1, 0, 0) = 2]};
+@c    = $f->path($path)->select($p);
+is @c, 5, "received expected from $p with $path";
 
 done_testing();

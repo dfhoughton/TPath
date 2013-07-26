@@ -1,6 +1,9 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * added the standard boolean attributes @all, @some, @one, @none and the 
+    corresponding @fcount and @tcount, which count the number of parameters
+    evaluating as true
 
 0.019     2013-07-07 21:43:15 America/New_York
   * added string concatenation
