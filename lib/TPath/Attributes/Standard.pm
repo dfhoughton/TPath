@@ -421,12 +421,7 @@ sub standard_fcount : Attr(fcount) {
     return $found;
 }
 
-=method C<<$f->_booleanize($v)>>
-
-Converts a scalar to a boolean value, dereferencing hash and array refs.
-
-=cut
-
+# Converts a scalar to a boolean value, dereferencing hash and array refs.
 sub _booleanize {
     my ($self, $v) = @_;
     for (ref $v) {

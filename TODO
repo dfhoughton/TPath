@@ -3,15 +3,10 @@ Key
  - = discarded
  * = completed
 
-* allow bare paths in attribute tests
 . add examples
 . add usual escapes inside string literals
 . simplify axis code in forester
-* add math in attribute tests
-* add support for autoloading of attributes
-* add string concatenation operator
-* refactor apply attribute method so that reflection occurs only once
-* create logical attributes @some, @one, @none, @all
+. add prioritization of predicates a la xpath, so there's both //*[1] and (//*)[1]
 
 Attic
 -----
@@ -41,3 +36,9 @@ Completed TODO items kept around as curios.
 * fix \p{PosixPunct} issue with v5.10 on BSD
 * comb documentation for pre-TPath::Context parameter lists
 * document previous:: axis
+* allow bare paths in attribute tests
+* add math in attribute tests
+* add support for autoloading of attributes
+* add string concatenation operator
+* refactor apply attribute method so that reflection occurs only once
+* create logical attributes @some, @one, @none, @all
