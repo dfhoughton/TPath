@@ -7,6 +7,7 @@ Key
 . add usual escapes inside string literals
 . simplify axis code in forester
 . add prioritization of predicates a la xpath, so there's both //*[1] and (//*)[1]
+. put 'extends' in BEGIN block
 
 Attic
 -----
