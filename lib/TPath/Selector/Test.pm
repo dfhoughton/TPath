@@ -35,6 +35,15 @@ has predicates => (
     auto_deref => 1
 );
 
+=attr f
+
+Reference to the associated forester for this test. This is used in obtaining
+the test axis.
+
+=cut
+
+has f => ( is => 'ro', does => 'TPath::Forester', required => 1 );
+
 =attr axis
 
 The axis on which nodes are sought; C<child> by default.
@@ -53,13 +62,33 @@ step in a path.
 
 has first_sensitive => ( is => 'ro', isa => 'Bool', default => 0 );
 
-# axis translated into a forester method name
+# axis translated into a forester method
 has faxis => (
-    is   => 'ro',
-    isa  => 'Str',
-    lazy => 1,
-    default =>
-      sub { my $self = shift; ( my $v = $self->axis ) =~ tr/-/_/; "axis_$v" }
+    is      => 'ro',
+    isa     => 'CodeRef',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        ( my $v = $self->axis ) =~ tr/-/_/;
+        $self->f->can("axis_$v");
+    },
+);
+
+# axis used in a first-sensitive context
+has sensitive_axis => (
+    is      => 'ro',
+    isa     => 'CodeRef',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        for ( $self->axis ) {
+            when ('child') { return $self->f->can('axis_self') }
+            when ('descendant') {
+                return $self->f->can('axis_descendant_or_self')
+            }
+            default { return $self->faxis }
+        }
+    },
 );
 
 =attr is_inverted
@@ -119,19 +148,14 @@ and returns nodes selected before filtering by predicates.
 
 sub candidates {
     my ( $self, $ctx, $first ) = @_;
-    my $axis = $self->_select_axis($first);
-    return $ctx->i->f->$axis( $ctx, $self->node_test );
-}
-
-sub _select_axis {
-    my ( $self, $first ) = @_;
+    my $axis;
     if ( $first && $self->first_sensitive ) {
-        for ( $self->axis ) {
-            when ('child')      { return 'axis_self' }
-            when ('descendant') { return 'axis_descendant_or_self' }
-        }
+        $axis = $self->sensitive_axis;
     }
-    return $self->faxis;
+    else {
+        $axis = $self->faxis;
+    }
+    return $self->f->$axis( $ctx, $self->node_test );
 }
 
 # implements method required by TPath::Selector

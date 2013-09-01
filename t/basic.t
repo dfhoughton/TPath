@@ -311,21 +311,21 @@ is( scalar @elements, 2,
 $p        = parse('<a><b/><c/><d/></a>');
 $path     = q{leaf::^b};
 @elements = $f->path($path)->select($p);
-is @elements, 2, "foundthe right number of elements with $path on $p";
+is @elements, 2, "found the right number of elements with $path on $p";
 is "$elements[0]", '<c/>', 'first element is correct';
 is "$elements[1]", '<d/>', 'second element is correct';
 
 $p        = parse('<a><b/><c/><d/></a>');
 $path     = q{leaf::^~b~};
 @elements = $f->path($path)->select($p);
-is @elements, 2, "foundthe right number of elements with $path on $p";
+is @elements, 2, "found the right number of elements with $path on $p";
 is "$elements[0]", '<c/>', 'first element is correct';
 is "$elements[1]", '<d/>', 'second element is correct';
 
 $p        = parse('<a><b/><c/><d/></a>');
 $path     = q{leaf::^@te('b')};
 @elements = $f->path($path)->select($p);
-is @elements, 2, "foundthe right number of elements with $path on $p";
+is @elements, 2, "found the right number of elements with $path on $p";
 is "$elements[0]", '<c/>', 'first element is correct';
 is "$elements[1]", '<d/>', 'second element is correct';
 

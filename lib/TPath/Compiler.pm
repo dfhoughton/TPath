@@ -117,7 +117,7 @@ sub cs {
 sub full {
     my ( $step, $forester ) = @_;
     my @predicates = predicates( $step->{step}{predicate}, $forester );
-    return Previous->new( predicates => \@predicates )
+    return Previous->new( f => $forester, predicates => \@predicates )
       if $step->{step}{full}{previous};
     my $sep        = $step->{separator};
     my $type       = $step->{step}{full}{forward};
@@ -132,12 +132,14 @@ sub full {
                 when ('/') {
                     if ($axis) {
                         $rv = AxisWildcard->new(
+                            f          => $forester,
                             axis       => $axis,
                             predicates => \@predicates
                         );
                     }
                     else {
                         $rv = AxisWildcard->new(
+                            f               => $forester,
                             first_sensitive => 1,
                             predicates      => \@predicates
                         );
@@ -145,17 +147,24 @@ sub full {
                 }
                 when ('//') {
                     die 'axes disallowed with // separator' if defined $axis;
-                    $rv = Anywhere->new( predicates => \@predicates );
+                    $rv = Anywhere->new(
+                        f          => $forester,
+                        predicates => \@predicates
+                    );
                 }
                 when ('/>') { die '/>* disallowed' }
                 default {
                     $rv =
                       $axis
                       ? AxisWildcard->new(
+                        f          => $forester,
                         axis       => $axis,
                         predicates => \@predicates
                       )
-                      : AxisWildcard->new( predicates => \@predicates );
+                      : AxisWildcard->new(
+                        f          => $forester,
+                        predicates => \@predicates
+                      );
                 }
             }
         }
@@ -164,6 +173,7 @@ sub full {
                 when ('/') {
                     if ($axis) {
                         $rv = AxisTag->new(
+                            f          => $forester,
                             axis       => $axis,
                             tag        => $val,
                             predicates => \@predicates
@@ -171,6 +181,7 @@ sub full {
                     }
                     else {
                         $rv = ChildTag->new(
+                            f               => $forester,
                             first_sensitive => 1,
                             tag             => $val,
                             predicates      => \@predicates
@@ -180,6 +191,7 @@ sub full {
                 when ('//') {
                     die 'axes disallowed with // separator' if defined $axis;
                     $rv = AnywhereTag->new(
+                        f          => $forester,
                         tag        => $val,
                         predicates => \@predicates
                     );
@@ -187,6 +199,7 @@ sub full {
                 when ('/>') {
                     die 'axes disallowed with /> separator' if defined $axis;
                     $rv = ClosestTag->new(
+                        f          => $forester,
                         tag        => $val,
                         predicates => \@predicates
                     );
@@ -195,11 +208,13 @@ sub full {
                     $rv =
                       $axis
                       ? AxisTag->new(
+                        f          => $forester,
                         axis       => $axis,
                         tag        => $val,
                         predicates => \@predicates
                       )
                       : ChildTag->new(
+                        f          => $forester,
                         tag        => $val,
                         predicates => \@predicates
                       );
@@ -212,6 +227,7 @@ sub full {
                 when ('/') {
                     if ($axis) {
                         $rv = AxisMatch->new(
+                            f          => $forester,
                             axis       => $axis,
                             rx         => $rx,
                             predicates => \@predicates
@@ -219,6 +235,7 @@ sub full {
                     }
                     else {
                         $rv = ChildMatch->new(
+                            f               => $forester,
                             first_sensitive => 1,
                             rx              => $rx,
                             predicates      => \@predicates
@@ -228,6 +245,7 @@ sub full {
                 when ('//') {
                     die 'axes disallowed with // separator' if defined $axis;
                     $rv = TPath::Selector::Test::AnywhereMatch->new(
+                        f          => $forester,
                         rx         => $rx,
                         predicates => \@predicates
                     );
@@ -235,6 +253,7 @@ sub full {
                 when ('/>') {
                     die 'axes disallowed with /> separator' if defined $axis;
                     $rv = ClosestMatch->new(
+                        f          => $forester,
                         rx         => $rx,
                         predicates => \@predicates
                     );
@@ -243,11 +262,13 @@ sub full {
                     $rv =
                       $axis
                       ? AxisMatch->new(
+                        f          => $forester,
                         axis       => $axis,
                         rx         => $rx,
                         predicates => \@predicates
                       )
                       : ChildMatch->new(
+                        f          => $forester,
                         rx         => $rx,
                         predicates => \@predicates
                       );
@@ -262,11 +283,13 @@ sub full {
                     $rv =
                       $axis
                       ? AxisAttribute->new(
+                        f          => $forester,
                         axis       => $axis,
                         a          => $a,
                         predicates => \@predicates
                       )
                       : ChildAttribute->new(
+                        f               => $forester,
                         first_sensitive => 1,
                         a               => $a,
                         predicates      => \@predicates
@@ -275,6 +298,7 @@ sub full {
                 when ('//') {
                     die 'axes disallowed with // separator' if defined $axis;
                     $rv = AnywhereAttribute->new(
+                        f          => $forester,
                         a          => $a,
                         predicates => \@predicates
                     );
@@ -282,6 +306,7 @@ sub full {
                 when ('/>') {
                     die 'axes disallowed with /> separator' if defined $axis;
                     $rv = ClosestAttribute->new(
+                        f          => $forester,
                         a          => $a,
                         predicates => \@predicates
                     );
@@ -290,11 +315,13 @@ sub full {
                     $rv =
                       $axis
                       ? AxisAttribute->new(
+                        f          => $forester,
                         axis       => $axis,
                         a          => $a,
                         predicates => \@predicates
                       )
                       : ChildAttribute->new(
+                        f          => $forester,
                         a          => $a,
                         predicates => \@predicates
                       );
@@ -448,13 +475,13 @@ sub condition {
 }
 
 sub abbreviated {
-    my ($step) = @_;
+    my ( $step, $forester ) = @_;
     my $abb = $step->{step}{abbreviated};
     return id(@_) if ref $abb;
     for ($abb) {
-        when ('.')     { state $s = Self->new;   return $s }
-        when ('..')    { state $p = Parent->new; return $p }
-        when (':root') { state $r = Root->new;   return $r }
+        when ('.')  { state $s = Self->new;   return $s }
+        when ('..') { state $p = Parent->new; return $p }
+        when (':root') { return Root->new( f => $forester ) }
     }
 }
 

@@ -1,6 +1,7 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * improved effiency of axis selection in TPath::Selector::Test objects
 
 0.020     2013-07-25 21:33:15 America/New_York
   * added the standard boolean attributes @all, @some, @one, @none and the 
