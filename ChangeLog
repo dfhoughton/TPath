@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * BUMPED MAJOR VERSION NUMBER -- significant change in semantics of core tpath
+    features
   * improved effiency of axis selection in TPath::Selector::Test objects
   * changed index predicates to match behavior of xpath index predicates, modulo
     the difference in index base
