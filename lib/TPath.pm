@@ -396,6 +396,8 @@ are selected from the tree relative the the C<c> node. Selected nodes will be in
 
 =item ancestor-or-self
 
+  //c/ancestor-or-self::*
+
          ROOT
           |
           A

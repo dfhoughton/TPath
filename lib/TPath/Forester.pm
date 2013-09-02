@@ -368,7 +368,7 @@ sub axis_descendant {
 sub axis_descendant_or_self {
     my ( $self, $ctx, $t ) = @_;
     my @descendants = $self->_descendants( $ctx, $ctx, $t );
-    push @descendants, $ctx if $t->passes($ctx);
+    unshift @descendants, $ctx if $t->passes($ctx);
     return @descendants;
 }
 
@@ -446,7 +446,7 @@ sub _siblings_or_self {
 sub _siblings {
     my ( $self, $original, $ctx, $t ) = @_;
     my @siblings =
-      $self->_untested_siblings( $original, $self->parent( $original, $ctx ) );
+      $self->_untested_siblings( $original, $ctx );
     grep { $t->passes($_) } @siblings;
 }
 
@@ -466,13 +466,13 @@ sub _preceding {
     my @ancestors = $self->_ancestors( $original, $ctx, $tt );
     for my $a ( @ancestors[ 1 .. $#ancestors ] ) {
         for my $p ( $self->_preceding_siblings( $original, $a, $tt ) ) {
-            push @preceding, $self->_descendants( $original, $p, $t );
             push @preceding, $p if $t->passes($p);
+            push @preceding, $self->_descendants( $original, $p, $t );
         }
     }
     for my $p ( $self->_preceding_siblings( $original, $ctx, $tt ) ) {
-        push @preceding, $self->_descendants( $original, $p, $t );
         push @preceding, $p if $t->passes($p);
+        push @preceding, $self->_descendants( $original, $p, $t );
     }
     return @preceding;
 }
@@ -508,13 +508,13 @@ sub _following {
     my @ancestors = $self->_ancestors( $original, $ctx, $tt );
     for my $a ( @ancestors[ 1 .. $#ancestors ] ) {
         for my $p ( $self->_following_siblings( $original, $a, $tt ) ) {
-            push @following, $self->_descendants( $original, $p, $t );
             push @following, $p if $t->passes($p);
+            push @following, $self->_descendants( $original, $p, $t );
         }
     }
     for my $p ( $self->_following_siblings( $original, $ctx, $tt ) ) {
-        push @following, $self->_descendants( $original, $p, $t );
         push @following, $p if $t->passes($p);
+        push @following, $self->_descendants( $original, $p, $t );
     }
     return @following;
 }
@@ -543,8 +543,8 @@ sub _descendants {
     return () unless @children;
     my @descendants;
     for my $c (@children) {
-        push @descendants, $self->_descendants( $original, $c, $t );
         push @descendants, $c if $t->passes($c);
+        push @descendants, $self->_descendants( $original, $c, $t );
     }
     return @descendants;
 }

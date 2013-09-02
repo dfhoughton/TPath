@@ -8,7 +8,7 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 99;
+use Test::More tests => 100;
 use Test::Exception;
 use Test::Trap;
 use ToyXMLForester;
@@ -372,5 +372,10 @@ trap { @c = $f->path($path)->select($p) };
 is $trap->stderr, "a11\n", 'three item concatenation with all constants works';
 is $f->path($path) . '', q{//*[ @log('a11') ]},
   'constants folded properly when concatenation stringified';
+
+$p    = parse(q{<a><b/><b/></a>});
+$path = q{//b[2]};
+trap { @c = $f->path($path)->select($p) };
+is scalar @c, 0, 'index predicate returns empty list when appropriate';
 
 done_testing();

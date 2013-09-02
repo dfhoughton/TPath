@@ -2,6 +2,8 @@ Revision history for TPath
 
 {{$NEXT}}
   * improved effiency of axis selection in TPath::Selector::Test objects
+  * changed index predicates to match behavior of xpath index predicates, modulo
+    the difference in index base
 
 0.020     2013-07-25 21:33:15 America/New_York
   * added the standard boolean attributes @all, @some, @one, @none and the 

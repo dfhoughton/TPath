@@ -19,15 +19,15 @@ my $path     = q{//*[@tag =~ '(?<!b)a']};
 my @elements = $f->path($path)->select($p);
 is( scalar @elements, 2,
     "found the right number of elements with $path on $p" );
-is $elements[0]->tag, 'a',  'correct first element';
-is $elements[1]->tag, 'aa', 'correct second element';
+is $elements[0]->tag, 'aa',  'correct first element';
+is $elements[1]->tag, 'a', 'correct second element';
 
 $path     = q{//*[@tag !~ 'b']};
 @elements = $f->path($path)->select($p);
 is( scalar @elements, 2,
     "found the right number of elements with $path on $p" );
-is $elements[0]->tag, 'a',  'correct first element';
-is $elements[1]->tag, 'aa', 'correct second element';
+is $elements[0]->tag, 'aa',  'correct first element';
+is $elements[1]->tag, 'a', 'correct second element';
 
 $path     = q{//*[@tag =~ @tag]};
 @elements = $f->path($path)->select($p);

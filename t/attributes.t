@@ -191,8 +191,8 @@ $p    = parse q{<a><b/><c/><d/><e/></a>};
 $path = q{//@some(self::a, self::b)};
 @c    = $f->path($path)->select($p);
 is @c, 2, "received expected from $p with $path";
-is $c[0]->tag, 'b', 'first element has expected tag';
-is $c[1]->tag, 'a', 'second element has expected tag';
+is $c[0]->tag, 'a', 'first element has expected tag';
+is $c[1]->tag, 'b', 'second element has expected tag';
 
 $path = q{//@some(1, 0)};
 @c    = $f->path($path)->select($p);

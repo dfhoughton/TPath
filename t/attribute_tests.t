@@ -51,12 +51,12 @@ my $i = natatime 4, grep /\S/, <<'END' =~ /.*/mg;
 <a><e/><b><d/><c id='foo'/><d/></b><e/></a>
 //*[not @id = 'foo'] 
 6
-<e/><d/><d/><b><d/><c id="foo"/><d/></b><e/><a><e/><b><d/><c id="foo"/><d/></b><e/></a>
+<a><e/><b><d/><c id="foo"/><d/></b><e/></a><e/><b><d/><c id="foo"/><d/></b><d/><d/><e/>
 
 <a><e/><b><d/><c id='foo'/><d/></b><e/></a>
 //*[not (@id = 'foo')] 
 6
-<e/><d/><d/><b><d/><c id="foo"/><d/></b><e/><a><e/><b><d/><c id="foo"/><d/></b><e/></a>
+<a><e/><b><d/><c id="foo"/><d/></b><e/></a><e/><b><d/><c id="foo"/><d/></b><d/><d/><e/>
 
 <a><b><c/><c/><c/><c id="1"/></b><b><c id="2"/></b><b><c/><c id="3"/></b><b><c/><c/><c id="4"/></b></a>
 //b[* > 1]
