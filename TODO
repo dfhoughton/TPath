@@ -9,6 +9,8 @@ Key
 . add prioritization of predicates a la xpath, so there's both //*[1] and (//*)[1]
 . put 'extends' in BEGIN block
 . fix 5.18 experimental warnings -- no if $] >= 5.018, warnings => "experimental";
+. look for and fix stringification bugs
+. update TPath grammar and description of predicates
 
 Attic
 -----
