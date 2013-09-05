@@ -56,7 +56,7 @@ around 'to_string' => sub {
     my $s = $self->$orig(@args);
     for my $p ( $self->predicates ) {
         $p = $p->to_string;
-        $s .= $p =~ /\s/ ? "[ $p ]" : "[$p]";
+        $s .= $p =~ /[\s()]/ ? "[ $p ]" : "[$p]";
     }
     return $s;
 };
