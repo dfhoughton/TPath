@@ -101,17 +101,28 @@ sub cs {
             top        => $q->{enum}{end},
             bottom     => $q->{enum}{start}
         ) if ref $q;
-        return Quantified->new( s => $s, quantifier => $q );
+        return Quantified->new(
+            s          => $s,
+            quantifier => $q
+        );
     }
+    my @predicates =
+      predicates( $step->{cs}{grouped_step}{predicate}, $forester, 1 );
+    return SE->new(
+        e          => treepath( $step->{cs}{grouped_step}, $forester ),
+        predicates => \@predicates,
+    ) unless $q;
     my $e = SE->new( e => treepath( $step->{cs}{grouped_step}, $forester ) );
-    return $e unless $q;
     return Quantified->new(
         s          => $e,
         quantifier => 'e',
         top        => $q->{enum}{end},
         bottom     => $q->{enum}{start}
     ) if ref $q;
-    return Quantified->new( s => $e, quantifier => $q );
+    return Quantified->new(
+        s          => $e,
+        quantifier => $q
+    );
 }
 
 sub full {
@@ -334,9 +345,9 @@ sub full {
 }
 
 sub predicates {
-    my ( $predicates, $forester ) = @_;
+    my ( $predicates, $forester, $outer ) = @_;
     return () unless $predicates;
-    my @predicates = map { predicate( $_, $forester ) } @$predicates;
+    my @predicates = map { predicate( $_, $forester, $outer ) } @$predicates;
     if ( 1 < grep { $_->isa('TPath::Predicate::Index') } @predicates ) {
         die 'a step may only have one index predicate';
     }
@@ -344,17 +355,24 @@ sub predicates {
 }
 
 sub predicate {
-    my ( $predicate, $forester ) = @_;
+    my ( $predicate, $forester, $outer ) = @_;
     my $idx = $predicate->{idx};
-    return Index->new( idx => $idx ) if defined $idx;
+    return Index->new( f => $forester, idx => $idx, outer => $outer )
+      if defined $idx;
     my $op = $predicate->{condition}{operator};
-    return PB->new( t => condition( $predicate, $forester, $op ) )
-      if defined $op;
-    return PE->new( e => treepath( $predicate, $forester ) )
+    return PB->new(
+        t     => condition( $predicate, $forester, $op ),
+        outer => $outer
+    ) if defined $op;
+    return PE->new( e => treepath( $predicate, $forester ), outer => $outer )
       if exists $predicate->{treepath};
     my $at = $predicate->{attribute_test};
-    return PAT->new( at => attribute_test( $at, $forester ) ) if defined $at;
-    return PA->new( a => attribute( $predicate->{attribute}, $forester ) );
+    return PAT->new( at => attribute_test( $at, $forester ), outer => $outer )
+      if defined $at;
+    return PA->new(
+        a     => attribute( $predicate->{attribute}, $forester ),
+        outer => $outer
+    );
 }
 
 sub attribute {

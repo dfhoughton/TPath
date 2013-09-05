@@ -27,7 +27,7 @@ The index of the item selected.
 
 has idx => ( is => 'ro', isa => 'Int', required => 1 );
 
-has outer => ( is => 'ro', isa => 'Bool', default => 0 );
+has f => (is => 'ro', does => 'TPath::Forester', required => 1);
 
 has algorithm => (
     is      => 'ro',
@@ -36,6 +36,11 @@ has algorithm => (
     default => sub {
         my $self = shift;
         my $i    = $self->idx;
+        if ( $self->f->one_based ) {
+            die '[0] predicate used in path expecting 1-based indices'
+              if $i == 0;
+            $i-- if $i > 0;
+        }
         return sub {
             return shift->[$i] // ();
           }
@@ -62,7 +67,7 @@ has algorithm => (
                 my $p = $index->parent( $ctx->n );
                 $p = defined $p ? refaddr $p : -1;
                 my $ar;
-                unless ($ar = $tally{$p}) {
+                unless ( $ar = $tally{$p} ) {
                     push @parents, $p;
                     $ar = $tally{$p} = [];
                 }

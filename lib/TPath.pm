@@ -145,7 +145,7 @@ One applies the selectors to each context node, returning a candidate node set, 
 these candidates through the filtering predicates. The remainder becomes the context node set
 for the next step. If this is the last step, the surviving candidates are the nodes selected by the
 expression. A node will only occur once among those returned and the order of their return will be
-the order of their discovery. Search is depth-first post-ordered -- children returned before parents.
+the order of their discovery. Search is depth-first pre-ordered -- parents returned before children.
 
 =head1 SYNTAX
 
@@ -163,7 +163,7 @@ Sub-paths are separated by the pipe symbol C<|> and optional space.
 
 The nodes selected by a path is the union of the nodes selected by each sub-path in the order of
 their discovery. The search is left-to-right and depth first. If a node and its descendants are both selected, the
-descendants will be listed first.
+node will be listed first.
 
 =head2 Steps
 

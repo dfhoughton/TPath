@@ -16,11 +16,11 @@ use namespace::autoclean;
 
 =head1 ROLES
 
-L<TPath::Selector>
+L<TPath::Selector::Predicated>
 
 =cut
 
-with 'TPath::Selector';
+with 'TPath::Selector::Predicated';
 
 =attr e
 
@@ -32,12 +32,12 @@ has e => ( is => 'ro', isa => 'TPath::Expression', required => 1 );
 
 sub select {
     my ( $self, $ctx, $first ) = @_;
-    return @{ $self->e->_select( $ctx, $first ) };
+    return $self->apply_predicates( @{ $self->e->_select( $ctx, $first ) } );
 }
 
 sub to_string {
     my $self = shift;
-    return $self->e->to_string;
+    return '(' . $self->e->to_string . ')';
 }
 
 __PACKAGE__->meta->make_immutable;

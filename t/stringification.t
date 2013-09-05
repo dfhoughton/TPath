@@ -66,6 +66,10 @@ a[b - 1 = 0]
 a[b=1]
 a[:ceil(b)=1]
 a[:ceil(b + 1)=1]
+a|b
+(a|b)
+(a|b)/c
+(//*)[0]
 EOF
 
 plan tests => @paths * 3;

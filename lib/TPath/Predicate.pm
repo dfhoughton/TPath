@@ -21,4 +21,25 @@ for which the predicate is true.
 
 requires 'filter';
 
+=attr outer
+
+Whether the predicate is inside or outside any grouping parentheses.
+
+  //*[foo]    # inside  -- outer is false
+  (//*)[foo]  # outside -- outer is true
+
+This distinction, though available to all predicates, is especially important to index predicates.
+
+  //*[0]
+
+Means the root and any element which is the first child of its parents. While
+
+  (//*)[0]
+
+means the first of all elements -- the root.
+
+=cut
+
+has outer => ( is => 'ro', isa => 'Bool', default => 0 );
+
 1;

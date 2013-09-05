@@ -119,6 +119,16 @@ has log_stream => (
     default => sub { TPath::StderrLog->new }
 );
 
+=attr one_based
+
+Whether to use xpath-style index predicates, with C<[1]> being the index of the first element,
+or zero-based indices, with C<[0]> being the first index. This only affects non-negative indices.
+This attribute is false by default.
+
+=cut
+
+has one_based => ( is => 'ro', isa => 'Bool', default => 0);
+
 =method add_test, has_tests, clear_tests
 
 Add a code ref that will be used to test whether a node is ignorable. The

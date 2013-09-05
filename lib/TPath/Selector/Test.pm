@@ -19,21 +19,7 @@ L<TPath::Selector>
 
 =cut
 
-with 'TPath::Selector';
-
-=attr predicates
-
-Auto-deref'ed list of L<TPath::Predicate> objects that filter anything selected
-by this selector.
-
-=cut
-
-has predicates => (
-    is         => 'ro',
-    isa        => 'ArrayRef[TPath::Predicate]',
-    default    => sub { [] },
-    auto_deref => 1
-);
+with 'TPath::Selector::Predicated';
 
 =attr f
 
@@ -100,15 +86,6 @@ Whether the test corresponds to a complement selector.
 has is_inverted =>
   ( is => 'ro', isa => 'Bool', default => 0, writer => '_mark_inverted' );
 
-around 'to_string' => sub {
-    my ( $orig, $self, @args ) = @_;
-    my $s = $self->$orig(@args);
-    for my $p ( @{ $self->predicates } ) {
-        $s .= '[ ' . $p->to_string . ' ]';
-    }
-    return $s;
-};
-
 sub _stringify_match {
     my ( $self, $re ) = @_;
 
@@ -162,11 +139,7 @@ sub candidates {
 sub select {
     my ( $self, $ctx, $first ) = @_;
     my @candidates = $self->candidates( $ctx, $first );
-    for my $p ( $self->predicates ) {
-        last unless @candidates;
-        @candidates = $p->filter( \@candidates );
-    }
-    return @candidates;
+    return $self->apply_predicates(@candidates);
 }
 
 1;
