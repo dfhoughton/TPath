@@ -71,6 +71,7 @@ refactoring everything to use a new name.
 =cut
 
 use v5.10;
+
 use Scalar::Util qw(refaddr);
 use Moose::Role;
 

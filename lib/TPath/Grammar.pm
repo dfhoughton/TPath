@@ -5,6 +5,8 @@ package TPath::Grammar;
 use v5.10;
 use strict;
 use warnings;
+no if $] >= 5.018, warnings => "experimental";
+
 use POSIX qw(acos asin atan ceil floor log10 tan);
 use Math::Trig qw(pi);
 use Scalar::Util qw(looks_like_number);

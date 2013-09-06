@@ -2,7 +2,8 @@ package TPath::Selector::Test::Anywhere;
 
 # ABSTRACT: handles C<//*> expression
 
-use feature 'state';
+use v5.10;
+
 use Moose;
 use TPath::Test::Node::True;
 use namespace::autoclean;

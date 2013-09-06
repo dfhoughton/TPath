@@ -13,6 +13,8 @@ around with unless you're working on TPath itself.
 use strict;
 use warnings;
 use v5.10;
+no if $] >= 5.018, warnings => "experimental";
+
 use TPath::Grammar qw(%FUNCTIONS);
 
 use parent 'Exporter';

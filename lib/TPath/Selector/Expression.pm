@@ -1,6 +1,6 @@
 package TPath::Selector::Expression;
 
-# ABSTRACT: selector that handles the parenthesized portion of C<a(/foo|/bar)> and C<a(/foo|/bar)+>
+# ABSTRACT: selector that handles the parenthesized portion of C<a(/foo|/bar)> and C<a(/foo|/bar)+>; also all of C<(//*)[0]>
 
 =head1 DESCRIPTION
 
@@ -10,6 +10,7 @@ delegated to L<TPath::Selector::Quantified>.
 =cut
 
 use v5.10;
+
 use Moose;
 use TPath::TypeConstraints;
 use namespace::autoclean;

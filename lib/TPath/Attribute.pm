@@ -9,6 +9,8 @@ For use in compiled TPath expressions. Not for external consumption.
 =cut
 
 use v5.10;
+no if $] >= 5.018, warnings => "experimental";
+
 use Moose;
 use namespace::autoclean;
 

@@ -9,6 +9,8 @@ A L<TPath::Selector> that holds a list of L<TPath::Predicate>s.
 =cut
 
 use v5.10;
+no if $] >= 5.018, warnings => "experimental";
+
 use Moose::Role;
 use TPath::TypeConstraints;
 use TPath::Test::Node::Complement;

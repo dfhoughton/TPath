@@ -3,6 +3,8 @@
 use v5.10;
 use strict;
 use warnings;
+no if $] >= 5.018, warnings => "experimental";
+
 use File::Basename qw(dirname);
 
 BEGIN {

@@ -33,6 +33,8 @@ This class if for internal consumption only.
 =cut
 
 use v5.10;
+no if $] >= 5.018, warnings => "experimental";
+
 use Scalar::Util qw(refaddr looks_like_number);
 use MooseX::SingletonMethod;
 use TPath::TypeConstraints;

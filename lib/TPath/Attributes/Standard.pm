@@ -10,6 +10,8 @@ C<TPath::Attributes::Standard> is a role which is composed into L<TPath::Foreste
 =cut
 
 use v5.10;
+no if $] >= 5.018, warnings => "experimental";
+
 use Moose::Role;
 use MooseX::MethodAttributes::Role;
 use Scalar::Util qw(refaddr);

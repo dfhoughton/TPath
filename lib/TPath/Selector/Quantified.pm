@@ -9,6 +9,8 @@ Selector that applies a quantifier to an ordinary selector.
 =cut
 
 use v5.10;
+no if $] >= 5.018, warnings => "experimental";
+
 use Moose;
 use TPath::TypeConstraints;
 use namespace::autoclean;
