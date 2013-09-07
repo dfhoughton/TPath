@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+
+1.000     2013-09-06 22:01:52 America/New_York
   * BUMPED MAJOR VERSION NUMBER -- significant change in semantics of core tpath
     features
   * improved effiency of axis selection in TPath::Selector::Test objects
