@@ -1,4 +1,4 @@
-Revision history for TPath
+Revision history for Perl module TPath
 
 {{$NEXT}}
   * Renamed ChangeLog to be Changes
@@ -111,3 +111,4 @@ Revision history for TPath
 
 0.001     2013-03-05 05:52:24 EST5EDT
   * first release
+
