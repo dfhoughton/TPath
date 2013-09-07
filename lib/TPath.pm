@@ -28,7 +28,7 @@ __END__
   
   sub add {
       my ( $self, @children ) = @_;
-      push @{ $self->{children} }, $_ for @children;
+      push @{ $self->{children} }, @children;
   }
   
   # teach TPath::Forester how to get the information it needs
@@ -49,7 +49,7 @@ __END__
       $n->{tag};
   }
   
-  sub tag_at : Attr(tag) {         # tags receive the selection context, not the bare node
+  sub tag_at : Attr(tag) { # tags receive the selection context, not the bare node
       my ( $self, $context ) = @_;
       $context->n->{tag};
   }
@@ -76,17 +76,17 @@ __END__
   #                     |
   #                     z
   my %nodes = map { $_ => MyTree->new( tag => $_ ) } 'a' .. 'z';
-  $nodes{a}->add($_) for @nodes{qw(b c d)};
-  $nodes{b}->add($_) for @nodes{qw(e f)};
+  $nodes{a}->add( @nodes{qw(b c d)} );
+  $nodes{b}->add( @nodes{qw(e f)} );
   $nodes{c}->add( $nodes{h} );
-  $nodes{d}->add($_) for @nodes{qw(i j k)};
-  $nodes{h}->add($_) for @nodes{qw(l m)};
+  $nodes{d}->add( @nodes{qw(i j k)} );
+  $nodes{h}->add( @nodes{qw(l m)} );
   $nodes{i}->add( $nodes{n} );
-  $nodes{j}->add($_) for @nodes{qw(o p)};
-  $nodes{k}->add($_) for @nodes{qw(q r)};
-  $nodes{m}->add($_) for @nodes{qw(s t)};
-  $nodes{p}->add($_) for @nodes{qw(u v w)};
-  $nodes{r}->add($_) for @nodes{qw(x y)};
+  $nodes{j}->add( @nodes{qw(o p)} );
+  $nodes{k}->add( @nodes{qw(q r)} );
+  $nodes{m}->add( @nodes{qw(s t)} );
+  $nodes{p}->add( @nodes{qw(u v w)} );
+  $nodes{r}->add( @nodes{qw(x y)} );
   $nodes{y}->add( $nodes{z} );
   my $root = $nodes{a};
   
@@ -113,20 +113,20 @@ __END__
   
   # we can map nodes back to their parents
   @nodes = $rhood->path('//*[parent::~[adr]~]')->select( $root, $index );
-  print $_->{tag} for @nodes;                                        # bcijxykd
+  print $_->{tag} for @nodes;                                        # bcdijkxy
   print "\n";
 
 =head1 DESCRIPTION
 
-TPath provides an XPath-like language for arbitrary trees. You implement a minimum of two
+TPath provides an xpath-like language for arbitrary trees. You implement a minimum of two
 methods -- C<children> and C<tag> -- and then you can explore your trees via
 concise, declarative paths.
 
-In TPath, "attributes" are node attributes of any sort and are implemented as methods that 
+In tpath, "attributes" are node attributes of any sort and are implemented as methods that 
 return these attributes, or C<undef> if the attribute is undefined for the node.
 
 The object in which the two required methods are implemented is a "forester" (L<TPath::Forester>),
-something that understands your trees. In general, to use C<TPath> you instantiate a forester and
+something that understands your trees. In general, to use tpath you instantiate a forester and
 then call the forester's methods.
 
 Forester objects make use of an index (L<TPath::Index>), which caches information not present in, or
@@ -146,6 +146,12 @@ these candidates through the filtering predicates. The remainder becomes the con
 for the next step. If this is the last step, the surviving candidates are the nodes selected by the
 expression. A node will only occur once among those returned and the order of their return will be
 the order of their discovery. Search is depth-first pre-ordered -- parents returned before children.
+
+=head2 CAVEAT
+
+The tpath algorithm presupposes the tree it is used against is static, at least for the life of the
+index it is using. If the tree is mutating, you must at least ensure that it does not mutate during
+the functional life of any index.  The consequence of not doing so may be inaccurate queries.
 
 =head1 SYNTAX
 
@@ -278,9 +284,9 @@ A literal selector selects the nodes whose tag matches, in a tree-appropriate se
 a literal expression.
 
 Any string may be used to represent a literal selector, but certain characters may have to be
-escaped with a backslash. The expectation is that the literal with begin with a word character, _,
+escaped with a backslash. The expectation is that the literal will begin with a word character, _,
 or C<$> and any subsequent character is either one of these characters, a number character or 
-a hyphen or colon followed by one of these or number character. The escape character, as usual, is a
+a hyphen or colon followed by one of these or a number character. The escape character, as usual, is a
 backslash. Any unexpected character must be escaped. So
 
 =over 2
@@ -679,11 +685,49 @@ tests that filter the candidate nodes selected by the selectors.
 
   //foo/bar[0]
 
-An index predicate simply selects the indexed item out of a list of candidates. The first
-index is 0, unlike in XML, so the expression above selects the first bar under every foo.
+An index predicate simply selects the indexed item out of a list of candidates. By default,
+the first index is 0, unlike in XML, so the expression above selects the first bar under every 
+foo. This is configurable during the construction of your forester, however. If you
+pass in the C<one_based> property
+
+  my $f = MyForester->new( one_based => 1 );
+
+The forester will use one-based indexing, so its index predicates will work identically to
+index predicates in xpath. (This also affects the C<@index> and C<@pick> attributes. See below.)
 
 The index rules are the same as those for Perl arrays: 0 is the first item; negative indices
-count from the end, so -1 retrieves the last item.
+count from the end, so -1 retrieves the last item. Negative indices behave the same regardless of
+whether the C<one_based> property has been set to true.
+
+=head4 outer versus inner index predicates
+
+In general, an index indicates the location of a node among its siblings which have survived
+and preceding filters. For example
+
+  //*[0]
+
+picks all nodes that are the first child of their parent (also the root, which has no parent).
+
+  //a[0]
+
+picks all nodes that are the first child of an C<a> node.
+
+  //a[@foo][0]
+  
+picks all nodes that are the first child of an C<a> node having the property C<@foo>.
+
+These predicates are all "inner" predicates. It is also possible to specify "outer" predicates, like so
+
+  (//*)[0]
+  (//a)[0]
+  (//a[@foo])[0]
+
+In this case, the index is for the collection of all nodes selected up to this point, not relative
+to a node's similar siblings. So the first expression picks the first node which is the first
+child of its parent; the second picks the first node anywhere that is the first child of an C<a>
+node; the third picks the first node anywhere that is the first C<@foo> child node of an C<a> node.
+
+Any predicate may be either inner or outer, but the distinction is most relevant to index predicates.
 
 =head3 Path Predicates
 
@@ -740,7 +784,7 @@ parentheses to make precedence explicit.
 
 There are two named constants, C<:pi> and C<:e>, the circle constant and the base of the natural logarithm. These are
 preceded by colons to distinguish them from path expressions. The operators -- C<+>, C<->, C<*>, C</>, C<%>, and C<**> --
-all may also be preceded by a colon when necessary to distinguish them from repetition characters are the wildcard character.
+all may also be preceded by a colon when necessary to distinguish them from repetition characters or the wildcard character.
 This will rarely be necessary, but consider
 
   //* [ a * /b = 3 ]
@@ -751,7 +795,7 @@ should write it as
 
   //* [ a :* /b = 3 ]
 
-The colon also B<must> precede the various unary mathematical expression TPath understands:
+The colon also B<must> precede the various unary mathematical expression tpath understands:
 
   :abs
   :acos
@@ -912,7 +956,7 @@ and the candidate is accepted; otherwise, it is rejected.
 As the second example above demonstrates, attributes may take arguments and these arguments
 may be numbers, strings, paths, other attributes, or attribute tests. Paths are
 evaluated relative to the candidate node being tested, as are attributes and attribute tests.
-A path arguments represents the L<TPath::Context> objects selected by this path relative to the 
+A path argument is evaluated to the L<TPath::Context> objects selected by this path relative to the 
 candidate node.
 
 Attribute parameters are enclosed within parentheses. Within these parentheses, they are
@@ -920,6 +964,8 @@ delimited by commas. Space is optional around parameters.
 
 For the standard attribute set available to all expressions, see L<TPath::Attributes::Standard>.
 For the extended set that can be composed in, see L<TPath::Attributes::Extended>.
+
+=head3 Ad Hoc Attributes
 
 There are various ways one can add bespoke attributes but the easiest is to add them to an 
 individual forester via the C<add_attribute> method:
@@ -930,7 +976,7 @@ individual forester via the C<add_attribute> method:
      ...
   });
 
-Other methods are to defined them as annotated methods of the forester
+Another methods is to define attributes as annotated methods of the forester
 
   sub foo :Attr {
   	 my ( $self, $context, @params) = @_;
@@ -984,7 +1030,7 @@ name -- so any attribute arguments are ignored during auto-loading.
 
 =head2 Special Selectors
 
-There are three special selectors B<that cannot occur with predicates> and may only be 
+There are four special selectors B<that cannot occur with predicates> and may only be 
 preceded by the C</> or null separators.
 
 =head3 . : Select Self
@@ -1049,7 +1095,7 @@ may be quantified as in regular expressions
 The last expression, C<{,3}>, one does not see in regular expressions. It is the short form
 of C<{0,3}>.
 
-Despite this similarity it should be remembered that TPath expression differ from regular 
+Despite this similarity it should be remembered that tpath expression differ from regular 
 expressions in that they always return all possible matches, not just the first match
 discovered or, for those regular expression engines that provide longest token matching or
 other optimality criteria, the optimal match. On the other hand, the first node selected
@@ -1073,14 +1119,14 @@ class.
 
 =head2 Potentially Confusing Dissimilarities Between TPath and XPath
 
-For most uses, where TPath and XPath provide similar functionality they will behave
+For most uses, where tpath and xpath provide similar functionality they will behave
 identically. Where you may be led astray is in the semantics of separators beginning
 paths.
 
   /foo/foo
   //foo//foo
 
-In both TPath and XPath, when applied to the root of a tree the first expression will
+In both tpath and xpath, when applied to the root of a tree the first expression will
 select the root itself if this root has the tag C<foo> and the second will select all
 C<foo> nodes, including the root if it bears this tag. This is notably different from the
 behavior of the second step in each path. The second C</foo> will select a C<foo>
@@ -1088,9 +1134,9 @@ B<child> of the root node, not the root node itself, and the second C<//foo> wil
 C<foo> descendants of other C<foo> nodes, not the nodes themselves.
 
 Where the two formalisms may differ is in the nodes they return when these paths are applied
-to some sub-node. In XPath, C</foo> always refers to the root node, provided this is a
-C<foo> node. In TPath it always refers to the node the path is applied to, provided it is
-a C<foo> node. In TPath, if you require that the first step
+to some sub-node. In xpath, C</foo> always refers to the root node, provided this is a
+C<foo> node. In tpath it always refers to the node the path is applied to, provided it is
+a C<foo> node. In tpath, if you require that the first step
 refer to the root node you must use the root selector C<:root>. If you also require that
 this node bear the tag C<foo> you must combine the root selector with the C<self::> axis.
 
@@ -1098,8 +1144,8 @@ this node bear the tag C<foo> you must combine the root selector with the C<self
 
 This is verbose, but then this is not likely to be a common requirement.
 
-The TPath semantics facilitate the implementation of repetition, which is absent from
-XPath.
+The tpath semantics facilitate the implementation of repetition, which is absent from
+xpath.
 
 =head2 String Concatenation
 
@@ -1119,7 +1165,7 @@ The spaces are optional.
 
 =head2 Grammar
 
-The following is a BNf-style grammar of the TPath expression language. It is the actual parsing code,
+The following is a BNf-style grammar of the tpath expression language. It is the actual parsing code,
 in the L<Regexp::Grammars> formalism, used to parse expressions minus the bits that improve efficiency
 and adjust the construction of the abstract syntax tree produced by the parser.
 
@@ -1135,7 +1181,7 @@ and adjust the construction of the abstract syntax tree produced by the parser.
        
        <rule: enum> { \d*+ ( , \d*+ )? } 
         
-       <rule: grouped_step> \( <treepath> \) <quantifier>?
+       <rule: grouped_step> \( <treepath> \) ( <predicate>+ | quantifier> ?
     
        <token: id>
           :id\( ( [^\)\\] | \\. )+ \)
@@ -1307,14 +1353,14 @@ is necessary because " cannot begin a path expression.
 
 =head3 Comments and Whitespace
 
-Before or after most elements of TPath expressions one may put arbitrary whitespace or #-style comments.
+Before or after most elements of tpath expressions one may put arbitrary whitespace or #-style comments.
 
   # a path made more complicated than necessary
   
   //a  # first look for a elements
   /*/* # find the grandchildren of these
-  [0]  # select the first grandchild
-  [    # and log its foo property
+  [0]  # select the first-born grandchildren
+  [    # and log their foo properties
   @log( @foo )
   ]
 
@@ -1332,7 +1378,7 @@ and between a repetition suffix and the element repeated
 
 =head1 HISTORY
 
-I wrote TPath initially in Java (L<http://dfhoughton.org/treepath/>) because I wanted a more 
+I wrote tpath initially in Java (L<http://dfhoughton.org/treepath/>) because I wanted a more 
 convenient way to select nodes from parse trees. I've re-written it in Perl because I figured
 it might be handy and why not? Since I've been working on the Perl version I've added lots of features.
 Eventually I'll back port these to the Java version, but I haven't yet.
@@ -1340,7 +1386,9 @@ Eventually I'll back port these to the Java version, but I haven't yet.
 =head1 ACKNOWLEDGEMENTS
 
 Thanks to Damian Conway for L<Regexp::Grammars>, which makes it pleasant to write complicated
-parsers, and the Moose Cabal, who make it pleasant to write elaborate object oriented Perl.
-Without the use of roles I don't think I would have tried this.
+parsers. Thanks to the Moose Cabal, who make it pleasant to write elaborate object oriented Perl.
+Without the use of roles I don't think I would have tried this. Thanks to Jon Rubin, who made me
+aware that tpath's index predicates weren't working like xpath's (since fixed). And thanks to my
+wife Paula, who has heard a lot more about tpath than is useful to her.
 
 =cut

@@ -126,7 +126,10 @@ Takes a collection and an index and returns the indexed member of the collection
 =cut
 
 sub standard_pick : Attr(pick) {
-    my ( undef, undef, $collection, $index ) = @_;
+    my ( $self, undef, $collection, $index ) = @_;
+    if (defined $index && $self->one_based) {
+        $index--;
+    }
     return $collection->[ $index // 0 ];
 }
 
@@ -248,8 +251,16 @@ sub standard_index : Attr(index) {
     my $parent   = $self->parent( $original, $ctx );
     my @siblings = $self->_kids( $original, $parent );
     my $ra       = refaddr $n;
+    my $idx;
     for my $index ( 0 .. $#siblings ) {
-        return $index if refaddr $siblings[$index]->n == $ra;
+        if (refaddr $siblings[$index]->n == $ra) {
+          $idx = $index;
+          last;  
+        }
+    }
+    if (defined $idx) {
+        $idx++ if $self->one_based;
+        return $idx;
     }
     confess "$n not among children of its parent";
 }
