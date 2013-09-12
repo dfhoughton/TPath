@@ -140,6 +140,14 @@ sub _stringify_exp {
     return $s;
 }
 
+=method case_insensitive
+
+Returns whether this expression was created by a case insensitive forester.
+
+=cut
+
+sub case_insensitive { shift->f->case_insensitive }
+
 no Moose;
 __PACKAGE__->meta->make_immutable;
 

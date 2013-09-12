@@ -151,7 +151,7 @@ has _cf => (
         my $sub = eval
 'require Unicode::CaseFold; sub { Unicode::CaseFold::fc($_[0]) eq Unicode::CaseFold::fc($_[1])}';
         return $sub unless $@;
-        return sub { $_[0] eq $_[1] };
+        return sub { lc($_[0]) eq lc($_[1]) };
     }
 );
 
