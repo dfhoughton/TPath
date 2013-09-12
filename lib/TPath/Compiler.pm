@@ -235,56 +235,38 @@ sub full {
             }
         }
         when ('pattern') {
-            my $rx = qr/$val/;
+            my $rx = $forester->case_insensitive ? qr/$val/i : qr/$val/;
+            my %common_args = (
+                f          => $forester,
+                rx         => $rx,
+                val        => $val,
+                predicates => \@predicates
+            );
             for ($sep) {
                 when ('/') {
                     if ($axis) {
-                        $rv = AxisMatch->new(
-                            f          => $forester,
-                            axis       => $axis,
-                            rx         => $rx,
-                            predicates => \@predicates
-                        );
+                        $rv = AxisMatch->new( %common_args, axis => $axis );
                     }
                     else {
-                        $rv = ChildMatch->new(
-                            f               => $forester,
-                            first_sensitive => 1,
-                            rx              => $rx,
-                            predicates      => \@predicates
-                        );
+                        $rv =
+                          ChildMatch->new( %common_args, first_sensitive => 1 )
+                          ;
                     }
                 }
                 when ('//') {
                     die 'axes disallowed with // separator' if defined $axis;
-                    $rv = TPath::Selector::Test::AnywhereMatch->new(
-                        f          => $forester,
-                        rx         => $rx,
-                        predicates => \@predicates
-                    );
+                    $rv =
+                      TPath::Selector::Test::AnywhereMatch->new(%common_args);
                 }
                 when ('/>') {
                     die 'axes disallowed with /> separator' if defined $axis;
-                    $rv = ClosestMatch->new(
-                        f          => $forester,
-                        rx         => $rx,
-                        predicates => \@predicates
-                    );
+                    $rv = ClosestMatch->new(%common_args);
                 }
                 default {
                     $rv =
                       $axis
-                      ? AxisMatch->new(
-                        f          => $forester,
-                        axis       => $axis,
-                        rx         => $rx,
-                        predicates => \@predicates
-                      )
-                      : ChildMatch->new(
-                        f          => $forester,
-                        rx         => $rx,
-                        predicates => \@predicates
-                      );
+                      ? AxisMatch->new( %common_args, axis => $axis, )
+                      : ChildMatch->new(%common_args);
                 }
             }
         }

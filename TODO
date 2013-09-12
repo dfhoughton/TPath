@@ -11,7 +11,7 @@ Key
 * fix 5.18 experimental warnings -- no if $] >= 5.018, warnings => "experimental";
 * look for and fix stringification bugs
 * update TPath grammar and description of predicates
-. add optional case insensitivity for tags
+* add optional case insensitivity for tags
 
 Attic
 -----

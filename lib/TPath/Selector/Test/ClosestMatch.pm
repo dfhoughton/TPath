@@ -12,7 +12,7 @@ L<TPath::Selector::Test>
 
 =cut
 
-with 'TPath::Selector::Test';
+with 'TPath::Selector::Test::Match';
 
 has rx => ( is => 'ro', isa => 'RegexpRef', required => 1 );
 
@@ -31,7 +31,7 @@ sub to_string {
     return
         '/>'
       . ( $self->is_inverted ? '^' : '' )
-      . $self->_stringify_match( $self->rx );
+      . $self->_stringify_match( $self->val );
 }
 
 __PACKAGE__->meta->make_immutable;

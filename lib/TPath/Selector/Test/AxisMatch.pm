@@ -12,9 +12,7 @@ L<TPath::Selector::Test>
 
 =cut
 
-with 'TPath::Selector::Test';
-
-has rx => ( is => 'ro', isa => 'RegexpRef', required => 1 );
+with 'TPath::Selector::Test::Match';
 
 sub BUILD {
     my $self = shift;
@@ -26,7 +24,7 @@ sub to_string {
     my $s = $first ? '' : '/';
     $s .= $self->axis . '::';
     $s .= '^' if $self->is_inverted;
-    $s .= $self->_stringify_match( $self->rx );
+    $s .= $self->_stringify_match( $self->val );
     return $s;
 }
 
