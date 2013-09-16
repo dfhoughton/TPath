@@ -65,7 +65,7 @@ must define how a tag string or regex may match a node, if at all.
 =head2 Why "Forester"
 
 Foresters are people who can tell you about trees. A class with the role C<TPath::Forester>
-can also tell you about trees. I think know "arborist" sounds better, but I don't feel like
+can also tell you about trees. I think now "arborist" sounds better, but I don't feel like
 refactoring everything to use a new name.
 
 =cut
