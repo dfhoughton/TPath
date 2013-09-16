@@ -13,6 +13,7 @@ Key
 * update TPath grammar and description of predicates
 * add optional case insensitivity for tags
 . use Dist::Zilla::Plugin::OptionalFeature to suggest Unicode::CaseFolding
+. add some discussion of efficiency to documentation
 
 Attic
 -----
