@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * optimized matching by addition of more caching and elimination of much
+    array copying
 
 1.001     2013-09-12 18:15:44 America/New_York
   * made it possible to construct case-insensitive expressions

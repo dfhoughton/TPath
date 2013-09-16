@@ -32,14 +32,16 @@ sub new {
 # Expects a new node and the collection from which it was chosen. To be regarded
 # as private.
 sub bud {
-    my ( $self, $n ) = @_;
-    return bless [ $n, $self->[1], [ $self->[0], @{ $self->[2] } ] ];
+
+    # my ( $self, $n ) = @_;
+    return bless [ $_[1], $_[0]->[1], [ $_[0]->[0], @{ $_[0]->[2] } ] ];
 }
 
 #Makes a context that doesn't preserve the path.
 sub wrap {
-    my ( $self, $n ) = @_;
-    return bless [ $n, $self->[1], [] ];
+
+    # my ( $self, $n ) = @_;
+    return bless [ $_[1], $_[0]->[1], [] ];
 }
 
 =method previous

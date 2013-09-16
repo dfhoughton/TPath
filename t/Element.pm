@@ -18,7 +18,7 @@ has tag => (
 
 has children => (
     is         => 'ro',
-    isa        => 'ArrayRef[Str]',
+    isa        => 'ArrayRef[Element]',
     default    => sub { [] },
     auto_deref => 1,
 );

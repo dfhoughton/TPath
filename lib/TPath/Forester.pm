@@ -151,7 +151,7 @@ has _cf => (
         my $sub = eval
 'require Unicode::CaseFold; sub { Unicode::CaseFold::fc($_[0]) eq Unicode::CaseFold::fc($_[1])}';
         return $sub unless $@;
-        return sub { lc($_[0]) eq lc($_[1]) };
+        return sub { lc( $_[0] ) eq lc( $_[1] ) };
     }
 );
 
@@ -352,73 +352,86 @@ sub autoload_attribute { }
 
 sub _kids {
     my ( $self, $original, $ctx ) = @_;
-    my $i = $ctx->i;
-    my @children = $self->children( $ctx->n, $i );
-    return map { $original->bud($_) } @children unless $self->has_tests;
-    map { $original->bud($_) } grep {
-        my $good = 1;
-        for my $t ( $self->_tests ) {
-            $good &= $t->( $self, $_, $i );
-            last unless $good;
-        }
-        $good;
-    } @children;
+    return [ map { $original->bud($_) }
+          @{ $self->_decontextualized_kids( $ctx->n, $ctx->i ) } ];
+}
+
+sub _decontextualized_descendants {
+    my ( $self, $n, $i ) = @_;
+    my $ra     = refaddr $n;
+    my $cached = $i->d_index->{$ra};
+    return $cached if $cached;
+    my @descendants;
+    for my $kid ( @{ $self->_decontextualized_kids( $n, $i ) } ) {
+        push @descendants, $kid;
+        push @descendants,
+          @{ $self->_decontextualized_descendants( $kid, $i ) };
+    }
+    return $i->d_index->{$ra} = \@descendants;
 }
 
 sub _decontextualized_kids {
     my ( $self, $n, $i ) = @_;
+    my $ra     = refaddr $n;
+    my $cached = $i->k_index->{$ra};
+    return $cached if $cached;
     my @children = $self->children( $n, $i );
-    return @children unless $self->has_tests;
-    grep {
-        my $good = 1;
-        for my $t ( $self->_tests ) {
-            $good &= $t->( $self, $_, $i );
-            last unless $good;
-        }
-        $good;
-    } @children;
+    return $i->k_index->{$ra} = \@children unless $self->has_tests;
+    return $i->k_index->{$ra} = [
+        grep {
+            my $good = 1;
+            for my $t ( $self->_tests ) {
+                $good &= $t->( $self, $_, $i );
+                last unless $good;
+            }
+            $good;
+        } @children
+    ];
 }
 
 sub axis_ancestor {
     my ( $self, $ctx, $t ) = @_;
-    $self->_ancestors( $ctx, $ctx, $t );
+    @{ $self->_ancestors( $ctx, $ctx, $t ) };
 }
 
 sub axis_ancestor_or_self {
     my ( $self, $ctx, $t ) = @_;
-    my @nodes = $self->_ancestors( $ctx, $ctx, $t );
-    push @nodes, $ctx if $t->passes($ctx);
-    return @nodes;
+    my $nodes = $self->_ancestors( $ctx, $ctx, $t );
+    push @$nodes, $ctx if $t->passes($ctx);
+    return @$nodes;
 }
 
 sub axis_child {
     my ( $self, $ctx, $t ) = @_;
-    $self->_children( $ctx, $ctx, $t );
+    @{ $self->_children( $ctx, $ctx, $t ) };
 }
 
 sub axis_descendant {
     my ( $self, $ctx, $t ) = @_;
-    $self->_descendants( $ctx, $ctx, $t );
+    @{ $self->_descendants( $ctx, $ctx, $t ) };
 }
 
 sub axis_descendant_or_self {
     my ( $self, $ctx, $t ) = @_;
-    my @descendants = $self->_descendants( $ctx, $ctx, $t );
+    my @descendants = @{ $self->_descendants( $ctx, $ctx, $t ) };
     unshift @descendants, $ctx if $t->passes($ctx);
     return @descendants;
 }
 
 sub axis_following {
     my ( $self, $ctx, $t ) = @_;
-    $self->_following( $ctx, $ctx, $t );
+    @{ $self->_following( $ctx, $ctx, $t ) };
 }
 
 sub axis_following_sibling {
     my ( $self, $ctx, $t ) = @_;
-    $self->_following_siblings( $ctx, $ctx, $t );
+    @{ $self->_following_siblings( $ctx, $ctx, $t ) };
 }
 
-sub axis_leaf { my ( $self, $ctx, $t ) = @_; $self->_leaves( $ctx, $ctx, $t ) }
+sub axis_leaf {
+    my ( $self, $ctx, $t ) = @_;
+    @{ $self->_leaves( $ctx, $ctx, $t ) };
+}
 
 sub axis_parent {
     my ( $self, $ctx, $t ) = @_;
@@ -429,7 +442,7 @@ sub axis_parent {
 
 sub axis_preceding {
     my ( $self, $ctx, $t ) = @_;
-    $self->_preceding( $ctx, $ctx, $t );
+    @{ $self->_preceding( $ctx, $ctx, $t ) };
 }
 
 sub axis_previous {
@@ -444,7 +457,7 @@ sub axis_previous {
 
 sub axis_preceding_sibling {
     my ( $self, $ctx, $t ) = @_;
-    $self->_preceding_siblings( $ctx, $ctx, $t );
+    @{ $self->_preceding_siblings( $ctx, $ctx, $t ) };
 }
 
 sub axis_self {
@@ -454,20 +467,20 @@ sub axis_self {
 
 sub axis_sibling {
     my ( $self, $ctx, $t ) = @_;
-    $self->_siblings( $ctx, $ctx, $t );
+    @{ $self->_siblings( $ctx, $ctx, $t ) };
 }
 
 sub axis_sibling_or_self {
     my ( $self, $ctx, $t ) = @_;
-    $self->_siblings_or_self( $ctx, $ctx, $t );
+    @{ $self->_siblings_or_self( $ctx, $ctx, $t ) };
 }
 
 sub closest {
     my ( $self, $ctx, $t, $first ) = @_;
     return $ctx if !$first && $t->passes($ctx);
-    my @children = $self->_kids( $ctx, $ctx );
+    my $children = $self->_kids( $ctx, $ctx );
     my @closest;
-    for my $c (@children) {
+    for my $c (@$children) {
         push @closest, $self->closest( $c, $t, 0 );
     }
     return @closest;
@@ -475,93 +488,93 @@ sub closest {
 
 sub _siblings_or_self {
     my ( $self, $original, $ctx, $t ) = @_;
-    grep { $t->passes($_) }
-      $self->_kids( $original, $self->parent( $original, $ctx ) );
+    [ grep { $t->passes($_) }
+          @{ $self->_kids( $original, $self->parent( $original, $ctx ) ) } ];
 }
 
 sub _siblings {
     my ( $self, $original, $ctx, $t ) = @_;
-    my @siblings = $self->_untested_siblings( $original, $ctx );
-    grep { $t->passes($_) } @siblings;
+    my $siblings = $self->_untested_siblings( $original, $ctx );
+    [ grep { $t->passes($_) } @$siblings ];
 }
 
 sub _untested_siblings {
     my ( $self, $original, $ctx ) = @_;
-    return () if $self->is_root($ctx);
+    return [] if $self->is_root($ctx);
     my $ra = refaddr $ctx->n;
-    grep { refaddr $_->n ne $ra }
-      $self->_kids( $original, $self->parent( $original, $ctx ) );
+    [ grep { refaddr $_->n ne $ra }
+          @{ $self->_kids( $original, $self->parent( $original, $ctx ) ) } ];
 }
 
 sub _preceding {
     my ( $self, $original, $ctx, $t ) = @_;
-    return () if $self->is_root($ctx);
+    return [] if $self->is_root($ctx);
     my @preceding;
     state $tt = TPath::Test::Node::True->new;
-    my @ancestors = $self->_ancestors( $original, $ctx, $tt );
-    for my $a ( @ancestors[ 1 .. $#ancestors ] ) {
-        for my $p ( $self->_preceding_siblings( $original, $a, $tt ) ) {
+    my $ancestors = $self->_ancestors( $original, $ctx, $tt );
+    for my $a ( @$ancestors[ 1 .. $#$ancestors ] ) {
+        for my $p ( @{ $self->_preceding_siblings( $original, $a, $tt ) } ) {
             push @preceding, $p if $t->passes($p);
-            push @preceding, $self->_descendants( $original, $p, $t );
+            push @preceding, @{ $self->_descendants( $original, $p, $t ) };
         }
     }
-    for my $p ( $self->_preceding_siblings( $original, $ctx, $tt ) ) {
+    for my $p ( @{ $self->_preceding_siblings( $original, $ctx, $tt ) } ) {
         push @preceding, $p if $t->passes($p);
-        push @preceding, $self->_descendants( $original, $p, $t );
+        push @preceding, @{ $self->_descendants( $original, $p, $t ) };
     }
-    return @preceding;
+    return \@preceding;
 }
 
 sub _preceding_siblings {
     my ( $self, $original, $ctx, $t ) = @_;
-    return () if $self->is_root($ctx);
-    my @siblings = $self->_kids( $original, $self->parent( $original, $ctx ) );
-    return () if @siblings == 1;
+    return [] if $self->is_root($ctx);
+    my $siblings = $self->_kids( $original, $self->parent( $original, $ctx ) );
+    return [] if @$siblings == 1;
     my @preceding_siblings;
     my $ra = refaddr $ctx->n;
-    for my $s (@siblings) {
+    for my $s (@$siblings) {
         last if refaddr $s->n == $ra;
         push @preceding_siblings, $s if $t->passes($s);
     }
-    return @preceding_siblings;
+    return \@preceding_siblings;
 }
 
 sub _leaves {
     my ( $self, $original, $ctx, $t ) = @_;
-    my @children = $self->_kids( $original, $ctx );
-    return $t->passes($ctx) ? $ctx : () unless @children;
+    my $children = $self->_kids( $original, $ctx );
+    return $t->passes($ctx) ? [$ctx] : [] unless @$children;
     my @leaves;
-    push @leaves, $self->_leaves( $original, $_, $t ) for @children;
-    return @leaves;
+    push @leaves, @{ $self->_leaves( $original, $_, $t ) } for @$children;
+    return \@leaves;
 }
 
 sub _following {
     my ( $self, $original, $ctx, $t ) = @_;
-    return () if $self->is_root($ctx);
+    return [] if $self->is_root($ctx);
     my @following;
     state $tt = TPath::Test::Node::True->new;
-    my @ancestors = $self->_ancestors( $original, $ctx, $tt );
-    for my $a ( @ancestors[ 1 .. $#ancestors ] ) {
-        for my $p ( $self->_following_siblings( $original, $a, $tt ) ) {
+    my $ancestors = $self->_ancestors( $original, $ctx, $tt );
+    for my $a ( @$ancestors[ 1 .. $#$ancestors ] ) {
+        for my $p ( @{ $self->_following_siblings( $original, $a, $tt ) } ) {
             push @following, $p if $t->passes($p);
-            push @following, $self->_descendants( $original, $p, $t );
+            push @following, @{ $self->_descendants( $original, $p, $t ) };
         }
     }
-    for my $p ( $self->_following_siblings( $original, $ctx, $tt ) ) {
+    for my $p ( @{ $self->_following_siblings( $original, $ctx, $tt ) } ) {
         push @following, $p if $t->passes($p);
-        push @following, $self->_descendants( $original, $p, $t );
+        push @following, @{ $self->_descendants( $original, $p, $t ) };
     }
-    return @following;
+    return \@following;
 }
 
 sub _following_siblings {
     my ( $self, $original, $ctx, $t ) = @_;
-    return () if $self->is_root($ctx);
-    my @siblings = $self->_kids( $original, $self->parent( $original, $ctx ) );
-    return () if @siblings == 1;
+    return [] if $self->is_root($ctx);
+    my $siblings = $self->_kids( $original, $self->parent( $original, $ctx ) );
+    return [] if @$siblings == 1;
     my ( @following_siblings, $add );
     my $ra = refaddr $ctx->n;
-    for my $s (@siblings) {
+    for my $s (@$siblings) {
         if ($add) {
             push @following_siblings, $s if $t->passes($s);
         }
@@ -569,19 +582,18 @@ sub _following_siblings {
             $add = $ra == refaddr $s->n;
         }
     }
-    return @following_siblings;
+    return \@following_siblings;
 }
 
 sub _descendants {
     my ( $self, $original, $ctx, $t ) = @_;
-    my @children = $self->_kids( $original, $ctx );
-    return () unless @children;
     my @descendants;
-    for my $c (@children) {
+    for my $d ( @{ $self->_decontextualized_descendants( $ctx->n, $ctx->i ) } )
+    {
+        my $c = $original->bud($d);
         push @descendants, $c if $t->passes($c);
-        push @descendants, $self->_descendants( $original, $c, $t );
     }
-    return @descendants;
+    return \@descendants;
 }
 
 =method is_leaf
@@ -597,8 +609,8 @@ efficient where available. E.g., where the node provides an C<is_leaf> method,
 
 sub is_leaf {
     my ( $self, $ctx ) = @_;
-    my @children = $self->_kids( $ctx, $ctx );
-    return !@children;
+    my $children = $self->_kids( $ctx, $ctx );
+    return !@$children;
 }
 
 =method is_root
@@ -627,14 +639,14 @@ sub _ancestors {
         unshift @nodes, $parent if $t->passes($parent);
         $ctx = $parent;
     }
-    return @nodes;
+    return \@nodes;
 }
 
 sub _children {
     my ( $self, $original, $ctx, $t ) = @_;
-    my @children = $self->_kids( $original, $ctx );
-    return () unless @children;
-    grep { $t->passes($_) ? $_ : () } @children;
+    my $children = $self->_kids( $original, $ctx );
+    return [] unless @$children;
+    [ grep { $t->passes($_) ? $_ : () } @$children ];
 }
 
 =method has_tag
@@ -644,10 +656,11 @@ to this sort of node, "has" the string as a tag. See the required C<tag> method.
 =cut
 
 sub has_tag {
-    my ( $self, $n, $tag ) = @_;
-    my $t = $self->tag($n);
+
+    # my ( $self, $n, $tag ) = @_;
+    my $t = $_[0]->tag( $_[1] );
     return undef unless defined $t;
-    $self->_cf->( $t, $tag );
+    $_[0]->_cf->( $t, $_[2] );
 }
 
 =method matches_tag
@@ -658,10 +671,11 @@ to this sort of node, has a tag that matches the regex. See the required C<tag> 
 =cut
 
 sub matches_tag {
-    my ( $self, $n, $rx ) = @_;
-    my $t = $self->tag($n);
+
+    # my ( $self, $n, $rx ) = @_;
+    my $t = $_[0]->tag( $_[1] );
     return undef unless defined $t;
-    $t =~ $rx;
+    $t =~ $_[2];
 }
 
 =method wrap

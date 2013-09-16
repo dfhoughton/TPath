@@ -249,11 +249,11 @@ sub standard_index : Attr(index) {
     return -1 if $i->is_root($n);
     my $original = $ctx;
     my $parent   = $self->parent( $original, $ctx );
-    my @siblings = $self->_kids( $original, $parent );
+    my $siblings = $self->_kids( $original, $parent );
     my $ra       = refaddr $n;
     my $idx;
-    for my $index ( 0 .. $#siblings ) {
-        if (refaddr $siblings[$index]->n == $ra) {
+    for my $index ( 0 .. $#$siblings ) {
+        if (refaddr $siblings->[$index]->n == $ra) {
           $idx = $index;
           last;  
         }
