@@ -23,8 +23,9 @@ has rx => ( is => 'ro', isa => 'RegexpRef', required => 1 );
 
 # required by TPath::Test::Node
 sub passes {
-    my ( $self, $ctx ) = @_;
-    return $ctx->i->f->matches_tag( $ctx->n, $self->rx );
+
+    # my ( $self, $ctx ) = @_;
+    return $_[1]->i->f->matches_tag( $_[1]->n, $_[0]->rx );
 }
 
 __PACKAGE__->meta->make_immutable;

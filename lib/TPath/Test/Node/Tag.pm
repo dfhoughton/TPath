@@ -23,8 +23,9 @@ has tag => ( is => 'ro', isa => 'Str', required => 1 );
 
 # required by TPath::Test::Node
 sub passes {
-    my ( $self, $ctx ) = @_;
-    return $ctx->i->f->has_tag( $ctx->n, $self->tag );
+
+    # my ( $self, $ctx ) = @_;
+    return $_[1]->i->f->has_tag( $_[1]->n, $_[0]->tag );
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -23,8 +23,9 @@ has a => ( is => 'ro', isa => 'TPath::Attribute', required => 1 );
 
 # required by TPath::Test::Node
 sub passes {
-    my ( $self, $ctx ) = @_;
-    return $self->a->test( $ctx ) ? 1 : undef;
+
+    # my ( $self, $ctx ) = @_;
+    return $_[0]->a->test( $_[1] ) ? 1 : undef;
 }
 
 sub to_string { $_[0]->a->to_string }
