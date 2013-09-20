@@ -9,6 +9,7 @@ Key
 . put 'extends' in BEGIN block
 . check order of return for various axes against a reliable spec
 . make search order configurable -- parents or children first
+. mention Tree::XPathEngine and Class::XPath in SEE ALSO
 
 Attic
 -----
