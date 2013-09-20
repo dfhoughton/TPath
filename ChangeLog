@@ -1,6 +1,7 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * improved documentation
 
 1.002     2013-09-17 06:25:16 America/New_York
   * optimized matching by addition of more caching and elimination of much
