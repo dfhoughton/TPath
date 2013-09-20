@@ -6,14 +6,9 @@ Key
 . add examples
 . add usual escapes inside string literals
 . simplify axis code in forester
-* add prioritization of predicates a la xpath, so there's both //*[1] and (//*)[1]
 . put 'extends' in BEGIN block
-* fix 5.18 experimental warnings -- no if $] >= 5.018, warnings => "experimental";
-* look for and fix stringification bugs
-* update TPath grammar and description of predicates
-* add optional case insensitivity for tags
-* use Dist::Zilla::Plugin::OptionalFeature to suggest Unicode::CaseFolding
-- add some discussion of efficiency to documentation
+. check order of return for various axes against a reliable spec
+. make search order configurable -- parents or children first
 
 Attic
 -----
@@ -49,3 +44,10 @@ Completed TODO items kept around as curios.
 * add string concatenation operator
 * refactor apply attribute method so that reflection occurs only once
 * create logical attributes @some, @one, @none, @all
+* fix 5.18 experimental warnings -- no if $] >= 5.018, warnings => "experimental";
+* look for and fix stringification bugs
+* update TPath grammar and description of predicates
+* add optional case insensitivity for tags
+* use Dist::Zilla::Plugin::OptionalFeature to suggest Unicode::CaseFolding
+- add some discussion of efficiency to documentation
+* add prioritization of predicates a la xpath, so there's both //*[1] and (//*)[1]
