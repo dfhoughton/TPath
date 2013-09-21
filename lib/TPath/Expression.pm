@@ -24,8 +24,6 @@ use Moose;
 
 use overload '""' => \&to_string;
 
-sub uniq(@);
-
 =head1 ROLES
 
 L<TPath::Test>, L<TPath::Stringifiable>
@@ -47,6 +45,18 @@ has _selectors =>
 
 has string =>
   ( is => 'ro', isa => 'Str', lazy => 1, builder => '_stringify_exp' );
+
+has needs_uniq => (
+    is      => 'ro',
+    isa     => 'Bool',
+    lazy    => 1,
+    default => sub {
+        my $self = shift;
+        return 1 if @{ $self->_selectors } > 1;
+        return 1 if @{ $self->_selectors->[0] } > 1;
+        return 0;
+    },
+);
 
 =method select( $n, [$i], [%opts] )
 
@@ -82,7 +92,7 @@ sub _select {
     for my $fork ( @{ $self->_selectors } ) {
         push @sel, @{ _sel( $ctx, $fork, 0, $first ) };
     }
-    @sel = uniq @sel if @{ $self->_selectors } > 1;
+    @sel = uniq(@sel) if $self->needs_uniq;
 
     return \@sel;
 }
@@ -109,7 +119,7 @@ sub test {
 sub _sel {
     my ( $ctx, $fork, $idx, $first ) = @_;
     my $selector = $fork->[ $idx++ ];
-    my @c = uniq $selector->select( $ctx, $first );
+    my @c = uniq( $selector->select( $ctx, $first ) );
     return \@c if $idx == @$fork;
 
     my @sel;
@@ -119,7 +129,7 @@ sub _sel {
 
 # a substitute for List::MoreUtils::uniq which uses reference address rather than stringification to establish identity
 # the list filtered is assumed to be of TPath::Context objects
-sub uniq(@) {
+sub uniq {
     return @_ if @_ < 2;
     my %seen = ();
     grep { not $seen{ refaddr $_->n }++ } @_;
