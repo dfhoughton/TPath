@@ -9,7 +9,9 @@ to selectors, predicates, or attributes during the evaluation of a node. This cl
 method signatures -- instead of passing a list of parameters one passes a single context.
 
 A C<TPath::Context> is a blessed array rather than a hash, and it is a non-Moose class, for a 
-little added efficiency.
+little added efficiency. Note, that for still greater efficiency it is sometimes treated as an
+array rather than an object, so it must be regarded as a final class not to be tampered with
+or extended.
 
 =cut
 
@@ -34,14 +36,14 @@ sub new {
 sub bud {
 
     # my ( $self, $n ) = @_;
-    return bless [ $_[1], $_[0]->[1], [ $_[0]->[0], @{ $_[0]->[2] } ] ];
+    return bless [ $_[1], $_[0][1], [ $_[0][0], @{ $_[0][2] } ] ];
 }
 
 #Makes a context that doesn't preserve the path.
 sub wrap {
 
     # my ( $self, $n ) = @_;
-    return bless [ $_[1], $_[0]->[1], [] ];
+    return bless [ $_[1], $_[0][1], [] ];
 }
 
 =method previous

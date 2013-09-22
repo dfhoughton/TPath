@@ -21,11 +21,19 @@ Tag or value to match.
 
 has tag => ( is => 'ro', isa => 'Str', required => 1 );
 
+has _cr => ( is => 'rw', isa => 'CodeRef' );
+
 # required by TPath::Test::Node
 sub passes {
+    my ( $self, $ctx ) = @_;
+    ( $self->_cr // $self->set_cr( $ctx->i->f ) )->( $ctx->n );
+}
 
-    # my ( $self, $ctx ) = @_;
-    return $_[1]->i->f->has_tag( $_[1]->n, $_[0]->tag );
+sub set_cr {
+    my ( $self, $f ) = @_;
+    my $tag = $self->tag;
+    my $sr  = $f->can('has_tag');
+    $self->_cr( sub { $sr->( $f, shift, $tag ) } );
 }
 
 __PACKAGE__->meta->make_immutable;
