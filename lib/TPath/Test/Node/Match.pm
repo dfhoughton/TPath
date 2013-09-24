@@ -25,15 +25,18 @@ has _cr => ( is => 'rw', isa => 'CodeRef' );
 
 # required by TPath::Test::Node
 sub passes {
-    my ( $self, $ctx ) = @_;
-    ( $self->_cr // $self->set_cr( $ctx->i->f ) )->( $ctx->n );
-}
 
-sub set_cr {
-    my ( $self, $f ) = @_;
-    my $rx = $self->rx;
-    my $sr  = $f->can('matches_tag');
-    $self->_cr( sub { $sr->( $f, shift, $rx ) } );
+    # my ( $self, $ctx ) = @_;
+    (
+        $_[0]->_cr // $_[0]->_cr(
+            do {
+                my $f  = $_[1]->i->f;
+                my $rx = $_[0]->rx;
+                my $sr = $f->can('matches_tag');
+                sub { $sr->( $f, $_[0], $rx ) };
+              }
+        )
+    )->( $_[1][0] );
 }
 
 __PACKAGE__->meta->make_immutable;

@@ -21,11 +21,19 @@ Attribute to detect.
 
 has a => ( is => 'ro', isa => 'TPath::Attribute', required => 1 );
 
+has _cr => ( is => 'rw', isa => 'CodeRef' );
+
 # required by TPath::Test::Node
 sub passes {
 
     # my ( $self, $ctx ) = @_;
-    return $_[0]->a->test( $_[1] ) ? 1 : undef;
+    return (
+        $_[0]->_cr // do {
+            my $a     = $_[0]->a;
+            my $apply = $a->can('apply');
+            $_[0]->_cr( sub { $apply->( $a, $_[0] ) ? 1 : undef } );
+          }
+    )->( $_[1] );
 }
 
 sub to_string { $_[0]->a->to_string }

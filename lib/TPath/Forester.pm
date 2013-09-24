@@ -139,21 +139,26 @@ This attribute is false by default.
 
 has case_insensitive => ( is => 'ro', isa => 'Bool', default => 0 );
 
-has _cf => (
-    is      => 'ro',
-    isa     => 'CodeRef',
-    lazy    => 1,
-    default => sub {
-        my $self = shift;
-        return sub { $_[0] eq $_[1] }
-          unless $self->case_insensitive;
-        return eval 'sub { fc($_[0]) eq fc($_[1]) }' if $] > 5.016;
-        my $sub = eval
-'require Unicode::CaseFold; sub { Unicode::CaseFold::fc($_[0]) eq Unicode::CaseFold::fc($_[1])}';
-        return $sub unless $@;
-        return sub { lc( $_[0] ) eq lc( $_[1] ) };
-    }
+has _cr => (
+    is  => 'rw',
+    isa => 'CodeRef',
 );
+
+has _cf => (
+    is  => 'rw',
+    isa => 'CodeRef',
+);
+
+sub _build_cf {
+    my $self = shift;
+    return sub { $_[0] eq $_[1] }
+      unless $self->case_insensitive;
+    return eval 'sub { fc($_[0]) eq fc($_[1]) }' if $] > 5.016;
+    my $sub = eval
+'require Unicode::CaseFold; sub { Unicode::CaseFold::fc($_[0]) eq Unicode::CaseFold::fc($_[1])}';
+    return $sub unless $@;
+    return sub { lc( $_[0] ) eq lc( $_[1] ) };
+}
 
 =method add_test, has_tests, clear_tests
 
@@ -657,10 +662,25 @@ to this sort of node, "has" the string as a tag. See the required C<tag> method.
 
 sub has_tag {
 
+    (
+        $_[0]->_cr // do {
+            my $tag = $_[0]->can('tag');
+            my $cf  = $_[0]->_build_cf;
+            $_[0]->_cr(
+                sub {
+                    my $t = $tag->( $_[0], $_[1] );
+                    return undef unless defined $t;
+                    return $cf->( $t, $_[2] );
+                }
+            );
+          }
+    )->(@_);
+
+    # optimized from
     # my ( $self, $n, $tag ) = @_;
-    my $t = $_[0]->tag( $_[1] );
-    return undef unless defined $t;
-    $_[0]->_cf->( $t, $_[2] );
+    # my $t = $_[0]->tag( $_[1] );
+    # return undef unless defined $t;
+    # $_[0]->_cf->( $t, $_[2] );
 }
 
 =method matches_tag
