@@ -12,6 +12,7 @@ Key
 . mention Tree::XPathEngine and Class::XPath in SEE ALSO
 . confirm index predicates behave identically in tpath and xpath for all common axes
 . add adjacent:: family of axes
+. add some handling of variables -- @v('foo') or @var('foo')
 
 Attic
 -----
