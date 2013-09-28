@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+
+1.003     2013-09-28 16:24:08 America/New_York
   * improved documentation
   * fixed bug whereby duplicate nodes were being returned
   * further optimization
