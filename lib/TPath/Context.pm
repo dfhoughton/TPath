@@ -109,8 +109,7 @@ when they are applied to a context.
 
 sub expression {
     return $_[0][3] if @_ < 2;
-    my ( $self, $e ) = @_;
-    return $self->[3] = $e;
+    return $_[0][3] = $_[1];
 }
 
 =method to_string
