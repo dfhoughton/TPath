@@ -8,7 +8,7 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 22;
+use Test::More tests => 29;
 use ToyXMLForester;
 use ToyXML qw(parse);
 
@@ -101,5 +101,21 @@ is @c, 3, "received expected from $p with $path";
 is $c[0]->tag, 'd', 'previous:: selected correct first element';
 is $c[1]->tag, 'b', 'previous:: selected correct second element';
 is $c[2]->tag, 'a', 'previous:: selected correct third element';
+
+$p = parse
+  q{<root><foo><g/></foo><a><b/><c/><d/><e/><f/></a><foo><h/></foo></root>};
+$path = q{//d/adjacent::*};
+@c    = $f->path($path)->select($p);
+is @c, 2, "received expected from $p with $path";
+is $c[0]->tag, 'c', 'adjacent:: selected correct first element';
+is $c[1]->tag, 'e', 'adjacent:: selected correct second element';
+$path = q{//b/adjacent::*};
+@c    = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
+is $c[0]->tag, 'c', 'adjacent:: selected correct element';
+$path = q{//f/adjacent::*};
+@c    = $f->path($path)->select($p);
+is @c, 1, "received expected from $p with $path";
+is $c[0]->tag, 'e', 'adjacent:: selected correct element';
 
 done_testing();

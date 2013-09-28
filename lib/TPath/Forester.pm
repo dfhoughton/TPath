@@ -399,6 +399,11 @@ sub axis_ancestor {
     @{ $self->_ancestors( $ctx, $ctx, $t ) };
 }
 
+sub axis_adjacent {
+    my ( $self, $ctx, $t ) = @_;
+    @{ $self->_adjacent( $ctx, $ctx, $t ) };
+}
+
 sub axis_ancestor_or_self {
     my ( $self, $ctx, $t ) = @_;
     my $nodes = $self->_ancestors( $ctx, $ctx, $t );
@@ -652,6 +657,40 @@ sub _children {
     my $children = $self->_kids( $original, $ctx );
     return [] unless @$children;
     [ grep { $t->passes($_) ? $_ : () } @$children ];
+}
+
+sub _adjacent {
+    my ( $self, $original, $ctx, $t ) = @_;
+        return [] if $self->is_root($ctx);
+    my $siblings = $self->_kids( $original, $self->parent( $original, $ctx ) );
+    my $lim = $#$siblings;
+    return [] if $lim == 1;
+    my $idx;
+    my $ra = refaddr $original->n;
+    for my $i ( 0 .. $lim ) {
+        $idx = $i;
+        last if refaddr $siblings->[$idx]->n == $ra;
+    }
+    my @adjacent;
+    if ($idx) {
+        for ( my $i = $idx - 1 ; $i >= 0 ; $i-- ) {
+            my $c = $siblings->[$i];
+            if ( $t->passes($c) ) {
+                push @adjacent, $c;
+                last;
+            }
+        }
+    }
+    if ( $idx < $lim ) {
+        for my $i ( $idx + 1 .. $lim ) {
+            my $c = $siblings->[$i];
+            if ( $t->passes($c) ) {
+                push @adjacent, $c;
+                last;
+            }
+        }
+    }
+    return \@adjacent;
 }
 
 =method has_tag

@@ -36,6 +36,7 @@ expressions. See L<TPath> for the list and explanation.
 =cut
 
 our %AXES = map { $_ => 1 } qw(
+  adjacent
   ancestor
   ancestor-or-self
   child

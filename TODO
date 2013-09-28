@@ -9,9 +9,9 @@ Key
 . put 'extends' in BEGIN block
 . check order of return for various axes against a reliable spec
 . make search order configurable -- parents or children first
-. mention Tree::XPathEngine and Class::XPath in SEE ALSO
-. confirm index predicates behave identically in tpath and xpath for all common axes
-. add adjacent:: family of axes
+* mention Tree::XPathEngine and Class::XPath in SEE ALSO
+- confirm index predicates behave identically in tpath and xpath for all common axes
+* add adjacent:: family of axes (in the end, just adjacent::)
 . add some handling of variables -- @v('foo') or @var('foo')
 
 Attic

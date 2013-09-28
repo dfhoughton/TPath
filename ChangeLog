@@ -4,6 +4,7 @@ Revision history for TPath
   * improved documentation
   * fixed bug whereby duplicate nodes were being returned
   * further optimization
+  * added adjacent:: axis
 
 1.002     2013-09-17 06:25:16 America/New_York
   * optimized matching by addition of more caching and elimination of much
