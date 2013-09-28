@@ -644,57 +644,57 @@ history.
 
 =item self
 
-  //c/self::*
+  //d/self::*
 
          root
           |
-          a
-         /|\
-        / | \
-       /  |  \
-      /   |   \
-     /    |    \
-    b     C     d
+        __a__
+       / /|\ \
+      / / | \ \
+     / /  |  \ \
+    / /   |   \ \
+   / /    |    \ \
+  b c     D     e f
    /|\   /|\   /|\
-  e f g h i j l m n
+  g h i j k l m n o
     |     |     |
-    o     p     q
+    p     q     r
 
 =item sibling
 
-  //c/sibling::*
+  //d/sibling::*
 
          root
           |
-          a
-         /|\
-        / | \
-       /  |  \
-      /   |   \
-     /    |    \
-    B     c     D
+        __a__
+       / /|\ \
+      / / | \ \
+     / /  |  \ \
+    / /   |   \ \
+   / /    |    \ \
+  B C     d     E F
    /|\   /|\   /|\
-  e f g h i j l m n
+  g h i j k l m n o
     |     |     |
-    o     p     q
+    p     q     r
 
 =item sibling-or-self
 
-  //c/sibling-or-self::*
+  //d/sibling-or-self::*
 
          root
           |
-          a
-         /|\
-        / | \
-       /  |  \
-      /   |   \
-     /    |    \
-    B     C     D
+        __a__
+       / /|\ \
+      / / | \ \
+     / /  |  \ \
+    / /   |   \ \
+   / /    |    \ \
+  B C     D     E F
    /|\   /|\   /|\
-  e f g h i j l m n
+  g h i j k l m n o
     |     |     |
-    o     p     q
+    p     q     r
 
 =back
 
