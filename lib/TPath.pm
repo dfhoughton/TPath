@@ -1075,7 +1075,7 @@ particular expression.
 One can use variables to obtain information from a selection other than a list
 of nodes. For example,
 
-  my $exp = $forester->path('/*[@v( "size", @tsize )][@v( "leaves", leaves::* + 0 )]');
+  my $exp = $forester->path('/*[@v( "size", @tsize )][@v( "leaves", @size(leaf::*) )]');
   $exp->select($tree);
   say 'number of nodes in the tree: ' . $exp->vars->{size};
   say 'number of leaf nodes: ' . $exp->vars->{leaves};
