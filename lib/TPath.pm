@@ -412,6 +412,10 @@ are selected from the tree relative the the C<d> node. Selected nodes will be in
     |     |     |
     p     q     r
 
+The C<adjacent> axis might be called the C<adjacent-sibling> axis. It selects
+the nearest siblings of the context node passing the test. C<//foo/adjacent::p>
+will select the immediately preceding and following C<p> siblings of C<foo> nodes.
+
 =item ancestor
 
   //d/ancestor::*
@@ -1057,6 +1061,37 @@ are supplied by the C<autoload_attribute> method.
 One could make this HTML implementation more efficient by memoizing C<autoload_attribute>. For HTML
 attributes it doesn't make sense to further parameterize attribute generation -- all you need is the
 name -- so any attribute arguments are ignored during auto-loading.
+
+=head2 Variables
+
+There are three special attributes among the standard attributes that facilitate
+using variables in tpath expressions: C<@var>, C<@v>, and C<@clear_var>. The
+first two are synonyms, so there are really only two functionally distinct
+variable attributes. The first two allow one to set or check the value of a
+particular variable. The last clears a variable, returning whatever value it
+had before clearing. The variables themselves live in a hash belonging to a
+particular expression.
+
+One can use variables to obtain information from a selection other than a list
+of nodes. For example,
+
+  my $exp = $forester->path('/*[@v( "size", @tsize )][@v( "leaves", leaves::* + 0 )]');
+  $exp->select($tree);
+  say 'number of nodes in the tree: ' . $exp->vars->{size};
+  say 'number of leaf nodes: ' . $exp->vars->{leaves};
+
+One may also use variables to make later selections in an expression dependent
+on earlier selections.
+
+  my $exp = $forester->path('//foo[ @v( "bar", @quux ) ]//baz[ @quux = @v("bar") ]');
+
+Finally, one may use variables to parameterize an expression:
+
+  for my $fruit qw(apple orange kumquat quince) {
+      $exp->vars->{fruit} = $fruit;
+      my @harvest = $exp->select($tree);
+      deliver( $recipients->{$fruit}, @harvest );
+  }
 
 =head2 Special Selectors
 

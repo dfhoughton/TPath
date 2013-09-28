@@ -8,14 +8,14 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 60;
+use Test::More tests => 63;
 use Test::Trap;
 use Test::Exception;
 use ToyXMLForester;
 use ToyXML qw(parse);
 
 my $f = ToyXMLForester->new;
-my ( $p, $path, @c );
+my ( $p, $path, @c, $e );
 
 $p    = parse(q{<a><b/><b foo="bar"/></a>});
 $path = q{//b[@attr('foo')]};
@@ -265,5 +265,24 @@ is @c, 5, "received expected from $p with $path";
 $path = q{//*[@fcount(1, 0, 0) = 2]};
 @c    = $f->path($path)->select($p);
 is @c, 5, "received expected from $p with $path";
+
+$p    = parse q{<a><b><c/><d/></b><b><e/><d/></b><b><c/><e/></b></a>};
+$path = q{/*[@v('size', @tsize)]};
+$e    = $f->path($path);
+$e->select($p);
+is $e->vars->{size}, 10, 'able to set @v variable';
+
+$path = q{/*[@var('size', @tsize)]};
+$e    = $f->path($path);
+$e->select($p);
+is $e->vars->{size}, 10, 'able to set @var variable';
+
+$p            = parse q{<a><b><c/></b><d><e/><f/></d></a>};
+$path         = q{/./*[* = @v('n')]};
+$e            = $f->path($path);
+$e->vars->{n} = 2;
+@c            = $e->select($p);
+is "$c[0]", q{<d><e/><f/></d>},
+  'able to set @v and then use it in a variable test';
 
 done_testing();

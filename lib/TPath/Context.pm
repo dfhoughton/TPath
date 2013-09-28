@@ -97,6 +97,22 @@ nodes are in reverse order, so the node's immediate predecessor is at index 0.
 
 sub path { $_[0][2] }
 
+=method expression
+
+The expression the context is being used by. This attribute is not guaranteed to be set and
+the method, unlike the other accessors, is a setter as well as a getter.
+
+The contextual attribute is available for use by L<TPath::Attributes>, which set the attribute
+when they are applied to a context.
+
+=cut
+
+sub expression {
+    return $_[0][3] if @_ < 2;
+    my ( $self, $e ) = @_;
+    return $self->[3] = $e;
+}
+
 =method to_string
 
 The stringification of a context is the stringification of its node.
@@ -106,7 +122,7 @@ The stringification of a context is the stringification of its node.
 sub to_string {
     my $s;
     eval { $s = "$_[0][0]" };
-    if ($@) {    # workaround for odd overload bug
+    if ($@) {                  # workaround for odd overload bug
         $s = 'memaddr' . refaddr $_[0][0];
     }
     return $s;

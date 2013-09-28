@@ -16,10 +16,11 @@ An object that will get us the nodes identified by our path expression.
 
 =cut
 
+use v5.10;
 use TPath::TypeCheck;
 use TPath::TypeConstraints;
 use TPath::Context;
-use Scalar::Util qw(refaddr);
+use Scalar::Util qw(refaddr reftype);
 use Moose;
 
 use overload '""' => \&to_string;
@@ -57,6 +58,14 @@ has needs_uniq => (
         return 0;
     },
 );
+
+=attr vars
+
+Variables available during the application of this expression.
+
+=cut
+
+has 'vars' => ( is => 'ro', isa => 'HashRef', default => sub { {} } );
 
 =method select( $n, [$i], [%opts] )
 
@@ -157,6 +166,31 @@ Returns whether this expression was created by a case insensitive forester.
 =cut
 
 sub case_insensitive { shift->f->case_insensitive }
+
+# recursively links top expression to attributes to make variable cache
+# available to all attributes
+sub _link_self_to_attributes {
+    my $self = shift;
+    _recursive_link( $self, $self, {} );
+}
+
+sub _recursive_link {
+    my ( $e, $ref, $cache ) = @_;
+    my $rt = reftype($ref) // '';
+    return unless $rt eq 'HASH' or $rt eq 'ARRAY';
+    return if $cache->{ refaddr $ref}++;
+    if ( blessed $ref && $ref->isa('TPath::Attribute') ) {
+        $ref->_expr($e);
+    }
+    for ($rt) {
+        when ('HASH') {
+            _recursive_link( $e, $_, $cache ) for values %$ref;
+        }
+        when ('ARRAY') {
+            _recursive_link( $e, $_, $cache ) for @$ref;
+        }
+    }
+}
 
 no Moose;
 __PACKAGE__->meta->make_immutable;

@@ -12,6 +12,7 @@ use v5.10;
 no if $] >= 5.018, warnings => "experimental";
 
 use Moose;
+use TPath::TypeConstraints;
 use namespace::autoclean;
 
 =head1 ROLES
@@ -46,6 +47,9 @@ has _arg_subs => (
     builder => '_build_arg_subs'
 );
 
+has _expr => ( is => 'rw', isa => 'TPath::Expression', weak_ref => 1 )
+  ;
+
 =attr code
 
 The actual code reference invoked when C<apply> is called.
@@ -70,6 +74,7 @@ Expects a node, and index, and a collection. Returns some value.
 
 sub apply {
     my ( $self, $ctx ) = @_;
+    $ctx->expression( $self->_expr );
     my @args = ($ctx);
 
     # invoke all code to reify arguments

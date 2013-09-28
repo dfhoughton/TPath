@@ -65,7 +65,11 @@ Takes an AST reference and a L<TPath::Forester> reference and returns a L<TPath:
 
 =cut
 
-sub compile { treepath(@_) }
+sub compile {
+    my $e = treepath(@_);
+    $e->_link_self_to_attributes;
+    return $e;
+}
 
 sub treepath {
     my ( $ref, $forester ) = @_;
@@ -249,8 +253,7 @@ sub full {
                     }
                     else {
                         $rv =
-                          ChildMatch->new( %common_args, first_sensitive => 1 )
-                          ;
+                          ChildMatch->new( %common_args, first_sensitive => 1 );
                     }
                 }
                 when ('//') {

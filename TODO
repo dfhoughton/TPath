@@ -3,16 +3,16 @@ Key
  - = discarded
  * = completed
 
-. add examples
+- add examples
 . add usual escapes inside string literals
-. simplify axis code in forester
-. put 'extends' in BEGIN block
+- simplify axis code in forester
+- put 'extends' in BEGIN block
 . check order of return for various axes against a reliable spec
 . make search order configurable -- parents or children first
 * mention Tree::XPathEngine and Class::XPath in SEE ALSO
 - confirm index predicates behave identically in tpath and xpath for all common axes
 * add adjacent:: family of axes (in the end, just adjacent::)
-. add some handling of variables -- @v('foo') or @var('foo')
+* add some handling of variables -- @v('foo') or @var('foo')
 
 Attic
 -----
