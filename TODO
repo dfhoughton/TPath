@@ -3,16 +3,10 @@ Key
  - = discarded
  * = completed
 
-- add examples
 . add usual escapes inside string literals
-- simplify axis code in forester
-- put 'extends' in BEGIN block
 . check order of return for various axes against a reliable spec
 . make search order configurable -- parents or children first
-* mention Tree::XPathEngine and Class::XPath in SEE ALSO
-- confirm index predicates behave identically in tpath and xpath for all common axes
-* add adjacent:: family of axes (in the end, just adjacent::)
-* add some handling of variables -- @v('foo') or @var('foo')
+. move expression-attribute linking to compiler
 
 Attic
 -----
@@ -55,3 +49,10 @@ Completed TODO items kept around as curios.
 * use Dist::Zilla::Plugin::OptionalFeature to suggest Unicode::CaseFolding
 - add some discussion of efficiency to documentation
 * add prioritization of predicates a la xpath, so there's both //*[1] and (//*)[1]
+- add examples
+- simplify axis code in forester
+- put 'extends' in BEGIN block
+* mention Tree::XPathEngine and Class::XPath in SEE ALSO
+- confirm index predicates behave identically in tpath and xpath for all common axes
+* add adjacent:: family of axes (in the end, just adjacent::)
+* add some handling of variables -- @v('foo') or @var('foo')
