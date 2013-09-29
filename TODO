@@ -3,7 +3,7 @@ Key
  - = discarded
  * = completed
 
-. add usual escapes inside string literals
+* add usual escapes inside string literals
 . check order of return for various axes against a reliable spec
 . make search order configurable -- parents or children first
 * move expression-attribute linking to compiler
