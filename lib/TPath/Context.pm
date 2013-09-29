@@ -26,7 +26,7 @@ use overload '""' => \&to_string;
 sub new {
     my $class  = shift;
     my %params = @_;
-    my $self   = [ $params{n}, $params{i}, [] ];
+    my $self   = [ $params{n}, $params{i}, [], undef ];
     bless $self, $class;
 }
 
@@ -36,14 +36,14 @@ sub new {
 sub bud {
 
     # my ( $self, $n ) = @_;
-    return bless [ $_[1], $_[0][1], [ $_[0][0], @{ $_[0][2] } ] ];
+    return bless [ $_[1], $_[0][1], [ $_[0][0], @{ $_[0][2] } ], undef ];
 }
 
 #Makes a context that doesn't preserve the path.
 sub wrap {
 
     # my ( $self, $n ) = @_;
-    return bless [ $_[1], $_[0][1], [] ];
+    return bless [ $_[1], $_[0][1], [], undef ];
 }
 
 =method previous
@@ -57,7 +57,7 @@ sub previous {
     my @previous = @{ $self->[2] };
     my $n        = shift @previous;
     return () unless $n;
-    return bless [ $n, $self->[1], \@previous ];
+    return bless [ $n, $self->[1], \@previous, undef ];
 }
 
 =method first

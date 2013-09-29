@@ -1,6 +1,7 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * escape sequences \v, \t, \n, \r, \f, \b now available.
 
 1.003     2013-09-28 16:24:08 America/New_York
   * improved documentation

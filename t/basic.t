@@ -273,7 +273,7 @@ is scalar @elements, 1, "correct number of elements from $p by $path";
 
 $p    = parse(q{<a><b/><c/><d/></a>});
 $path = '*';
-my $e = $f->path($path)->select($p);
+$e    = $f->path($path)->select($p);
 is $e->tag, 'b', 'select() picked correct element';
 
 $p    = parse(q{<a><$b/><c/><d/></a>});
