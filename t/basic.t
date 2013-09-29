@@ -9,13 +9,13 @@ BEGIN {
     push @INC, dirname($0);
 }
 
-use Test::More tests => 100;
+use Test::More tests => 106;
 use Test::Exception;
 use Test::Trap;
 use ToyXMLForester;
 use ToyXML qw(parse);
 
-my $f;
+my ( $f, $e );
 lives_ok { $f = ToyXMLForester->new } "can construct a ToyXMLForester";
 
 my $p        = parse('<a><b/><c><b/><d><b/><b/></d></c></a>');
@@ -267,9 +267,9 @@ is scalar @elements, 1, "correct number of elements from $p by $path";
 is $elements[0]->tag, 'c', 'correct element found';
 
 $p        = parse(q{<a><b/><c><b/><d><b/><b/></d></c></a>});
-$path     = '//\b';
+$path     = '//\c';
 @elements = $f->path($path)->select($p);
-is scalar @elements, 4, "correct number of elements from $p by $path";
+is scalar @elements, 1, "correct number of elements from $p by $path";
 
 $p    = parse(q{<a><b/><c/><d/></a>});
 $path = '*';
@@ -378,5 +378,35 @@ $p    = parse(q{<a><b/><b/></a>});
 $path = q{//b[2]};
 trap { @c = $f->path($path)->select($p) };
 is scalar @c, 0, 'index predicate returns empty list when appropriate';
+
+$path = q{/*[@v('foo','\r')]};
+$e    = $f->path($path);
+$e->select($p);
+is $e->vars->{foo}, "\r", '\r in string literals handled correctly';
+
+$path = q{/*[@v('foo','\v')]};
+$e    = $f->path($path);
+$e->select($p);
+is $e->vars->{foo}, "\013", '\v in string literals handled correctly';
+
+$path = q{/*[@v('foo','\f')]};
+$e    = $f->path($path);
+$e->select($p);
+is $e->vars->{foo}, "\f", '\f in string literals handled correctly';
+
+$path = q{/*[@v('foo','\b')]};
+$e    = $f->path($path);
+$e->select($p);
+is $e->vars->{foo}, "\b", '\b in string literals handled correctly';
+
+$path = q{/*[@v('foo','\n')]};
+$e    = $f->path($path);
+$e->select($p);
+is $e->vars->{foo}, "\n", '\n in string literals handled correctly';
+
+$path = q{/*[@v('foo','\t')]};
+$e    = $f->path($path);
+$e->select($p);
+is $e->vars->{foo}, "\t", '\t in string literals handled correctly';
 
 done_testing();

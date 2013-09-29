@@ -71,6 +71,7 @@ a|b
 (a|b)
 (a|b)/c
 (//*)[0]
+//a[@attr('b')='\r\v\f\b\n\t']
 EOF
 
 plan tests => @paths * 3;

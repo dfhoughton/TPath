@@ -1317,7 +1317,16 @@ sub clean_escapes {
         my $i = index $m, '\\';
         if ( $i > -1 ) {
             my $prefix = substr $m, 0, $i;
-            $prefix .= substr $m, $i + 1, 1;
+            my $c = substr $m, $i + 1, 1;
+            for ($c) {
+                when ('b') { $c = "\b" }
+                when ('f') { $c = "\f" }
+                when ('n') { $c = "\012" }
+                when ('r') { $c = "\015" }
+                when ('t') { $c = "\t" }
+                when ('v') { $c = "\013" }
+            }
+            $prefix .= $c;
             $m = substr $m, $i + 2;
             $r .= $prefix;
             redo;

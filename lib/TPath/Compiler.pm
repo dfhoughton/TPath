@@ -14,6 +14,7 @@ use strict;
 use warnings;
 use v5.10;
 no if $] >= 5.018, warnings => "experimental";
+use Scalar::Util qw(refaddr blessed reftype);
 
 use TPath::Grammar qw(%FUNCTIONS);
 
@@ -67,8 +68,26 @@ Takes an AST reference and a L<TPath::Forester> reference and returns a L<TPath:
 
 sub compile {
     my $e = treepath(@_);
-    $e->_link_self_to_attributes;
+    exp_attribute_link( $e, $e, {} );
     return $e;
+}
+
+sub exp_attribute_link {
+    my ( $e, $ref, $cache ) = @_;
+    my $rt = reftype($ref) // '';
+    return unless $rt eq 'HASH' or $rt eq 'ARRAY';
+    return if $cache->{ refaddr $ref}++;
+    if ( blessed $ref && $ref->isa('TPath::Attribute') ) {
+        $ref->_expr($e);
+    }
+    for ($rt) {
+        when ('HASH') {
+            exp_attribute_link( $e, $_, $cache ) for values %$ref;
+        }
+        when ('ARRAY') {
+            exp_attribute_link( $e, $_, $cache ) for @$ref;
+        }
+    }
 }
 
 sub treepath {
