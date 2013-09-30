@@ -1447,7 +1447,7 @@ All the places where one may use the C<\> escape character to protect a special 
 a string one may also use one of the escape sequences understood by tpath, which are
 just those understood by JSON. These are
 
-=over4
+=over 4
 
 =item \t
 
