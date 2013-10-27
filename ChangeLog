@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+
+1.005     2013-10-27 14:11:20 America/New_York
   * fix index predicates *yet again*, now the index is relative to list of 
     of elements selected for that step unless it is an inner predicate -- inside
     any parentheses -- and the anywhere separator // precedes the step
