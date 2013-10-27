@@ -8,7 +8,7 @@ Key
 . make search order configurable -- parents or children first
 * move expression-attribute linking to compiler
 . allow mathematical expressions as attribute arguments
-. fix index predicates *again* to behave more like xpath
+* fix index predicates *again* to behave more like xpath
 
 Attic
 -----

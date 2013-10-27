@@ -29,6 +29,9 @@ has idx => ( is => 'ro', isa => 'Int', required => 1 );
 
 has f => (is => 'ro', does => 'TPath::Forester', required => 1);
 
+# needed for lazy specification of algorithm
+has _anywhere => (is=>'rw', isa => 'Bool', default => 0);
+
 has algorithm => (
     is      => 'ro',
     isa     => 'CodeRef',
@@ -44,7 +47,7 @@ has algorithm => (
         return sub {
             return shift->[$i] // ();
           }
-          if $self->outer;
+          if $self->outer or !$self->_anywhere;
         return sub {
             my $c = shift;
             my ( $index, %tally, @ret );

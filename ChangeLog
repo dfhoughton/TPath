@@ -1,6 +1,9 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * fix index predicates *yet again*, now the index is relative to list of 
+    of elements selected for that step unless it is an inner predicate -- inside
+    any parentheses -- and the anywhere separator // precedes the step
 
 1.004     2013-09-29 21:46:55 America/New_York
   * escape sequences \v, \t, \n, \r, \f, \b now available.

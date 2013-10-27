@@ -47,10 +47,14 @@ my $p = parse(<<'END');
 END
 
 my @tests = (
-    { path => '//~[aeiou]~[0]',    tags => 'aeo' },
-    { path => '(//~[aeiou]~)[0]',  tags => 'a' },
-    { path => '//~[aeiou]~[-1]',   tags => 'aiu' },
-    { path => '(//~[aeiou]~)[-1]', tags => 'u' },
+    { path => '//~[aeiou]~[0]',                       tags => 'aeo' },
+    { path => '(//~[aeiou]~)[0]',                     tags => 'a' },
+    { path => '//~[aeiou]~[-1]',                      tags => 'aiu' },
+    { path => '(//~[aeiou]~)[-1]',                    tags => 'u' },
+    { path => '/descendant-or-self::~[aeiou]~[0]',    tags => 'a' },
+    { path => '(/descendant-or-self::~[aeiou]~)[0]',  tags => 'a' },
+    { path => '/descendant-or-self::~[aeiou]~[-1]',   tags => 'u' },
+    { path => '(/descendant-or-self::~[aeiou]~)[-1]', tags => 'u' },
 );
 
 plan tests => scalar @tests;

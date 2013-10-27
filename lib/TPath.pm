@@ -741,14 +741,18 @@ and preceding filters. For example
   //*[0]
 
 picks all nodes that are the first child of their parent (also the root, which has no parent).
+This is distinct from C</descendant-or-self::*[0]>, which will simply pick the root.
 
   //a[0]
 
-picks all nodes that are the first child of an C<a> node.
+picks all nodes that are the first child of an C<a> node. This is distinct from C</descendant-or-self::a[0]>, 
+where the only node returned will simply be the first node picked on this axis.
 
   //a[@foo][0]
   
-picks all nodes that are the first child of an C<a> node having the property C<@foo>.
+picks all nodes that are the first child of an C<a> node having the property C<@foo>. This is
+distinct from C</descendant-or-self::a[@foo][0]>, which will pick only the first C<a> node with
+the C<@foo> property.
 
 These predicates are all "inner" predicates. It is also possible to specify "outer" predicates, like so
 
@@ -761,7 +765,8 @@ to a node's similar siblings. So the first expression picks the first node which
 child of its parent; the second picks the first node anywhere that is the first child of an C<a>
 node; the third picks the first node anywhere that is the first C<@foo> child node of an C<a> node.
 
-Any predicate may be either inner or outer, but the distinction is most relevant to index predicates.
+Any predicate may be either inner or outer, but the distinction is most relevant to index predicates for
+steps with the C<//> separator.
 
 =head3 Path Predicates
 
