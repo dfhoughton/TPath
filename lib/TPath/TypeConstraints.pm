@@ -23,9 +23,9 @@ union ConcatArg =>
 
 union MathArg => [qw(TPath::Numifiable Num)];
 
-enum Quantifier => qw( * + ? e );
+enum Quantifier => [qw( * + ? e )];
 
-enum Axis => keys %AXES;
+enum Axis => [keys %AXES];
 
 sub prefix(@) {
     map { "TPath::$_" } @_;
