@@ -1,6 +1,7 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * fixed enum deprecation warning
 
 1.005     2013-10-27 14:11:20 America/New_York
   * fix index predicates *yet again*, now the index is relative to list of 
