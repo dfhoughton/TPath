@@ -1,6 +1,11 @@
 Revision history for TPath
 
 {{$NEXT}}
+  * added /.../ and :m/.../mods regex syntax
+  * removed most of grammar section from documentation, referring instead to
+    TPath::Grammar
+
+1.006     2014-02-14 12:10:54-05:00 America/New_York
   * fixed enum deprecation warning
 
 1.005     2013-10-27 14:11:20 America/New_York

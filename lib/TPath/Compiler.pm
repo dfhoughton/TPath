@@ -423,6 +423,7 @@ sub attribute {
 
 sub arg {
     my ( $arg, $forester ) = @_;
+    return $arg unless ref $arg;
     my $v = $arg->{v};
     return $v if defined $v;
     my $num = $arg->{num};

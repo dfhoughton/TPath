@@ -171,9 +171,21 @@ our $path_grammar = do {
           | (<.qname>) (?{ $MATCH = clean_escapes( substr $^N, 2, length($^N) -3 ) })
        
        <token: qname> 
-          : ([[:punct:]].+?[[:punct:]]) 
-          <require: (?{qname_test($^N)})> <.cp> 
+          : <.qq> <.cp> 
      
+       <token: qq> 
+          ([!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~])   # [:punct:] excluding backslash
+          (?{ local $buffer = end_punct($^N) })
+          (?:
+             [^[:punct:]]
+             |
+             ([[:punct:]]) (?(?{ $^N eq $buffer or $^N eq '\\' })(?!))
+             |
+             \\ .
+          )++
+          ([!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~])
+          <require: (?{ $^N eq $buffer })>
+
        <rule: attribute> <aname> <args>?
     
        <rule: args> \( <[arg]> (?: , <[arg]> )* \) <.cp>
@@ -229,7 +241,17 @@ our $path_grammar = do {
        <token: term> <attribute> | <attribute_test> | <treepath>
     
        <rule: attribute_test>
-          <[value]> <cmp> <[value]>
+          <[value]> (?: <cmp=([!=]~)> <[value=regex]> | <cmp> <[value]> )
+       
+       <token: regex>
+          ( / (?:[^/\\]|\\.)++ /(?!=\w|:) )
+          (?{ $MATCH = clean_regex($^N) })
+          <.cp>
+          |
+          :m ( <.qq> ) 
+          (?{ local $buffer = $^N }) <.cp>
+          ((?:[msix]+\b)?) <require: (?{ mods_test($^N) })>
+          (?{ $MATCH = clean_mregex($buffer, $^N) }) <.cp>
     
        <token: cmp> (?: [<>=]=?+ | ![=~] | =~ | =?\|= | =\| ) <.cp>
     
@@ -1276,11 +1298,16 @@ sub clean_literal {
 
 sub clean_pattern {
     my $m = shift;
+    return clean_special($m, '~~');
+}
+
+sub clean_special {
+    my ($m, $p) = @_;
     $m = substr $m, 1, -1;
     my $r = '';
     my $i = 0;
     {
-        my $j = index $m, '~~', $i;
+        my $j = index $m, $p, $i;
         if ( $j > -1 ) {
             $r .= substr $m, $i, $j - $i + 1;
             $i = $j + 2;
@@ -1291,6 +1318,19 @@ sub clean_pattern {
         }
     }
     return $r;
+}
+
+sub clean_regex {
+    my $m = shift;
+    return clean_special($m, '\\/');
+}
+
+sub clean_mregex {
+    my ($m, $mods) = @_;
+    my $p = '\\' . substr $m, -1, 1;
+    $m = clean_special($m, $p);
+    return $m unless $mods;
+    return qr/(?$mods:$m)/ . '';
 }
 
 sub clean_not {
@@ -1338,36 +1378,24 @@ sub clean_escapes {
     return $r;
 }
 
-sub qname_test {
-    my $name = shift;
-    my $s    = substr $name, 0, 1;
-    my $end  = length($name) - 1;
-    my $e    = substr $name, $end, 1;
-    my $good;
-    for ($s) {
-        when ('(') { $good = $e eq ')' }
-        when ('{') { $good = $e eq '}' }
-        when ('[') { $good = $e eq ']' }
-        when ('<') { $good = $e eq '>' }
-        default    { $good = $e eq $s }
+sub end_punct {
+    my $c = shift;
+    for ($c) {
+        when ('(') { return ')' }
+        when ('{') { return '}' }
+        when ('[') { return ']' }
+        when ('<') { return '>' }
     }
-    if ($good) {
-        my $escaped;
-        for my $i ( 1 .. $end - 1 ) {
-            if ($escaped) {
-                $escaped = 0;
-                next;
-            }
-            $s = substr $name, $i, 1;
-            if ( $s eq '\\' ) {
-                $escaped = 1;
-                next;
-            }
-            return if $s eq $e;
-        }
-        return $escaped ? 0 : 1;
+    return $c;
+}
+
+sub mods_test {
+    my $mods = shift;
+    my %types;
+    for ( my ($i,$lim) = (0, length $mods); $i < $lim; ++$i) {
+        $types{substr $mods, $i, 1} = 1;
     }
-    return;
+    return length $mods == scalar keys %types;
 }
 
 1;

@@ -14,9 +14,31 @@ use ToyXML qw(parse);
 
 my $f = ToyXMLForester->new;
 
-my $p        = parse('<aa><ba><a/></ba><b/></aa>');
-my $path     = q{//*[@tag =~ '(?<!b)a']};
-my @elements = $f->path($path)->select($p);
+my ($p, $path, @elements);
+$p        = parse('<aa><ba><a/></ba><b/></aa>');
+$path     = q{//*[@tag =~ '(?<!b)a']};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 2,
+    "found the right number of elements with $path on $p" );
+is $elements[0]->tag, 'aa',  'correct first element';
+is $elements[1]->tag, 'a', 'correct second element';
+
+$path = q{//*[@tag =~ /(?<!b)a/]};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 2,
+    "found the right number of elements with $path on $p" );
+is $elements[0]->tag, 'aa',  'correct first element';
+is $elements[1]->tag, 'a', 'correct second element';
+
+$path = q{//*[@tag =~ :m/(?<!b)a/]};
+@elements = $f->path($path)->select($p);
+is( scalar @elements, 2,
+    "found the right number of elements with $path on $p" );
+is $elements[0]->tag, 'aa',  'correct first element';
+is $elements[1]->tag, 'a', 'correct second element';
+
+$path = q{//*[@tag =~ :m/(?<!b)a/i]};
+@elements = $f->path($path)->select($p);
 is( scalar @elements, 2,
     "found the right number of elements with $path on $p" );
 is $elements[0]->tag, 'aa',  'correct first element';

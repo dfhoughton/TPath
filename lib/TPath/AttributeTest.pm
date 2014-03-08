@@ -256,7 +256,7 @@ sub _m_func {
                 my ( $self, $ctx ) = @_;
                 my $lv = $self->$ls_func($ctx);
                 my $rv = $self->$rs_func($ctx);
-                $lv =~ /$rv/ ? 1 : undef;
+                ( $lv // '' ) =~ /$rv/ ? 1 : undef;
               }
               : sub {
                 my ( $self, $ctx ) = @_;

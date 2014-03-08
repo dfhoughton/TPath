@@ -904,6 +904,9 @@ and the index matchers.
 
   a[@b =~ '(?<!c)d']  # regex matching
   a[@b !~ '(?<!c)d']
+  a[@b =~ /(?<!c)d/]
+  a[@b =~ :m{(?<!/)d}]
+  a[@b =~ :m/ (?<!c) d /imsx]
   a[@b =~ @c]
   ...
   a[@b |= 'c']        # index matching
@@ -918,6 +921,12 @@ The two regex matching operators, C<=~> and C<!~>, function as you would expect:
 and compiled into a regular expression and matched against the left operand. If the left operand is constant -- a
 string or a number -- this regex compilation occurs at compile time. Otherwise, it must be performed for every match,
 at some cost to efficiency.
+
+Note that there are special quoting conventions for the right argument of the regex operator. You may use simple
+forward slashes, but in that case one cannot use regex modifiers. Alternatively, you may prefix the expression
+with C<:m>, in which case the qname quoting convention is followed and one may provide a modifier suffix. Escaping
+within the delimiters is as one would expect for a regular expression, but note that you are writing the
+expression as a string rather than a regex literal, so you may have to double-escape.
 
 B<index matching>
 
@@ -1235,126 +1244,9 @@ The spaces are optional.
 
 =head2 Grammar
 
-The following is a BNf-style grammar of the tpath expression language. It is the actual parsing code,
-in the L<Regexp::Grammars> formalism, used to parse expressions minus the bits that improve efficiency
-and adjust the construction of the abstract syntax tree produced by the parser.
-
-    \A <treepath> \Z
-    
-       <rule: treepath> <path> ( \| <path> )*
-    
-       <token: path> (?![\@'"]) <segment> ( (?= / | \( / ) <segment> )*
-    
-       <token: segment> ( <separator>? <step> | <cs> )
-       
-       <token: quantifier> [?+*] | <enum>
-       
-       <rule: enum> { \d*+ ( , \d*+ )? } 
-        
-       <rule: grouped_step> \( <treepath> \) ( <predicate>+ | quantifier> ?
-    
-       <token: id>
-          :id\( ( [^\)\\] | \\. )+ \)
-    
-       <token: cs>
-           <separator>? <step> <quantifier>
-          | <grouped_step>
-    
-       <token: separator> \/[\/>]?
-    
-       <token: step> <full> <predicate>* | <abbreviated>
-    
-       <token: full> <axis>? <forward> | (?<=(?<!/)/) :p
-    
-       <token: axis> (?<!//) (?<!/>) (<%AXES>) ::
-     
-       <token: abbreviated> (?<!/[/>]) ( \.{1,2}+ | <id> | :root )
-    
-       <token: forward> 
-           <wildcard> | ^? ( <specific> | <pattern> | <attribute> )
-    
-       <token: wildcard> \*
-       
-       <token: specific> <name>
-    
-       <token: pattern> ~([^~]|~~)+~
-     
-       <token: aname> @ :? <name>
-       
-       <token: name>
-          (\\.|[\p{L}\$_])([\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*
-          | <literal>
-          | <qname>
-       
-       <token: qname> : [[:punct:]].+[[:punct:]]
-     
-       <rule: attribute> <aname> <args>?
-    
-       <rule: args> \( <arg> ( , <arg> )* \)
-    
-       <token: arg>
-           <literal> | <num> | <concat> | <attribute> | <treepath> | <attribute_test> | <condition>
-    
-       <rule: concat>
-           <carg> ( ~ <carg>)+
-       
-       <token: carg>
-           <literal> | <num> | <attribute> | <treepath> | <math>
-
-       <token: num> <signed_int> | <float>
-    
-       <token: signed_int> [+-]? <int>
-    
-       <token: float> [+-]? <int>? \.\d+ ( [Ee][+-]? <int> )?
-    
-       <token: literal> <squote> | <dquote>
-    
-       <token: squote> ' ( [^'\\] | \\. )* '
-    
-       <token: dquote> " ( [^"\\] | \\. )* "
-    
-       <rule: predicate> \[ ( < signed_int> | <condition> ) \]
-    
-       <token: int> \b ( 0 | [1-9] [0-9]* ) \b
-    
-       <rule: condition> <not>? <item> ( <operator> <not>? <item> )*
-
-       <token: not> ! | not
-       
-       <token: operator> <or> | <xor> | <and>
-       
-       <token: xor> ; | one
-           
-       <token: and> & | and
-           
-       <token: or> \|{2} | or
-    
-       <token: term> <attribute> | <attribute_test> | <treepath>
-    
-       <rule: attribute_test> <value> <cmp> <value>
-    
-       <token: cmp> [<>=]=? | ![=~] | =~ | =?\|= | =\|
-    
-       <token: value> <literal> | <num> | <concat> | <attribute> | <treepath> | <math>
-       
-       <rule: math> <function> | <operand> ( <mop> <operand> )*
-       
-       <token: function> :? <%FUNCTIONS> \( <math> \)
-       
-       <token: mop> :? <%MATH_OPERATORS>
-       
-       <token: operand> <num> | -? ( <mconst> | <attribute> | <treepath> | <mgroup> | <function> )
-       
-       <token: mconst> : <%MATH_CONSTANTS>
-       
-       <rule: mgroup> \( <math> \)
-    
-       <rule: group> \( <condition> \)
-    
-       <token: item> <term> | <group>
-       
-The crucial part, most likely, is the definition of the <name> rule which governs what you can put in
-tags and attribute names without escaping. The rule, copied from above, is
+The actual L<Regexp::Grammars> parser which defines TPath expressions is in L<TPath::Grammar>. The crucial part, 
+most likely, is the definition of the <name> rule which governs what you can put in tags and attribute names 
+without escaping. The rule is
 
           (\\.|[\p{L}\$_])(?>[\p{L}\$\p{N}_]|[-.:](?=[\p{L}_\$\p{N}])|\\.)*+
           | <qname>
@@ -1368,17 +1260,17 @@ One can also use a quoted expression, with either single or double quotes. The u
 "a\"a" would represent two a's with a " between them. However neither single nor double quotes may begin a path as
 this would make certain expressions ambiguous -- is C<a[@b = 'c']> comparing C<@b> to a path or a literal?
 
-Finally, one can "quote" the entire expression following the C<qname> convention:
+Finally, one can "quote" the entire expression following the C<qname> convention, which is roughly:
 
           : [[:punct:]].+?[[:punct:]]
 
 A quoted name begins with a colon followed by some delimiter character, which must be a POSIX punctuation mark. These
 are the symbols
 
-  <>[](){}\/!"#$%&'*+,-.:;=?@^_`|~
+  <>[](){}/!"#$%&'*+,-.:;=?@^_`|~
 
-If the character after the colon is the first of one of the bracket pairs, the trailing delimiter must be the other member of
-the pair, so
+Note that the backslash character is missing from that set. If the character after the colon is the first of one of 
+the bracket pairs, the trailing delimiter must be the other member of the pair, so
 
   :<a>
   :[a]
@@ -1402,18 +1294,12 @@ are all fine, as are
   ::a:
   :-a-
 
-and so forth. The C<qname> convention is a solution where you want to avoid the unreadability of escapes but have to do
-this at the beginning of a path or your tag name contains both sorts of ordinary quote characters. And again, one may use
-the backslash to escape characters within the expression. If you use the backslash itself as the delimiter, you do not need
-to escape it.
+and so forth. Within these delimiters the normal escaping convention holds: \ escapes the following character.
 
-  :\a\    # good!
-  :\a\\a\ # also good! equivalent to a\\a
-
-Since the C<qname> convention commits you to 3 extra-name characters before any escapes, it
-is generally not advisable unless you otherwise would have to escape more than 3 characters or you feel that whatever
-escaping you would have to do would mar legibility. Double and single quotes make particularly legible C<qname> delimiters
-if it comes to that. Compare
+The C<qname> convention improves readability in some instances by allowing one to avoid escapes. Since the C<qname> convention 
+commits you to 3 extra-name characters before any escapes, it is generally not advisable unless you otherwise would have 
+to escape more than 3 characters or you feel that whatever escaping you would have to do would mar legibility. Double and
+single quotes make particularly legible C<qname> delimiters if it comes to that. Compare
 
   file\ name\ with\ spaces
   :"file name with spaces"
