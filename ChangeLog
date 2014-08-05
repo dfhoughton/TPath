@@ -1,6 +1,8 @@
 Revision history for TPath
 
 {{$NEXT}}
+
+1.007     2014-08-05 12:22:57-04:00 America/New_York
   * added /.../ and :m/.../mods regex syntax
   * removed most of grammar section from documentation, referring instead to
     TPath::Grammar
