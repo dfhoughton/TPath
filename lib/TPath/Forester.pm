@@ -153,7 +153,7 @@ sub _build_cf {
     my $self = shift;
     return sub { $_[0] eq $_[1] }
       unless $self->case_insensitive;
-    return eval 'sub { fc($_[0]) eq fc($_[1]) }' if $] > 5.016;
+    return eval 'sub { use feature "fc"; fc($_[0]) eq fc($_[1]) }' if $] > 5.016;
     my $sub = eval
 'require Unicode::CaseFold; sub { Unicode::CaseFold::fc($_[0]) eq Unicode::CaseFold::fc($_[1])}';
     return $sub unless $@;

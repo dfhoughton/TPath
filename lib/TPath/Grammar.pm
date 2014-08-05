@@ -144,7 +144,7 @@ our $path_grammar = do {
        <token: full> <axis>? <forward> | (?<=(?<!/)/) <previous=(:p)> <.cp>
     
        <token: axis> 
-          (?<!//) (?<!/>) (<%AXES>) ::
+          (?<!/[/>]) (<%AXES>) ::
           (?{ $MATCH = $^N }) <.cp>
     
        <token: abbreviated> (?<!/[/>]) (?: \.{1,2}+ | <id> | :root ) <.cp>
