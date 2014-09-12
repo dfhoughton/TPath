@@ -1,6 +1,7 @@
-Revision history for TPath
+Revision history for Perl module TPath
 
 {{$NEXT}}
+  * Renamed ChangeLog to be Changes
 
 1.007     2014-08-05 12:22:57-04:00 America/New_York
   * added /.../ and :m/.../mods regex syntax
@@ -142,3 +143,4 @@ Revision history for TPath
 
 0.001     2013-03-05 05:52:24 EST5EDT
   * first release
+
